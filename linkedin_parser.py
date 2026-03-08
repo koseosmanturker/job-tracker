@@ -207,10 +207,13 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
         loc = re.sub(rf"^\s*{re.escape(company)}\s*[^A-Za-z0-9]+\s*", "", loc, flags=re.IGNORECASE)
         return loc.strip(" -|:;,.")
 
-    # Picks first location candidate in a line window.
+    # Picks best location candidate in a line window.
+    # If multiple candidates exist, prefer lines containing a comma
+    # (e.g. "Istanbul, Turkiye") over short brand/team labels.
     def first_location_in_range(start_idx: int, end_idx: int) -> str:
         company_cmp = normalize_company(normalize_text(company))
         title_cmp = normalize_company(normalize_text(title))
+        candidates: List[str] = []
         for j in range(max(0, start_idx), min(end_idx, len(lines))):
             cand = lines[j].strip()
             if is_probable_location_line(cand, company):
@@ -219,8 +222,13 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
                     continue
                 cleaned = clean_location(cand)
                 if cleaned:
-                    return cleaned
-        return ""
+                    candidates.append(cleaned)
+        if not candidates:
+            return ""
+        for cand in candidates:
+            if "," in cand:
+                return cand
+        return candidates[0]
 
     subject_n = normalize_text(subject)
     if "sirketine gonderildi" in subject_n:
@@ -255,23 +263,9 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
                     break
             if t_idx >= 0:
                 location = first_location_in_range(t_idx + 1, applied_end_idx)
-            # Fallback: if title index cannot be found due formatting differences,
-            # still try to pick first valid location in the applied block while
-            # skipping company and title lines.
+            # Fallback: if location is still empty, rescan the full applied block.
             if not location:
-                company_cmp = normalize_company(normalize_text(company))
-                title_cmp = normalize_company(normalize_text(title))
-                for j in range(event_idx + 1, applied_end_idx):
-                    cand = lines[j].strip()
-                    if not is_probable_location_line(cand, company):
-                        continue
-                    cand_cmp = normalize_company(normalize_text(cand))
-                    if cand_cmp == company_cmp or cand_cmp == title_cmp:
-                        continue
-                    cleaned = clean_location(cand)
-                    if cleaned:
-                        location = cleaned
-                        break
+                location = first_location_in_range(event_idx + 1, applied_end_idx)
 
         if title:
             return title, location

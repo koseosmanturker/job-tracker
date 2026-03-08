@@ -218,3 +218,15 @@ def show_viewed_jobs(jobs: Dict[str, dict]):
     print(f"\n--- Goruntulenen Toplam Is Sayisi: {len(viewed_rows)} ---")
     for row in viewed_rows:
         print(f"Sirket: {row['company']} | Pozisyon: {row['job_title']}")
+
+
+# Toggles downloaded state for the given row key.
+# Returns (success, new_downloaded_value).
+def toggle_downloaded_by_row_id(jobs: Dict[str, dict], row_id: str) -> tuple[bool, bool]:
+    row = jobs.get(row_id)
+    if not row:
+        return False, False
+    new_value = not bool(row.get("downloaded", False))
+    row["downloaded"] = new_value
+    jobs[row_id] = row
+    return True, new_value

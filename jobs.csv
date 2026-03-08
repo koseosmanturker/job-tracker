@@ -1,6 +1,6 @@
 company,job_title,location,job_url,applied,applied_time,viewed,viewed_time,downloaded,rejected
-Acibadem Healthcare Group,Database Yönetimi Sorumlusu,Ataşehir,https://www.linkedin.com/jobs/view/4378755981,True,2026-03-04T14:35:35+00:00,False,,False,False
-Adecco,IT Business Partner (1 Yıl Kontratlı),Ataşehir,https://www.linkedin.com/jobs/view/4377723687,True,2026-03-03T00:51:24+00:00,False,,False,False
+Acibadem Healthcare Group,Database Yönetimi Sorumlusu,Ataşehir,https://www.linkedin.com/jobs/view/4378755981,True,2026-03-04T14:35:35+00:00,False,,True,False
+Adecco,IT Business Partner (1 Yıl Kontratlı),Ataşehir,https://www.linkedin.com/jobs/view/4377723687,True,2026-03-03T00:51:24+00:00,False,,True,False
 ADL Kurumsal Hizmetler,Full Stack Engineer (Backend Heavy),Ankara,https://www.linkedin.com/jobs/view/4377362944,True,2026-03-03T00:48:36+00:00,False,,False,True
 AF/AC Bilişim,Yazılım Uzmanı,Kayseri,https://www.linkedin.com/jobs/view/4376238811,True,2026-03-04T14:48:53+00:00,False,,False,False
 AI Business School,Full Stack Developer,Türkiye,https://www.linkedin.com/jobs/view/4372631636,True,2026-03-02T14:38:38+00:00,True,2026-03-02T14:38:38+00:00,False,False
@@ -65,7 +65,7 @@ IKEA,Bilgi Teknolojileri Uzmanı - IKEA Türkiye İnternet Mağazası,Kartal,htt
 Inetum,Quality Tester,Lizbon,https://www.linkedin.com/jobs/view/4378659051,True,2026-03-02T00:55:05+00:00,False,,False,False
 Infera Teknoloji,Dijital Süreç Uzmanı (Test),"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4380910526,True,2026-03-08T00:16:15+00:00,False,,False,False
 innobi - Innovative Business Intelligence,Junior Python & Java Developer,Pendik,https://www.linkedin.com/jobs/view/4381641499,True,2026-03-08T00:09:02+00:00,False,,False,False
-Intertech Information Technology and Marketing Inc.,Legal Reporting Oversight Business Analyst (Hybrid),INTERTECH,https://www.linkedin.com/jobs/view/4348309991,True,2026-03-03T00:57:58+00:00,False,,False,False
+Intertech Information Technology and Marketing Inc.,Legal Reporting Oversight Business Analyst (Hybrid),"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4348309991,True,2026-03-03T00:57:58+00:00,False,,False,False
 İnnova Bilişim,Yazılım Test Uzmanı,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4374872974,True,2026-03-04T14:38:55+00:00,False,,False,False
 İZ Human Resource,"Frontend Developer (iOS, Android & Web)",Ankara,https://www.linkedin.com/jobs/view/4375942138,True,2026-03-02T00:32:55+00:00,False,,False,False
 Joveo Ai,Investment Banking Intern (Remote),"Avrupa, Ortadoğu ve Afrika",https://www.linkedin.com/jobs/view/4379907652,True,2026-03-03T00:58:11+00:00,False,,False,False
@@ -102,7 +102,7 @@ Peoployed.,SAP ABAP Geliştirme Uzmanı,"Manisa, Türkiye",https://www.linkedin.
 Plunom Technologies,SAP İş Zekası (BW/BO) Uzmanı,Ankara,https://www.linkedin.com/jobs/view/4363173006,True,2026-03-04T14:41:28+00:00,False,,False,False
 Profile Software Services,Java Developer,İspanya,https://www.linkedin.com/jobs/view/4378337756,True,2026-03-02T00:55:29+00:00,False,,False,True
 PınarOnline,Yazılım Geliştirme Uzmanı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4377734067,True,2026-03-03T00:45:00+00:00,False,,False,False
-Qoolize,Junior NOC Specialist,Qoolize,https://www.linkedin.com/jobs/view/4378823447,True,2026-03-03T01:09:01+00:00,True,2026-03-05T17:56:02+00:00,False,False
+Qoolize,Junior NOC Specialist,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4378823447,True,2026-03-03T01:09:01+00:00,True,2026-03-05T17:56:02+00:00,False,False
 Quatron Teknoloji Otomasyon,Otomasyon Yazılım & Devreye Alma Yetkilisi,Maltepe,https://www.linkedin.com/jobs/view/4379845159,True,2026-03-08T00:07:52+00:00,False,,False,False
 Radarsan,Yazılım Test Mühendisi,"Pendik, İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4374592095,True,2026-03-03T06:26:58+00:00,True,2026-03-03T06:26:58+00:00,False,False
 Rezolve Ai,Full Stack Engineer,"Mazovya Voyvodalığı, Polonya",https://www.linkedin.com/jobs/view/4379244248,True,2026-03-02T00:55:51+00:00,False,,False,True
