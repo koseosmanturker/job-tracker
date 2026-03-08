@@ -63,7 +63,11 @@ def build_incremental_query(state: dict) -> str:
 # Runs end-to-end synchronization from Gmail into local jobs CSV.
 # The function fetches candidate LinkedIn mails, parses events, merges each
 # record into repository, writes CSV, and returns a summary dict.
-def run_sync(csv_path: str = "jobs.csv", mail_limit: int = 200, query: str | None = None, force_full: bool = False):
+def run_sync(csv_path: str = "jobs.csv",
+            #mail_limit: int = 200,
+            query: str | None = None,
+            force_full: bool = False):
+    
     service = get_gmail_service()
     jobs = read_jobs_csv(csv_path)
     state_path = str(Path(csv_path).with_name(SYNC_STATE_FILE))
@@ -74,8 +78,11 @@ def run_sync(csv_path: str = "jobs.csv", mail_limit: int = 200, query: str | Non
         query_to_use = query or build_incremental_query(sync_state)
     pending_rejections: list[tuple[str, str]] = []
 
-    ids = list_all_message_ids(service, query_to_use, limit=mail_limit)
-    print(f"Found: {len(ids)} (limit={mail_limit}) query={query_to_use}")
+    ids = list_all_message_ids(service, query_to_use,
+                                #limit=mail_limit
+                                )
+    
+    print(f"Found: {len(ids)} query={query_to_use}")
 
     processed = 0
     skipped = 0
