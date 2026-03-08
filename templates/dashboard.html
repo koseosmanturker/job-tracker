@@ -17,7 +17,7 @@
         --text: #0f172a;
         --muted: #64748b;
         --brand: #0f766e;
-        --brand2:#14b8a6;
+        --brand2: #14b8a6;
         --ok-bg: #ecfdf5;
         --ok-text: #047857;
         --no-bg: #fff1f2;
@@ -34,7 +34,7 @@
           --text: #e5e7eb;
           --muted: #94a3b8;
           --brand: #2dd4bf;
-          --brand2:#14b8a6;
+          --brand2: #14b8a6;
           --ok-bg: rgba(16,185,129,.12);
           --ok-text: #34d399;
           --no-bg: rgba(244,63,94,.14);
@@ -63,15 +63,15 @@
       }
 
       .top {
-        display:flex;
-        align-items:flex-end;
-        justify-content:space-between;
-        gap:12px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
         margin-bottom: 12px;
       }
 
       .top h1 { margin: 0 0 4px; letter-spacing: -0.02em; }
-      .sub { margin:0; color: var(--muted); font-size: 13px; }
+      .sub { margin: 0; color: var(--muted); font-size: 13px; }
 
       .cards {
         display: grid;
@@ -88,19 +88,22 @@
         box-shadow: var(--shadow);
       }
 
-      .cardTop{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
+      .cardTop {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
       }
 
       .k { color: var(--muted); font-size: 13px; }
       .v { margin-top: 8px; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
 
-      .ico{
-        width: 34px; height: 34px;
-        display:flex; align-items:center; justify-content:center;
+      .ico {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 10px;
         background: linear-gradient(135deg, rgba(20,184,166,.18), rgba(56,189,248,.12));
         border: 1px solid rgba(20,184,166,.20);
@@ -117,21 +120,21 @@
 
       form {
         display: grid;
-        grid-template-columns: 1fr auto auto auto auto;
+        grid-template-columns: 1fr auto auto auto auto auto;
         gap: 8px;
         margin-bottom: 12px;
-        align-items:center;
+        align-items: center;
       }
 
-      .searchBox{ position:relative; }
-      .searchBox::before{
-        content:"🔎";
-        position:absolute;
-        left:10px;
-        top:50%;
-        transform:translateY(-50%);
-        opacity:.75;
-        font-size:14px;
+      .searchBox { position: relative; }
+      .searchBox::before {
+        content: "🔎";
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: .75;
+        font-size: 14px;
       }
 
       input[type="text"] {
@@ -153,14 +156,14 @@
         border-radius: 999px;
         background: var(--chip);
         color: var(--text);
-        user-select:none;
+        user-select: none;
         font-size: 13px;
         white-space: nowrap;
       }
 
-      label input[type="checkbox"]{
-        width:14px;
-        height:14px;
+      label input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
         accent-color: var(--brand);
       }
 
@@ -173,8 +176,6 @@
         font-weight: 600;
         cursor: pointer;
       }
-      button:hover { filter: brightness(1.03); }
-      button:active { transform: translateY(1px); }
 
       table {
         width: 100%;
@@ -225,30 +226,19 @@
         background: transparent;
       }
 
-      .sort a:hover {
-        color: var(--brand);
-        border-color: var(--line);
-        background: color-mix(in srgb, var(--card) 92%, var(--chip));
-      }
-
       .sort a.active {
         color: #fff;
         background: linear-gradient(135deg, var(--brand), var(--brand2));
-        border-color: color-mix(in srgb, var(--brand) 30%, var(--line));
       }
 
-      tbody tr:nth-child(even){
+      tbody tr:nth-child(even) {
         background: color-mix(in srgb, var(--card) 88%, var(--chip));
       }
-      tbody tr:hover{
-        background: color-mix(in srgb, var(--card) 78%, rgba(20,184,166,.10));
-      }
 
-      .badge{
+      .badge {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
         height: 32px;
         padding: 0 10px;
         border-radius: 999px;
@@ -258,17 +248,19 @@
         white-space: nowrap;
         border: 1px solid var(--line);
       }
-      .badge.ok { background: var(--ok-bg); color: var(--ok-text); border-color: color-mix(in srgb, var(--ok-text) 18%, var(--line)); }
-      .badge.no { background: var(--no-bg); color: var(--no-text); border-color: color-mix(in srgb, var(--no-text) 18%, var(--line)); }
 
-      .actions{
-        display:flex;
-        gap:8px;
-        align-items:center;
+      .badge.ok { background: var(--ok-bg); color: var(--ok-text); }
+      .badge.no { background: var(--no-bg); color: var(--no-text); }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
       }
+
       .btnLink {
         display: inline-flex;
-        align-items:center;
+        align-items: center;
         gap: 8px;
         padding: 8px 10px;
         border-radius: 10px;
@@ -280,22 +272,21 @@
         background: color-mix(in srgb, var(--card) 92%, var(--chip));
         white-space: nowrap;
       }
-      .btnLink:hover { text-decoration: underline; }
 
-      .btnIcon{
-        width: 36px; height: 34px;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
+      .btnIcon {
+        width: 36px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 10px;
         border: 1px solid var(--line);
         background: color-mix(in srgb, var(--card) 92%, var(--chip));
-        cursor:pointer;
+        cursor: pointer;
         color: var(--text);
       }
-      .btnIcon:hover { filter: brightness(1.03); }
 
-      .toast{
+      .toast {
         position: fixed;
         bottom: 18px;
         left: 50%;
@@ -311,7 +302,8 @@
         pointer-events: none;
         transition: opacity .2s ease, transform .2s ease;
       }
-      .toast.show{
+
+      .toast.show {
         opacity: 1;
         transform: translateX(-50%) translateY(-4px);
       }
@@ -328,14 +320,14 @@
       <div class="top">
         <div>
           <h1>LinkedIn Job Tracker</h1>
-          <p class="sub">Track applied, viewed, and downloaded statuses in one place.</p>
+          <p class="sub">Track applied, viewed, downloaded, and rejected statuses in one place.</p>
         </div>
       </div>
 
       <div class="cards">
         <div class="card">
           <div class="cardTop">
-            <div class="k">Başvurulanlar</div>
+            <div class="k">Applications</div>
             <div class="ico">🧾</div>
           </div>
           <div class="v">{{ stats.applied }}</div>
@@ -343,7 +335,7 @@
 
         <div class="card">
           <div class="cardTop">
-            <div class="k">Görüntülenenler</div>
+            <div class="k">Viewed</div>
             <div class="ico">👁️</div>
           </div>
           <div class="v">{{ stats.viewed }}</div>
@@ -351,7 +343,7 @@
 
         <div class="card">
           <div class="cardTop">
-            <div class="k">İndirilenler</div>
+            <div class="k">Downloaded</div>
             <div class="ico">⬇️</div>
           </div>
           <div class="v">{{ stats.downloaded }}</div>
@@ -359,7 +351,7 @@
 
         <div class="card">
           <div class="cardTop">
-            <div class="k">Reddedilenler</div>
+            <div class="k">Rejected</div>
             <div class="ico">❌</div>
           </div>
           <div class="v">{{ stats.rejected }}</div>
@@ -375,7 +367,7 @@
           <label><input type="checkbox" name="applied" value="1" {% if applied_only %}checked{% endif %}> Applied only</label>
           <label><input type="checkbox" name="viewed" value="1" {% if viewed_only %}checked{% endif %}> Viewed only</label>
           <label><input type="checkbox" name="downloaded" value="1" {% if downloaded_only %}checked{% endif %}> Downloaded only</label>
-
+          <label><input type="checkbox" name="rejected" value="1" {% if rejected_only %}checked{% endif %}> Rejected only</label>
           <button type="submit">Filter</button>
         </form>
 
@@ -391,15 +383,13 @@
                 Applied Time
                 <span class="sort">
                   <a
-                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&sort=applied_time&order=asc"
+                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=asc"
                     class="{% if sort=='applied_time' and order=='asc' %}active{% endif %}"
-                    data-sort="applied_time" data-order="asc"
                     title="Sort ASC"
                   >▲</a>
                   <a
-                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&sort=applied_time&order=desc"
+                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=desc"
                     class="{% if sort=='applied_time' and order=='desc' %}active{% endif %}"
-                    data-sort="applied_time" data-order="desc"
                     title="Sort DESC"
                   >▼</a>
                 </span>
@@ -409,21 +399,19 @@
                 Viewed Time
                 <span class="sort">
                   <a
-                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&sort=viewed_time&order=asc"
+                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=asc"
                     class="{% if sort=='viewed_time' and order=='asc' %}active{% endif %}"
-                    data-sort="viewed_time" data-order="asc"
                     title="Sort ASC"
                   >▲</a>
                   <a
-                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&sort=viewed_time&order=desc"
+                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=desc"
                     class="{% if sort=='viewed_time' and order=='desc' %}active{% endif %}"
-                    data-sort="viewed_time" data-order="desc"
                     title="Sort DESC"
                   >▼</a>
                 </span>
               </th>
               <th>Downloaded</th>
-              <th>Reddedilen</th>
+              <th>Rejected</th>
             </tr>
           </thead>
 
@@ -452,7 +440,6 @@
                     <span class="badge no">—</span>
                   {% endif %}
                 </td>
-
                 <td>{{ r.applied_time_fmt }}</td>
 
                 <td>
@@ -462,7 +449,6 @@
                     <span class="badge no">⏳</span>
                   {% endif %}
                 </td>
-
                 <td>{{ r.viewed_time_fmt }}</td>
 
                 <td>
@@ -474,7 +460,11 @@
                 </td>
 
                 <td>
-                  <span class="badge no">-</span>
+                  {% if r.rejected %}
+                    <span class="badge ok">❌</span>
+                  {% else %}
+                    <span class="badge no">-</span>
+                  {% endif %}
                 </td>
               </tr>
             {% else %}
@@ -502,8 +492,8 @@
       document.addEventListener("click", async (e) => {
         const btn = e.target.closest("[data-copy]");
         if (!btn) return;
-
         const text = btn.getAttribute("data-copy");
+
         try {
           await navigator.clipboard.writeText(text);
           showToast("Link copied ✅");
@@ -520,9 +510,7 @@
 
       document.addEventListener("click", (e) => {
         const a = e.target.closest(".sort a");
-        if (!a) return;
-        if (!a.classList.contains("active")) return;
-
+        if (!a || !a.classList.contains("active")) return;
         e.preventDefault();
         const url = new URL(window.location.href);
         url.searchParams.delete("sort");

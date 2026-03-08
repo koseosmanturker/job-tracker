@@ -22,6 +22,7 @@ CSV_HEADERS = [
     "viewed",
     "viewed_time",
     "downloaded",
+    "rejected",
 ]
 
 
@@ -94,6 +95,7 @@ def read_jobs_csv(csv_path: str) -> Dict[str, dict]:
                 "viewed": str_to_bool(row.get("viewed", "")),
                 "viewed_time": (row.get("viewed_time") or "").strip(),
                 "downloaded": str_to_bool(row.get("downloaded", "")),
+                "rejected": str_to_bool(row.get("rejected", "")),
             }
             if normalized_row["viewed"]:
                 normalized_row["applied"] = True
@@ -145,6 +147,7 @@ def upsert_job_csv(jobs: Dict[str, dict], incoming: dict):
     if not existing:
         incoming["applied"] = bool(incoming.get("applied") or incoming.get("viewed"))
         incoming["downloaded"] = bool(incoming.get("downloaded", False))
+        incoming["rejected"] = bool(incoming.get("rejected", False))
         if not incoming.get("job_title"):
             incoming["job_title"] = "Unknown Title"
         jobs[key] = incoming
@@ -165,6 +168,7 @@ def upsert_job_csv(jobs: Dict[str, dict], incoming: dict):
     existing["applied"] = bool(existing.get("applied") or incoming_applied)
     existing["viewed"] = bool(existing.get("viewed") or incoming.get("viewed"))
     existing["downloaded"] = bool(existing.get("downloaded", False))
+    existing["rejected"] = bool(existing.get("rejected", False) or incoming.get("rejected", False))
 
     existing["applied_time"] = choose_earliest_time(existing.get("applied_time", ""), incoming.get("applied_time", ""))
     existing["viewed_time"] = choose_earliest_time(existing.get("viewed_time", ""), incoming.get("viewed_time", ""))
@@ -174,6 +178,28 @@ def upsert_job_csv(jobs: Dict[str, dict], incoming: dict):
         existing["viewed_time"] = existing["applied_time"]
 
     jobs[key] = existing
+
+
+# Marks an existing job row as rejected by matching normalized company and title.
+# First tries exact normalized equality, then falls back to contains match.
+def mark_rejected_by_company_title(jobs: Dict[str, dict], company: str, job_title: str) -> bool:
+    company_n = normalize_text(company)
+    title_n = normalize_text(job_title)
+
+    if not company_n or not title_n:
+        return False
+
+    for row in jobs.values():
+        if normalize_text(row.get("company", "")) == company_n and normalize_text(row.get("job_title", "")) == title_n:
+            row["rejected"] = True
+            return True
+
+    for row in jobs.values():
+        if company_n in normalize_text(row.get("company", "")) and title_n in normalize_text(row.get("job_title", "")):
+            row["rejected"] = True
+            return True
+
+    return False
 
 
 # Writes normalized job rows back to CSV in deterministic order.

@@ -6,6 +6,7 @@ from typing import Optional, List, Tuple
 URL_RE = re.compile(r"https?://\S+")
 APPLIED_RE = re.compile(r"basvurunuz\s+(?P<company>.+?)\s+sirketine\s+gonderildi", re.IGNORECASE)
 VIEWED_RE = re.compile(r"basvurunuz\s+(?P<company>.+?)\s+tarafindan\s+goruntulendi", re.IGNORECASE)
+REJECTED_SUBJECT_RE = re.compile(r"(?P<company>.+?)\s+sirketindeki\s+(?P<title>.+?)\s+basvurunuz\b", re.IGNORECASE)
 NOISE_PHRASES = (
     "basvuru tarihi",
     "sizin icin onerilen benzer is ilanlarini kesfedin",
@@ -445,3 +446,16 @@ def extract_company_display_name(subject: str, body_text: str, company_normalize
         return max(candidates, key=score)
 
     return company_normalized or ""
+
+
+# Extracts rejection event payload from subject using the expected pattern:
+# "<company> şirketindeki <job_title> başvurunuz". Matching is done on
+# normalized text to survive encoding/diacritic differences.
+def extract_rejected_event(subject: str) -> Tuple[Optional[str], Optional[str]]:
+    subject_n = normalize_text(subject)
+    m = REJECTED_SUBJECT_RE.search(subject_n)
+    if not m:
+        return None, None
+    company = normalize_company(m.group("company"))
+    title = (m.group("title") or "").strip()
+    return company or None, title or None

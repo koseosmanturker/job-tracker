@@ -74,6 +74,7 @@ def home():
     viewed_only = request.args.get("viewed") == "1"
     applied_only = request.args.get("applied") == "1"
     downloaded_only = request.args.get("downloaded") == "1"
+    rejected_only = request.args.get("rejected") == "1"
 
     # Sorting
     sort = (request.args.get("sort") or "").strip()          # "applied_time" | "viewed_time" | ""
@@ -94,6 +95,8 @@ def home():
         if applied_only and not row.get("applied", False):
             continue
         if downloaded_only and not row.get("downloaded", False):
+            continue
+        if rejected_only and not row.get("rejected", False):
             continue
 
         filtered.append(row)
@@ -123,7 +126,7 @@ def home():
         "applied": sum(1 for r in jobs if r.get("applied", False)),
         "viewed": sum(1 for r in jobs if r.get("viewed", False)),
         "downloaded": sum(1 for r in jobs if r.get("downloaded", False)),
-        "rejected": "-",
+        "rejected": sum(1 for r in jobs if r.get("rejected", False)),
     }
 
     return render_template(
@@ -134,6 +137,7 @@ def home():
         viewed_only=viewed_only,
         applied_only=applied_only,
         downloaded_only=downloaded_only,
+        rejected_only=rejected_only,
         csv_path=str(CSV_PATH),
 
         # pass current sort state so template can preserve it if you want
