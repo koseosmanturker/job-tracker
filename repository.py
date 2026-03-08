@@ -25,6 +25,23 @@ CSV_HEADERS = [
 ]
 
 
+# Picks the better display form for company name while keeping matching logic normalized.
+# Preference is given to the variant that contains uppercase styling if old value
+# is plain-lowercase, so UI gradually improves as new mails are parsed.
+def pick_better_company(old_company: str, new_company: str) -> str:
+    if not old_company:
+        return new_company
+    if not new_company:
+        return old_company
+
+    old_has_upper = any(ch.isupper() for ch in old_company)
+    new_has_upper = any(ch.isupper() for ch in new_company)
+
+    if not old_has_upper and new_has_upper:
+        return new_company
+    return old_company
+
+
 # Builds stable deduplication key per row.
 # Preferred key uses LinkedIn job ID; fallback key uses normalized company,
 # title, and location tuple when ID is unavailable.
@@ -134,6 +151,7 @@ def upsert_job_csv(jobs: Dict[str, dict], incoming: dict):
         return
 
     existing["job_url"] = incoming.get("job_url") or existing.get("job_url", "")
+    existing["company"] = pick_better_company(existing.get("company", ""), incoming.get("company", ""))
     existing["location"] = incoming.get("location") or existing.get("location", "")
     existing["job_title"] = pick_better_title(
         existing.get("job_title", ""),

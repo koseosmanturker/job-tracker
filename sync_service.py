@@ -6,7 +6,12 @@ from gmail_client import (
     get_message_time_iso,
     extract_body_text,
 )
-from linkedin_parser import classify_email, extract_job_title_and_location, extract_job_url
+from linkedin_parser import (
+    classify_email,
+    extract_job_title_and_location,
+    extract_job_url,
+    extract_company_display_name,
+)
 from repository import read_jobs_csv, upsert_job_csv, write_jobs_csv, show_viewed_jobs
 
 
@@ -38,12 +43,13 @@ def run_sync(csv_path: str = "jobs.csv", mail_limit: int = 50, query: str = "fro
         company, applied_evt, viewed_evt = classify_email(subject, body)
         if not company:
             continue
+        company_display = extract_company_display_name(subject, body, company)
 
         job_title, location = extract_job_title_and_location(subject, body, company)
         job_url = extract_job_url(body) or ""
 
         incoming = {
-            "company": company,
+            "company": company_display or company,
             "job_title": job_title,
             "location": location,
             "job_url": job_url,

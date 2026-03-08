@@ -120,10 +120,10 @@ def home():
         )
 
     stats = {
-        "total": len(jobs),
         "applied": sum(1 for r in jobs if r.get("applied", False)),
         "viewed": sum(1 for r in jobs if r.get("viewed", False)),
         "downloaded": sum(1 for r in jobs if r.get("downloaded", False)),
+        "rejected": "-",
     }
 
     return render_template(

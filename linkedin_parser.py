@@ -402,3 +402,46 @@ def extract_job_url(body_text: str) -> Optional[str]:
 def extract_job_id(job_url: str) -> str:
     m = re.search(r"linkedin\.com/(?:comm/)?jobs/view/(\d+)", job_url or "")
     return m.group(1) if m else ""
+
+
+# Chooses a human-friendly company display name from raw subject/body.
+# Matching is done via normalized comparison so dedup logic stays unchanged,
+# while UI can show original casing such as "Alyo Bilisim A.S.".
+def extract_company_display_name(subject: str, body_text: str, company_normalized: str) -> str:
+    target = normalize_company(normalize_text(company_normalized))
+    if not target:
+        return company_normalized or ""
+
+    candidates: List[str] = []
+
+    m_subject_applied = re.search(
+        r"başvurunuz\s+(?P<company>.+?)\s+şirketine\s+gönderildi",
+        subject,
+        flags=re.IGNORECASE,
+    )
+    if m_subject_applied:
+        candidates.append(m_subject_applied.group("company").strip())
+
+    m_subject_viewed = re.search(
+        r"başvurunuz\s+(?P<company>.+?)\s+tarafından\s+görüntülendi",
+        subject,
+        flags=re.IGNORECASE,
+    )
+    if m_subject_viewed:
+        candidates.append(m_subject_viewed.group("company").strip())
+
+    for ln in body_to_lines(body_text):
+        cand = ln.strip()
+        if normalize_company(normalize_text(cand)) == target:
+            candidates.append(cand)
+
+    # Picks candidate that best preserves intended style (uppercase + punctuation).
+    def score(name: str) -> tuple[int, int, int]:
+        has_upper = 1 if any(ch.isupper() for ch in name) else 0
+        has_punct = 1 if any(ch in ".-&" for ch in name) else 0
+        return (has_upper, has_punct, len(name))
+
+    if candidates:
+        return max(candidates, key=score)
+
+    return company_normalized or ""
