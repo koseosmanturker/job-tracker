@@ -32,12 +32,12 @@ def normalize_text(value: str) -> str:
     text = unicodedata.normalize("NFKD", text)
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
     repl = {
-        "ÅŸ": "s",
-        "Ä±": "i",
-        "ÄŸ": "g",
-        "Ã¼": "u",
-        "Ã¶": "o",
-        "Ã§": "c",
+        "Ã…Å¸": "s",
+        "Ã„Â±": "i",
+        "Ã„Å¸": "g",
+        "ÃƒÂ¼": "u",
+        "ÃƒÂ¶": "o",
+        "ÃƒÂ§": "c",
     }
     for src, dst in repl.items():
         text = text.replace(src, dst)
@@ -83,7 +83,7 @@ def classify_email(subject: str, body_text: str) -> Tuple[Optional[str], bool, b
 
 # Converts raw HTML/plain body into normalized line list.
 # The parser strips tags, removes noisy separator rows, and returns meaningful
-# single-line text blocks for downstream title/location heuristics.
+# single-line text blocks for downstream title/location extraction.
 def body_to_lines(body_text: str) -> List[str]:
     if not body_text:
         return []
@@ -104,48 +104,10 @@ def body_to_lines(body_text: str) -> List[str]:
     return lines
 
 
-# Heuristic checker for lines that look like location information.
-# It is intentionally broad because location formatting varies heavily.
-def looks_like_location(text: str) -> bool:
-    t = normalize_text(text)
-    if "turkiye" in t or "istanbul" in t or "ankara" in t:
-        return True
-    if "polonya" in t or "almanya" in t or "ingiltere" in t or "usa" in t:
-        return True
-    if "metropol bolgesi" in t or "bolgesi" in t:
-        return True
-    if "uzaktan" in t or "remote" in t or "hybrid" in t:
-        return True
-    if "," in text:
-        return True
-    return False
-
-
 # Detects "applied date" lines so they are not mistaken as job title.
 def looks_like_applied_date_line(text: str) -> bool:
     t = normalize_text(text)
     return bool(re.search(r"\b\d{1,2}\s+\w+\s+tarihinde\s+basvuruldu\b", t))
-
-
-# Tests whether a line can be accepted as location in current parsing context.
-# The function excludes URLs, event messages, and pure company duplicates.
-def is_probable_location_line(text: str, company: str) -> bool:
-    if not text:
-        return False
-    t = normalize_text(text)
-    if "http://" in text or "https://" in text or "@" in text:
-        return False
-    if "sirketindeki" in t or "basvurunuz" in t:
-        return False
-    if "is ilanini goruntuleyin" in t:
-        return False
-    if normalize_text(company) == t:
-        return False
-    if "Â·" in text or "â€¢" in text:
-        return True
-    if looks_like_location(text):
-        return True
-    return False
 
 
 # Filters known footer/marketing/system lines that should not affect parsing.
@@ -172,6 +134,26 @@ def is_noise_line(text: str) -> bool:
     return False
 
 
+# Tests whether a line can be accepted as location in current parsing context.
+# This version avoids keyword-based geo detection and accepts the first
+# meaningful non-noise candidate.
+def is_probable_location_line(text: str, company: str) -> bool:
+    if not text:
+        return False
+    if is_noise_line(text):
+        return False
+    t = normalize_text(text)
+    if "http://" in text or "https://" in text or "@" in text:
+        return False
+    if "sirketindeki" in t or "basvurunuz" in t:
+        return False
+    if "is ilanini goruntuleyin" in t:
+        return False
+    if normalize_text(company) == t:
+        return False
+    return True
+
+
 # Rejects title candidates that are too noisy, too short/long, or semantically wrong.
 # This guards against false positives from event lines and email chrome text.
 def is_bad_title(text: str, company: str) -> bool:
@@ -196,8 +178,6 @@ def is_bad_title(text: str, company: str) -> bool:
         return True
     if company_n and t == company_n:
         return True
-    if " Â· " in text:
-        return True
     if len(text) < 3 or len(text) > 140:
         return True
     if looks_like_applied_date_line(text):
@@ -206,8 +186,8 @@ def is_bad_title(text: str, company: str) -> bool:
 
 
 # Extracts the best job title and location pair from subject/body.
-# Multiple rule blocks are tried in order: applied-mail layout, viewed-mail layout,
-# company-separator patterns, and finally conservative fallbacks.
+# Location selection is simplified: once title context is known, the parser
+# takes the first valid line as location without keyword-based checks.
 def extract_job_title_and_location(subject: str, body_text: str, company: str) -> Tuple[str, str]:
     lines = body_to_lines(body_text)
     for stop_idx, line in enumerate(lines):
@@ -225,6 +205,21 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
         loc = (value or "").strip()
         loc = re.sub(rf"^\s*{re.escape(company)}\s*[^A-Za-z0-9]+\s*", "", loc, flags=re.IGNORECASE)
         return loc.strip(" -|:;,.")
+
+    # Picks first location candidate in a line window.
+    def first_location_in_range(start_idx: int, end_idx: int) -> str:
+        company_cmp = normalize_company(normalize_text(company))
+        title_cmp = normalize_company(normalize_text(title))
+        for j in range(max(0, start_idx), min(end_idx, len(lines))):
+            cand = lines[j].strip()
+            if is_probable_location_line(cand, company):
+                cand_cmp = normalize_company(normalize_text(cand))
+                if cand_cmp == company_cmp or (title_cmp and cand_cmp == title_cmp):
+                    continue
+                cleaned = clean_location(cand)
+                if cleaned:
+                    return cleaned
+        return ""
 
     subject_n = normalize_text(subject)
     if "sirketine gonderildi" in subject_n:
@@ -245,8 +240,6 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
             cand = lines[j].strip()
             if is_bad_title(cand, company):
                 continue
-            if looks_like_location(cand):
-                continue
             if normalize_text(cand) == company_n:
                 continue
             title = cand
@@ -260,14 +253,23 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
                     t_idx = i
                     break
             if t_idx >= 0:
-                for j in range(t_idx + 1, applied_end_idx):
+                location = first_location_in_range(t_idx + 1, applied_end_idx)
+            # Fallback: if title index cannot be found due formatting differences,
+            # still try to pick first valid location in the applied block while
+            # skipping company and title lines.
+            if not location:
+                company_cmp = normalize_company(normalize_text(company))
+                title_cmp = normalize_company(normalize_text(title))
+                for j in range(event_idx + 1, applied_end_idx):
                     cand = lines[j].strip()
-                    if is_noise_line(cand):
+                    if not is_probable_location_line(cand, company):
                         continue
-                    if normalize_text(cand) == company_n:
+                    cand_cmp = normalize_company(normalize_text(cand))
+                    if cand_cmp == company_cmp or cand_cmp == title_cmp:
                         continue
-                    if is_probable_location_line(cand, company):
-                        location = clean_location(cand)
+                    cleaned = clean_location(cand)
+                    if cleaned:
+                        location = cleaned
                         break
 
         if title:
@@ -275,29 +277,16 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
 
     for i, line in enumerate(lines):
         if "ise alim takimi" in normalize_text(line):
+            title_idx = -1
             for j in range(i + 1, min(i + 4, len(lines))):
                 cand = lines[j].strip()
                 if is_bad_title(cand, company):
                     continue
-                if looks_like_location(cand):
-                    continue
                 title = cand
+                title_idx = j
                 break
             if title:
-                for j in range(i + 1, min(i + 7, len(lines))):
-                    cand_loc = lines[j].strip()
-                    if is_probable_location_line(cand_loc, company):
-                        if "Â·" in cand_loc or "â€¢" in cand_loc:
-                            parts = re.split(r"\s*[Â·â€¢]\s*", cand_loc, maxsplit=1)
-                            if len(parts) == 2:
-                                left, right = parts
-                                if normalize_text(company) in normalize_text(left):
-                                    location = clean_location(right)
-                                else:
-                                    location = clean_location(cand_loc)
-                        else:
-                            location = clean_location(cand_loc)
-                        break
+                location = first_location_in_range(title_idx + 1, i + 7)
                 break
 
     for idx, line in enumerate(lines):
@@ -306,7 +295,7 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
         left = ""
         right = ""
 
-        parts = re.split(r"\s*[Â·â€¢]\s*", line, maxsplit=1)
+        parts = re.split(r"\s*[Ã‚Â·Ã¢â‚¬Â¢]\s*", line, maxsplit=1)
         if len(parts) == 2:
             left, right = parts
         else:
@@ -342,8 +331,6 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
                 cand = lines[j].strip()
                 if is_bad_title(cand, company):
                     continue
-                if looks_like_location(cand):
-                    continue
                 title = cand
                 break
             if title:
@@ -356,20 +343,12 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
                     cand = lines[j].strip()
                     if is_bad_title(cand, company):
                         continue
-                    if looks_like_location(cand):
-                        continue
                     title = cand
                     break
                 if title:
                     break
 
-    if looks_like_location(title):
-        for line in lines:
-            if not is_bad_title(line, company) and not looks_like_location(line):
-                title = line
-                break
-
-    if not location and title:
+    if title and not location:
         title_n = normalize_text(title)
         title_idx = -1
         for i, line in enumerate(lines):
@@ -377,20 +356,7 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
                 title_idx = i
                 break
         if title_idx >= 0:
-            for j in range(title_idx + 1, min(title_idx + 5, len(lines))):
-                cand = lines[j].strip()
-                if is_probable_location_line(cand, company):
-                    if "Â·" in cand or "â€¢" in cand:
-                        parts = re.split(r"\s*[Â·â€¢]\s*", cand, maxsplit=1)
-                        if len(parts) == 2:
-                            left, right = parts
-                            if normalize_text(company) in normalize_text(left):
-                                location = right.strip()
-                            else:
-                                location = clean_location(cand)
-                    else:
-                        location = clean_location(cand)
-                    break
+            location = first_location_in_range(title_idx + 1, title_idx + 5)
 
     if title and looks_like_applied_date_line(title):
         m = re.search(r"sirketindeki\s+(?P<title>.+?)\s+basvurunuz", subject_n)

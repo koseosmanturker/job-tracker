@@ -10,7 +10,6 @@ from linkedin_parser import (
     is_bad_title,
     is_probable_location_line,
     looks_like_applied_date_line,
-    looks_like_location,
 )
 
 CSV_HEADERS = [
@@ -98,7 +97,7 @@ def pick_better_title(old_title: str, new_title: str, company: str) -> str:
         return new_title
     if looks_like_applied_date_line(old_title) and not looks_like_applied_date_line(new_title):
         return new_title
-    if looks_like_location(old_title) and not looks_like_location(new_title):
+    if is_probable_location_line(old_title, company) and not is_probable_location_line(new_title, company):
         return new_title
     return old_title
 

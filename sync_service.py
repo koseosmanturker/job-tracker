@@ -56,10 +56,10 @@ def run_sync(csv_path: str = "jobs.csv", mail_limit: int = 50, query: str = "fro
 
         upsert_job_csv(jobs, incoming)
         processed += 1
-        print(f"OK -> company={company} | applied={applied_evt} | viewed={viewed_evt}")
+        print(f"OK -> company={company} | job_title={job_title} | location={location} | applied={applied_evt} | viewed={viewed_evt}")
 
     write_jobs_csv(csv_path, jobs)
-    show_viewed_jobs(jobs)
+    # show_viewed_jobs(jobs)
 
     summary = {"processed": processed, "skipped": skipped, "csv_path": csv_path}
     print(f"DONE processed={processed} skipped={skipped} csv={csv_path}")
