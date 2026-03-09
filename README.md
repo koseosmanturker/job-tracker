@@ -85,3 +85,6 @@ Asagidaki dosyalari repoya koyma:
 ## Lisans
 
 Bu proje su an lisans tanimi icermiyor. Istersen MIT lisansi ekleyebilirsin.
+
+
+![alt text](image.png)
