@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 from repository import read_jobs_csv, write_jobs_csv, toggle_downloaded_by_row_id
-from sync_service import run_sync
+from sync_service import run_sync, load_sync_state, SYNC_STATE_FILE
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -103,6 +103,9 @@ def toggle_downloaded(row_id: str):
 @web.get("/")
 def home():
     jobs = to_rows(read_jobs_csv(str(CSV_PATH)))
+    state_path = str(CSV_PATH.with_name(SYNC_STATE_FILE))
+    sync_state = load_sync_state(state_path)
+    last_sync_time_fmt = format_time(sync_state.get("last_synced_at"))
 
     # Filters
     search = request.args.get("search", "").strip().lower()
@@ -197,6 +200,7 @@ def home():
         processed=processed,
         skipped=skipped,
         rejected_marked=rejected_marked,
+        last_sync_time_fmt=last_sync_time_fmt,
         csv_path=str(CSV_PATH),
 
         # pass current sort state so template can preserve it if you want

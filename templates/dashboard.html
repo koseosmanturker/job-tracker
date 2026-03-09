@@ -72,7 +72,14 @@
 
       .top h1 { margin: 0 0 4px; letter-spacing: -0.02em; }
       .sub { margin: 0; color: var(--muted); font-size: 13px; }
-      .topActions { display: flex; align-items: center; gap: 8px; }
+      .topActions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+      .syncButtons { display: flex; align-items: center; gap: 8px; }
+      .syncButtons form { display: block; margin: 0; }
+      .lastSync {
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
       .syncModeBtn { background: linear-gradient(135deg, #2563eb, #38bdf8); }
       .syncBtn { text-decoration: none; display: inline-flex; align-items: center; }
 
@@ -263,6 +270,9 @@
         text-align: left;
         vertical-align: middle;
       }
+      .nowrap { white-space: nowrap; }
+      .col-time { width: 150px; }
+      .col-status { width: 120px; text-align: center; }
 
       th {
         font-size: 12px;
@@ -278,8 +288,15 @@
       .sort {
         display: inline-flex;
         gap: 6px;
-        margin-left: 8px;
+        margin-left: 0;
         vertical-align: middle;
+      }
+      .thStack {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        line-height: 1.1;
       }
 
       .sort a {
@@ -322,6 +339,10 @@
 
       .badge.ok { background: var(--ok-bg); color: var(--ok-text); }
       .badge.no { background: var(--no-bg); color: var(--no-text); }
+      .dashMuted {
+        color: var(--muted);
+        font-weight: 700;
+      }
 
       .actions {
         display: flex;
@@ -408,6 +429,11 @@
       @media (max-width: 960px) {
         .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         form { grid-template-columns: 1fr; }
+        .topActions { width: 100%; align-items: stretch; }
+        .syncButtons { width: 100%; }
+        .syncButtons form { width: 100%; }
+        .syncButtons button { width: 100%; }
+        .lastSync { text-align: right; }
       }
     </style>
   </head>
@@ -420,14 +446,17 @@
           <p class="sub">Track applied, viewed, downloaded, and rejected statuses in one place.</p>
         </div>
         <div class="topActions">
-          <form id="syncForm" method="post" action="/sync">
-            <input type="hidden" name="sync_mode" value="incremental">
-            <button id="syncBtn" type="submit" class="syncBtn">Sync Emails</button>
-          </form>
-          <form id="syncFullForm" method="post" action="/sync">
-            <input type="hidden" name="sync_mode" value="full">
-            <button id="syncFullBtn" type="submit" class="syncBtn syncModeBtn">Full Sync (365d)</button>
-          </form>
+          <div class="syncButtons">
+            <form id="syncForm" method="post" action="/sync">
+              <input type="hidden" name="sync_mode" value="incremental">
+              <button id="syncBtn" type="submit" class="syncBtn">Sync Emails</button>
+            </form>
+            <form id="syncFullForm" method="post" action="/sync">
+              <input type="hidden" name="sync_mode" value="full">
+              <button id="syncFullBtn" type="submit" class="syncBtn syncModeBtn">Full Sync (365d)</button>
+            </form>
+          </div>
+          <div class="lastSync">Last Sync Time: {{ last_sync_time_fmt }}</div>
         </div>
       </div>
 
@@ -493,10 +522,11 @@
               <th>Job Title</th>
               <th>Location</th>
               <th>Actions</th>
-              <th>Applied</th>
-              <th>
-                Applied Time
-                <span class="sort">
+              <th class="col-status">Applied</th>
+              <th class="col-time">
+                <span class="thStack">
+                  <span>Applied Time</span>
+                  <span class="sort">
                   <a
                     href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=asc"
                     class="{% if sort=='applied_time' and order=='asc' %}active{% endif %}"
@@ -507,12 +537,14 @@
                     class="{% if sort=='applied_time' and order=='desc' %}active{% endif %}"
                     title="Sort DESC"
                   >▼</a>
+                  </span>
                 </span>
               </th>
-              <th>Viewed</th>
-              <th>
-                Viewed Time
-                <span class="sort">
+              <th class="col-status">Viewed</th>
+              <th class="col-time">
+                <span class="thStack">
+                  <span>Viewed Time</span>
+                  <span class="sort">
                   <a
                     href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=asc"
                     class="{% if sort=='viewed_time' and order=='asc' %}active{% endif %}"
@@ -523,10 +555,11 @@
                     class="{% if sort=='viewed_time' and order=='desc' %}active{% endif %}"
                     title="Sort DESC"
                   >▼</a>
+                  </span>
                 </span>
               </th>
-              <th>Downloaded</th>
-              <th>Rejected</th>
+              <th class="col-status">Downloaded</th>
+              <th class="col-status">Rejected</th>
             </tr>
           </thead>
 
@@ -548,25 +581,25 @@
                   {% endif %}
                 </td>
 
-                <td>
+                <td class="col-status">
                   {% if r.applied %}
                     <span class="badge ok">✅</span>
                   {% else %}
                     <span class="badge no">—</span>
                   {% endif %}
                 </td>
-                <td>{{ r.applied_time_fmt }}</td>
+                <td class="nowrap">{{ r.applied_time_fmt }}</td>
 
-                <td>
+                <td class="col-status">
                   {% if r.viewed %}
                     <span class="badge ok">👁️</span>
                   {% else %}
                     <span class="badge no">⏳</span>
                   {% endif %}
                 </td>
-                <td>{{ r.viewed_time_fmt }}</td>
+                <td class="nowrap">{{ r.viewed_time_fmt or '-' }}</td>
 
-                <td>
+                <td class="col-status">
                   <button
                     type="button"
                     class="downloadToggle {% if r.downloaded %}on{% endif %}"
@@ -580,11 +613,11 @@
                   </button>
                 </td>
 
-                <td>
+                <td class="col-status">
                   {% if r.rejected %}
                     <span class="badge ok">❌</span>
                   {% else %}
-                    <span class="badge no">-</span>
+                    <span class="dashMuted">-</span>
                   {% endif %}
                 </td>
               </tr>
