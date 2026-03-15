@@ -23,6 +23,7 @@ CSV_HEADERS = [
     "viewed_time",
     "downloaded",
     "rejected",
+    "favorite",
 ]
 
 
@@ -96,6 +97,7 @@ def read_jobs_csv(csv_path: str) -> Dict[str, dict]:
                 "viewed_time": (row.get("viewed_time") or "").strip(),
                 "downloaded": str_to_bool(row.get("downloaded", "")),
                 "rejected": str_to_bool(row.get("rejected", "")),
+                "favorite": str_to_bool(row.get("favorite", "")),
             }
             if normalized_row["viewed"]:
                 normalized_row["applied"] = True
@@ -148,6 +150,7 @@ def upsert_job_csv(jobs: Dict[str, dict], incoming: dict):
         incoming["applied"] = bool(incoming.get("applied") or incoming.get("viewed"))
         incoming["downloaded"] = bool(incoming.get("downloaded", False))
         incoming["rejected"] = bool(incoming.get("rejected", False))
+        incoming["favorite"] = bool(incoming.get("favorite", False))
         if not incoming.get("job_title"):
             incoming["job_title"] = "Unknown Title"
         jobs[key] = incoming
@@ -169,6 +172,7 @@ def upsert_job_csv(jobs: Dict[str, dict], incoming: dict):
     existing["viewed"] = bool(existing.get("viewed") or incoming.get("viewed"))
     existing["downloaded"] = bool(existing.get("downloaded", False))
     existing["rejected"] = bool(existing.get("rejected", False) or incoming.get("rejected", False))
+    existing["favorite"] = bool(existing.get("favorite", False))
 
     existing["applied_time"] = choose_earliest_time(existing.get("applied_time", ""), incoming.get("applied_time", ""))
     existing["viewed_time"] = choose_earliest_time(existing.get("viewed_time", ""), incoming.get("viewed_time", ""))
@@ -228,5 +232,17 @@ def toggle_downloaded_by_row_id(jobs: Dict[str, dict], row_id: str) -> tuple[boo
         return False, False
     new_value = not bool(row.get("downloaded", False))
     row["downloaded"] = new_value
+    jobs[row_id] = row
+    return True, new_value
+
+
+# Toggles favorite state for the given row key.
+# Returns (success, new_favorite_value).
+def toggle_favorite_by_row_id(jobs: Dict[str, dict], row_id: str) -> tuple[bool, bool]:
+    row = jobs.get(row_id)
+    if not row:
+        return False, False
+    new_value = not bool(row.get("favorite", False))
+    row["favorite"] = new_value
     jobs[row_id] = row
     return True, new_value

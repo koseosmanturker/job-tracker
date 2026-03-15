@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Optional, List
 
 from dotenv import load_dotenv
+from google.auth.exceptions import RefreshError
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2.credentials import Credentials
@@ -27,8 +28,16 @@ def get_gmail_service():
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
+            try:
+                creds.refresh(Request())
+            except RefreshError:
+                # The cached refresh token was revoked or expired. Force a clean
+                # OAuth flow so the user can grant access again.
+                if os.path.exists("token.json"):
+                    os.remove("token.json")
+                creds = None
+
+        if not creds or not creds.valid:
             flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
             creds = flow.run_local_server(port=0)
 

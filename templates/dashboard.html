@@ -73,7 +73,7 @@
       .top h1 { margin: 0 0 4px; letter-spacing: -0.02em; }
       .sub { margin: 0; color: var(--muted); font-size: 13px; }
       .topActions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-      .syncButtons { display: flex; align-items: center; gap: 8px; }
+      .syncButtons { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
       .syncButtons form { display: block; margin: 0; }
       .lastSync {
         font-size: 12px;
@@ -82,10 +82,24 @@
       }
       .syncModeBtn { background: linear-gradient(135deg, #2563eb, #38bdf8); }
       .syncBtn { text-decoration: none; display: inline-flex; align-items: center; }
+      .navBtn {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card) 92%, var(--chip));
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .navBtn.active {
+        background: linear-gradient(135deg, #f59e0b, #facc15);
+        color: #111827;
+        border-color: color-mix(in srgb, #f59e0b 45%, var(--line));
+      }
 
       .cards {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 12px;
         margin-bottom: 16px;
       }
@@ -206,18 +220,20 @@
 
       .searchBox { position: relative; }
       .searchBox::before {
-        content: "🔎";
+        content: "Search";
         position: absolute;
         left: 10px;
         top: 50%;
         transform: translateY(-50%);
-        opacity: .75;
-        font-size: 14px;
+        opacity: .55;
+        font-size: 11px;
+        font-weight: 700;
+        pointer-events: none;
       }
 
       input[type="text"] {
         width: 100%;
-        padding: 10px 12px 10px 34px;
+        padding: 10px 12px 10px 62px;
         border-radius: 10px;
         border: 1px solid var(--line);
         background: transparent;
@@ -272,6 +288,7 @@
       }
       .nowrap { white-space: nowrap; }
       .col-time { width: 150px; }
+      .col-favorite { width: 72px; text-align: center; }
       .col-status { width: 120px; text-align: center; }
 
       th {
@@ -378,8 +395,6 @@
         color: var(--text);
       }
       .downloadToggle {
-        min-width: 84px;
-        height: 34px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -392,8 +407,12 @@
         cursor: pointer;
         transition: filter .15s ease, transform .05s ease;
       }
-      .downloadToggle:hover { filter: brightness(0.98); }
-      .downloadToggle:focus-visible {
+      .downloadToggle:hover { 
+        filter: brightness(0.6);
+        background-color:#004cff; 
+      }
+      .downloadToggle:focus-visible,
+      .favoriteToggle:focus-visible {
         outline: 2px solid color-mix(in srgb, var(--brand) 65%, #fff);
         outline-offset: 2px;
       }
@@ -402,6 +421,29 @@
         background: var(--ok-bg);
         color: var(--ok-text);
         border-color: color-mix(in srgb, var(--ok-text) 18%, var(--line));
+      }
+      .favoriteToggle {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card) 92%, var(--chip));
+        color: #94a3b8;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        transition: transform .05s ease, filter .15s ease, color .15s ease, background .15s ease;
+      }
+      .favoriteToggle:hover { filter: brightness(0.98); }
+      .favoriteToggle:active { transform: translateY(1px); }
+      .favoriteToggle.on {
+        color: #f59e0b;
+        background: #fef3c7;
+        border-color: #fcd34d;
       }
 
       .toast {
@@ -442,11 +484,13 @@
     <div class="wrap">
       <div class="top">
         <div>
-          <h1>LinkedIn Job Tracker</h1>
-          <p class="sub">Track applied, viewed, downloaded, and rejected statuses in one place.</p>
+          <h1>{{ page_title }}</h1>
+          <p class="sub">{{ page_subtitle }}</p>
         </div>
         <div class="topActions">
           <div class="syncButtons">
+            <a class="navBtn {% if not favorites_only %}active{% endif %}" href="/">Jobs</a>
+            <a class="navBtn {% if favorites_only %}active{% endif %}" href="/favorites">Favorites</a>
             <form id="syncForm" method="post" action="/sync">
               <input type="hidden" name="sync_mode" value="incremental">
               <button id="syncBtn" type="submit" class="syncBtn">Sync Emails</button>
@@ -495,6 +539,14 @@
           <div class="v">{{ stats.rejected }}</div>
           <div class="rate">Rate: {{ stats.rejected_rate }}</div>
         </div>
+
+        <div class="card">
+          <div class="cardTop">
+            <div class="k">Favorites</div>
+            <div class="ico">⭐</div>
+          </div>
+          <div class="v">{{ stats.favorites }}</div>
+        </div>
       </div>
 
       <div class="panel">
@@ -518,6 +570,7 @@
         <table>
           <thead>
             <tr>
+              <th class="col-favorite">Fav</th>
               <th>Company</th>
               <th>Job Title</th>
               <th>Location</th>
@@ -527,16 +580,16 @@
                 <span class="thStack">
                   <span>Applied Time</span>
                   <span class="sort">
-                  <a
-                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=asc"
-                    class="{% if sort=='applied_time' and order=='asc' %}active{% endif %}"
-                    title="Sort ASC"
-                  >▲</a>
-                  <a
-                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=desc"
-                    class="{% if sort=='applied_time' and order=='desc' %}active{% endif %}"
-                    title="Sort DESC"
-                  >▼</a>
+                    <a
+                      href="{{ current_path }}?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=asc"
+                      class="{% if sort=='applied_time' and order=='asc' %}active{% endif %}"
+                      title="Sort ASC"
+                    >&#9650;</a>
+                    <a
+                      href="{{ current_path }}?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=desc"
+                      class="{% if sort=='applied_time' and order=='desc' %}active{% endif %}"
+                      title="Sort DESC"
+                    >&#9660;</a>
                   </span>
                 </span>
               </th>
@@ -545,16 +598,16 @@
                 <span class="thStack">
                   <span>Viewed Time</span>
                   <span class="sort">
-                  <a
-                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=asc"
-                    class="{% if sort=='viewed_time' and order=='asc' %}active{% endif %}"
-                    title="Sort ASC"
-                  >▲</a>
-                  <a
-                    href="/?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=desc"
-                    class="{% if sort=='viewed_time' and order=='desc' %}active{% endif %}"
-                    title="Sort DESC"
-                  >▼</a>
+                    <a
+                      href="{{ current_path }}?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=asc"
+                      class="{% if sort=='viewed_time' and order=='asc' %}active{% endif %}"
+                      title="Sort ASC"
+                    >&#9650;</a>
+                    <a
+                      href="{{ current_path }}?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=desc"
+                      class="{% if sort=='viewed_time' and order=='desc' %}active{% endif %}"
+                      title="Sort DESC"
+                    >&#9660;</a>
                   </span>
                 </span>
               </th>
@@ -566,6 +619,17 @@
           <tbody>
             {% for r in rows %}
               <tr>
+                <td class="col-favorite">
+                  <button
+                    type="button"
+                    class="favoriteToggle {% if r.favorite %}on{% endif %}"
+                    data-toggle-favorite
+                    data-row-id="{{ r.row_id|urlencode }}"
+                    data-favorite="{{ '1' if r.favorite else '0' }}"
+                    title="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
+                    aria-label="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
+                  >&#9733;</button>
+                </td>
                 <td>{{ r.company }}</td>
                 <td>{{ r.job_title }}</td>
                 <td>{{ r.location or '-' }}</td>
@@ -573,7 +637,7 @@
                 <td>
                   {% if r.job_url %}
                     <div class="actions">
-                      <a class="btnLink" href="{{ r.job_url }}" target="_blank" rel="noopener noreferrer">Open ↗</a>
+                      <a class="btnLink" href="{{ r.job_url }}" target="_blank" rel="noopener noreferrer">↗</a>
                       <button class="btnIcon" type="button" title="Copy link" data-copy="{{ r.job_url }}">📋</button>
                     </div>
                   {% else %}
@@ -585,7 +649,7 @@
                   {% if r.applied %}
                     <span class="badge ok">✅</span>
                   {% else %}
-                    <span class="badge no">—</span>
+                    <span class="badge no">-</span>
                   {% endif %}
                 </td>
                 <td class="nowrap">{{ r.applied_time_fmt }}</td>
@@ -617,13 +681,13 @@
                   {% if r.rejected %}
                     <span class="badge ok">❌</span>
                   {% else %}
-                    <span class="dashMuted">-</span>
+                    <span class="badge no">⏳</span>
                   {% endif %}
                 </td>
               </tr>
             {% else %}
               <tr>
-                <td colspan="10">No records match this filter.</td>
+                <td colspan="11">No records match this filter.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -664,7 +728,7 @@
 
         try {
           await navigator.clipboard.writeText(text);
-          showToast("Link copied ✅");
+          showToast("Link copied");
         } catch (err) {
           const ta = document.createElement("textarea");
           ta.value = text;
@@ -672,11 +736,10 @@
           ta.select();
           document.execCommand("copy");
           ta.remove();
-          showToast("Link copied ✅");
+          showToast("Link copied");
         }
       });
 
-      // Toggle downloaded status without page reload.
       document.addEventListener("click", async (e) => {
         const btn = e.target.closest("[data-toggle-downloaded]");
         if (!btn) return;
@@ -696,13 +759,52 @@
           const isDownloaded = !!data.downloaded;
           btn.setAttribute("data-downloaded", isDownloaded ? "1" : "0");
           btn.classList.toggle("on", isDownloaded);
-          btn.textContent = isDownloaded ? "Downloaded" : "Not downloaded";
+          btn.textContent = isDownloaded ? "Downloaded" : "Pending";
           const label = isDownloaded ? "Remove downloaded mark" : "Mark as downloaded";
           btn.setAttribute("aria-label", label);
           btn.setAttribute("title", label);
           showToast(isDownloaded ? "Marked as downloaded" : "Downloaded mark removed");
         } catch (err) {
           showToast("Update failed");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      document.addEventListener("click", async (e) => {
+        const btn = e.target.closest("[data-toggle-favorite]");
+        if (!btn) return;
+
+        const rowId = btn.getAttribute("data-row-id");
+        if (!rowId) return;
+
+        btn.disabled = true;
+        try {
+          const res = await fetch(`/toggle-favorite/${rowId}`, { method: "POST" });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            showToast("Favorite update failed");
+            return;
+          }
+
+          const isFavorite = !!data.favorite;
+          btn.setAttribute("data-favorite", isFavorite ? "1" : "0");
+          btn.classList.toggle("on", isFavorite);
+          const label = isFavorite ? "Remove from favorites" : "Add to favorites";
+          btn.setAttribute("aria-label", label);
+          btn.setAttribute("title", label);
+          showToast(isFavorite ? "Added to favorites" : "Removed from favorites");
+
+          if (!isFavorite && window.location.pathname === "/favorites") {
+            const row = btn.closest("tr");
+            if (row) row.remove();
+            const tbody = document.querySelector("tbody");
+            if (tbody && !tbody.querySelector("tr")) {
+              tbody.innerHTML = '<tr><td colspan="11">No records match this filter.</td></tr>';
+            }
+          }
+        } catch (err) {
+          showToast("Favorite update failed");
         } finally {
           btn.disabled = false;
         }

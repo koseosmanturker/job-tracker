@@ -2,7 +2,12 @@ from pathlib import Path
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 
-from repository import read_jobs_csv, write_jobs_csv, toggle_downloaded_by_row_id
+from repository import (
+    read_jobs_csv,
+    write_jobs_csv,
+    toggle_downloaded_by_row_id,
+    toggle_favorite_by_row_id,
+)
 from sync_service import run_sync, load_sync_state, SYNC_STATE_FILE
 
 
@@ -99,9 +104,18 @@ def toggle_downloaded(row_id: str):
     return jsonify({"success": True, "downloaded": downloaded})
 
 
+@web.post("/toggle-favorite/<path:row_id>")
+def toggle_favorite(row_id: str):
+    jobs = read_jobs_csv(str(CSV_PATH))
+    success, favorite = toggle_favorite_by_row_id(jobs, row_id)
+    if not success:
+        return jsonify({"success": False, "error": "record_not_found"}), 404
+    write_jobs_csv(str(CSV_PATH), jobs)
+    return jsonify({"success": True, "favorite": favorite})
+
+
 # Renders dashboard with filters, sorting, stats, and derived display fields.
-@web.get("/")
-def home():
+def render_jobs_page(*, favorites_only: bool = False):
     jobs = to_rows(read_jobs_csv(str(CSV_PATH)))
     state_path = str(CSV_PATH.with_name(SYNC_STATE_FILE))
     sync_state = load_sync_state(state_path)
@@ -141,6 +155,8 @@ def home():
             continue
         if rejected_only and not row.get("rejected", False):
             continue
+        if favorites_only and not row.get("favorite", False):
+            continue
 
         filtered.append(row)
 
@@ -169,6 +185,7 @@ def home():
     viewed_count = sum(1 for r in jobs if r.get("viewed", False))
     downloaded_count = sum(1 for r in jobs if r.get("downloaded", False))
     rejected_count = sum(1 for r in jobs if r.get("rejected", False))
+    favorites_count = sum(1 for r in jobs if r.get("favorite", False))
 
     # Rates are based on total applied jobs.
     def pct(value: int, total: int) -> str:
@@ -181,6 +198,7 @@ def home():
         "viewed": viewed_count,
         "downloaded": downloaded_count,
         "rejected": rejected_count,
+        "favorites": favorites_count,
         "viewed_rate": pct(viewed_count, applied_count),
         "downloaded_rate": pct(downloaded_count, applied_count),
         "rejected_rate": pct(rejected_count, applied_count),
@@ -202,11 +220,27 @@ def home():
         rejected_marked=rejected_marked,
         last_sync_time_fmt=last_sync_time_fmt,
         csv_path=str(CSV_PATH),
-
-        # pass current sort state so template can preserve it if you want
+        favorites_only=favorites_only,
+        page_title="Favorites" if favorites_only else "LinkedIn Job Tracker",
+        page_subtitle=(
+            "Starred job posts in one place."
+            if favorites_only
+            else "Track applied, viewed, downloaded, rejected, and favorite statuses in one place."
+        ),
+        current_path="/favorites" if favorites_only else "/",
         sort=sort,
         order=order,
     )
+
+
+@web.get("/")
+def home():
+    return render_jobs_page(favorites_only=False)
+
+
+@web.get("/favorites")
+def favorites():
+    return render_jobs_page(favorites_only=True)
 
 
 if __name__ == "__main__":
