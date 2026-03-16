@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block sync_endpoint %}needs_review{% endblock %}
+{% block sync_full_endpoint %}needs_review{% endblock %}
+
+{% block content %}
+  <div class="grid2">
+    <div class="panel">
+      <h2 class="sectionTitle">Review Source</h2>
+      <p class="meta">Reason: {{ item.reason }} | Message time: {{ format_time_with_date(item.event_time) }}</p>
+      <p><strong>Subject</strong></p>
+      <p>{{ item.subject or "-" }}</p>
+      <p><strong>Body Preview</strong></p>
+      <div class="mono">{{ item.body_text or item.body_preview or "-" }}</div>
+    </div>
+
+    <div class="panel">
+      <h2 class="sectionTitle">Manual Correction</h2>
+      <form method="post" class="stack">
+        <div>
+          <label for="company">Company</label>
+          <input id="company" type="text" name="company" required>
+        </div>
+        <div>
+          <label for="job_title">Job Title</label>
+          <input id="job_title" type="text" name="job_title" required>
+        </div>
+        <div>
+          <label for="location">Location</label>
+          <input id="location" type="text" name="location">
+        </div>
+        <div>
+          <label for="job_url">Job URL</label>
+          <input id="job_url" type="text" name="job_url">
+        </div>
+        <div>
+          <label for="event_type">Event Type</label>
+          <select id="event_type" name="event_type">
+            <option value="applied">Applied</option>
+            <option value="viewed">Viewed</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="actionsRow">
+          <button type="submit" name="action" value="apply">Apply Correction</button>
+          <button type="submit" name="action" value="dismiss" class="secondaryBtn">Dismiss Item</button>
+          <a class="buttonLink secondaryBtn" href="/needs-review">Back to Queue</a>
+        </div>
+      </form>
+      <div class="notice" style="margin-top: 12px;">
+        Saving this form also stores a signature-based correction so the same parser miss can be auto-fixed on future syncs.
+      </div>
+    </div>
+  </div>
+{% endblock %}

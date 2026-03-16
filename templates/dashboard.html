@@ -1,917 +1,231 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Your Career Agent</title>
+{% extends "base.html" %}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+{% block sync_endpoint %}{% if favorites_only %}favorites{% else %}home{% endif %}{% endblock %}
+{% block sync_full_endpoint %}{% if favorites_only %}favorites{% else %}home{% endif %}{% endblock %}
 
-    <style>
-      :root {
-        --bg: #f4f7fb;
-        --card: #ffffff;
-        --line: #e2e8f0;
-        --text: #0f172a;
-        --muted: #64748b;
-        --brand: #0f766e;
-        --brand2: #14b8a6;
-        --ok-bg: #ecfdf5;
-        --ok-text: #047857;
-        --no-bg: #fff1f2;
-        --no-text: #be123c;
-        --chip: #f1f5f9;
-        --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #0b1220;
-          --card: #0f172a;
-          --line: #22304a;
-          --text: #e5e7eb;
-          --muted: #94a3b8;
-          --brand: #2dd4bf;
-          --brand2: #14b8a6;
-          --ok-bg: rgba(16,185,129,.12);
-          --ok-text: #34d399;
-          --no-bg: rgba(244,63,94,.14);
-          --no-text: #fb7185;
-          --chip: #111c33;
-          --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-        }
-      }
-
-      * { box-sizing: border-box; }
-
-      body {
-        margin: 0;
-        color: var(--text);
-        font-family: Inter, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background:
-          radial-gradient(900px 500px at 95% 5%, rgba(20,184,166,.14), transparent 55%),
-          radial-gradient(700px 400px at 10% 0%, rgba(56,189,248,.10), transparent 55%),
-          var(--bg);
-      }
-
-      .wrap {
-        max-width: 1500px;
-        margin: 24px auto;
-        padding: 0 16px;
-      }
-
-      .pageSwitch {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px;
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        background: color-mix(in srgb, var(--card) 88%, var(--chip));
-        box-shadow: var(--shadow);
-      }
-
-      .top {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-
-      .top h1 { margin: 0 0 4px; letter-spacing: -0.02em; }
-      .sub { margin: 0; color: var(--muted); font-size: 13px; }
-      .topActions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-      .syncButtons { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-      .syncButtons form { display: block; margin: 0; }
-      .lastSync {
-        font-size: 12px;
-        color: var(--muted);
-        white-space: nowrap;
-      }
-      .syncModeBtn { background: linear-gradient(135deg, #2563eb, #38bdf8); }
-      .syncBtn { text-decoration: none; display: inline-flex; align-items: center; }
-      .navBtn {
-        min-width: 120px;
-        padding: 10px 18px;
-        border-radius: 12px;
-        border: 1px solid transparent;
-        background: transparent;
-        color: var(--text);
-        text-decoration: none;
-        font-weight: 600;
-        text-align: center;
-        transition: background .15s ease, color .15s ease, border-color .15s ease;
-      }
-      .navBtn.active {
-        background: linear-gradient(135deg, #f59e0b, #facc15);
-        color: #111827;
-        border-color: color-mix(in srgb, #f59e0b 45%, var(--line));
-      }
-
-      .cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 12px;
-        margin-bottom: 16px;
-      }
-
-      .card {
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 14px;
-        box-shadow: var(--shadow);
-      }
-
-      .cardTop {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-      }
-
-      .k { color: var(--muted); font-size: 13px; }
-      .v { margin-top: 8px; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
-      .rate { margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 600; }
-
-      .ico {
-        width: 34px;
-        height: 34px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        background: linear-gradient(135deg, rgba(20,184,166,.18), rgba(56,189,248,.12));
-        border: 1px solid rgba(20,184,166,.20);
-        font-size: 16px;
-      }
-
-      .panel {
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 12px;
-        box-shadow: var(--shadow);
-      }
-      .syncNotice {
-        margin-bottom: 10px;
-        padding: 8px 10px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        background: color-mix(in srgb, var(--card) 92%, var(--chip));
-        font-size: 13px;
-        color: var(--muted);
-      }
-      .syncOverlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.35);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-      }
-      .syncOverlay.show { display: flex; }
-      .syncBox {
-        background: var(--card);
-        color: var(--text);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 14px 16px;
-        box-shadow: var(--shadow);
-        font-weight: 600;
-        min-width: 320px;
-      }
-      .syncRow {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
-      .spinner {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        border: 2px solid color-mix(in srgb, var(--brand) 25%, transparent);
-        border-top-color: var(--brand);
-        animation: spin 0.8s linear infinite;
-      }
-      .progress {
-        width: 100%;
-        height: 8px;
-        border-radius: 999px;
-        overflow: hidden;
-        border: 1px solid var(--line);
-        background: color-mix(in srgb, var(--card) 90%, var(--chip));
-      }
-      .progress > span {
-        display: block;
-        height: 100%;
-        width: 35%;
-        border-radius: 999px;
-        background: linear-gradient(135deg, var(--brand), var(--brand2));
-        animation: indeterminate 1.2s ease-in-out infinite;
-      }
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-      @keyframes indeterminate {
-        0% { transform: translateX(-120%); }
-        50% { transform: translateX(80%); }
-        100% { transform: translateX(260%); }
-      }
-
-      form {
-        display: grid;
-        grid-template-columns: 1fr auto auto auto auto auto;
-        gap: 8px;
-        margin-bottom: 12px;
-        align-items: center;
-      }
-
-      .searchBox { position: relative; }
-      .searchBox::before {
-        content: "Search";
-        position: absolute;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: .55;
-        font-size: 11px;
-        font-weight: 700;
-        pointer-events: none;
-      }
-
-      input[type="text"] {
-        width: 100%;
-        padding: 10px 12px 10px 62px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        background: transparent;
-        color: var(--text);
-        outline: none;
-      }
-
-      label {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 10px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        background: var(--chip);
-        color: var(--text);
-        user-select: none;
-        font-size: 13px;
-        white-space: nowrap;
-      }
-
-      label input[type="checkbox"] {
-        width: 14px;
-        height: 14px;
-        accent-color: var(--brand);
-      }
-
-      button {
-        border: 0;
-        border-radius: 10px;
-        padding: 10px 14px;
-        background: linear-gradient(135deg, var(--brand), var(--brand2));
-        color: #fff;
-        font-weight: 600;
-        cursor: pointer;
-      }
-
-      .tableWrap {
-        width: 100%;
-        overflow-x: auto;
-        border-radius: 12px;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        table-layout: fixed;
-        min-width: 1260px;
-        border-radius: 12px;
-        border: 1px solid var(--line);
-      }
-
-      th, td {
-        border-bottom: 1px solid var(--line);
-        padding: 12px 10px;
-        text-align: left;
-        vertical-align: middle;
-        overflow-wrap: anywhere;
-      }
-      .nowrap { white-space: nowrap; }
-      .col-company { width: 16%; }
-      .col-title { width: 17%; }
-      .col-location { width: 11%; }
-      .col-actions { width: 120px; }
-      .col-time { width: 140px; }
-      .col-favorite { width: 72px; text-align: center; }
-      .col-status { width: 108px; text-align: center; }
-
-      th {
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        color: var(--muted);
-        background: color-mix(in srgb, var(--card) 92%, var(--chip));
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        white-space: nowrap;
-      }
-
-      .sort {
-        display: inline-flex;
-        gap: 6px;
-        margin-left: 0;
-        vertical-align: middle;
-      }
-      .thStack {
-        display: inline-flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-        line-height: 1.1;
-      }
-
-      .sort a {
-        width: 22px;
-        height: 22px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        line-height: 1;
-        text-decoration: none;
-        border-radius: 8px;
-        border: 1px solid transparent;
-        color: var(--muted);
-        background: transparent;
-      }
-
-      .sort a.active {
-        color: #fff;
-        background: linear-gradient(135deg, var(--brand), var(--brand2));
-      }
-
-      tbody tr:nth-child(even) {
-        background: color-mix(in srgb, var(--card) 88%, var(--chip));
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 32px;
-        padding: 0 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 700;
-        line-height: 1;
-        white-space: nowrap;
-        border: 1px solid var(--line);
-      }
-
-      .badge.ok { background: var(--ok-bg); color: var(--ok-text); }
-      .badge.no { background: var(--no-bg); color: var(--no-text); }
-      .dashMuted {
-        color: var(--muted);
-        font-weight: 700;
-      }
-
-      .actions {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-
-      .statusCell {
-        text-align: center;
-      }
-
-      .statusCell .badge,
-      .statusCell .downloadToggle {
-        min-width: 42px;
-      }
-
-      .btnLink {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 10px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        text-decoration: none;
-        color: var(--text);
-        font-weight: 600;
-        font-size: 13px;
-        background: color-mix(in srgb, var(--card) 92%, var(--chip));
-        white-space: nowrap;
-      }
-
-      .btnIcon {
-        width: 36px;
-        height: 34px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        background: color-mix(in srgb, var(--card) 92%, var(--chip));
-        cursor: pointer;
-        color: var(--text);
-      }
-      .downloadToggle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--no-bg);
-        color: var(--no-text);
-        font-weight: 700;
-        font-size: 12px;
-        cursor: pointer;
-        transition: filter .15s ease, transform .05s ease;
-      }
-      .downloadToggle:hover { 
-        filter: brightness(0.6);
-        background-color:#004cff; 
-      }
-      .downloadToggle:focus-visible,
-      .favoriteToggle:focus-visible {
-        outline: 2px solid color-mix(in srgb, var(--brand) 65%, #fff);
-        outline-offset: 2px;
-      }
-      .downloadToggle:active { transform: translateY(1px); }
-      .downloadToggle.on {
-        background: var(--ok-bg);
-        color: var(--ok-text);
-        border-color: color-mix(in srgb, var(--ok-text) 18%, var(--line));
-      }
-      .favoriteToggle {
-        width: 42px;
-        height: 42px;
-        padding: 0;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: color-mix(in srgb, var(--card) 92%, var(--chip));
-        color: #94a3b8;
-        font-size: 22px;
-        line-height: 1;
-        cursor: pointer;
-        transition: transform .05s ease, filter .15s ease, color .15s ease, background .15s ease;
-      }
-      .favoriteToggle:hover { filter: brightness(0.98); }
-      .favoriteToggle:active { transform: translateY(1px); }
-      .favoriteToggle.on {
-        color: #f59e0b;
-        background: #fef3c7;
-        border-color: #fcd34d;
-      }
-
-      .toast {
-        position: fixed;
-        bottom: 18px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: color-mix(in srgb, var(--card) 92%, var(--chip));
-        color: var(--text);
-        border: 1px solid var(--line);
-        padding: 10px 12px;
-        border-radius: 999px;
-        box-shadow: var(--shadow);
-        font-size: 13px;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity .2s ease, transform .2s ease;
-      }
-
-      .toast.show {
-        opacity: 1;
-        transform: translateX(-50%) translateY(-4px);
-      }
-
-      @media (max-width: 960px) {
-        .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        form { grid-template-columns: 1fr; }
-        .pageSwitch {
-          display: flex;
-          width: 100%;
-        }
-        .navBtn {
-          flex: 1 1 0;
-          min-width: 0;
-        }
-        .topActions { width: 100%; align-items: stretch; }
-        .syncButtons { width: 100%; }
-        .syncButtons form { width: 100%; }
-        .syncButtons button { width: 100%; }
-        .lastSync { text-align: right; }
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="wrap">
-      <div class="top">
-        <div>
-          <h1>{{ page_title }}</h1>
-          <p class="sub">{{ page_subtitle }}</p>
-        </div>
-        <div class="topActions">
-          <div class="syncButtons">
-            <div class="pageSwitch" role="tablist" aria-label="Page switcher">
-              <a class="navBtn {% if not favorites_only %}active{% endif %}" href="/">Jobs</a>
-              <a class="navBtn {% if favorites_only %}active{% endif %}" href="/favorites">Favorites</a>
-            </div>
-            <form id="syncForm" method="post" action="/sync">
-              <input type="hidden" name="sync_mode" value="incremental">
-              <button id="syncBtn" type="submit" class="syncBtn">Sync Emails</button>
-            </form>
-            <form id="syncFullForm" method="post" action="/sync">
-              <input type="hidden" name="sync_mode" value="full">
-              <button id="syncFullBtn" type="submit" class="syncBtn syncModeBtn">Full Sync (365d)</button>
-            </form>
-          </div>
-          <div class="lastSync">Last Sync Time: {{ last_sync_time_fmt }}</div>
-        </div>
+{% block content %}
+  <div class="cards">
+    <div class="card">
+      <div class="cardTop">
+        <div class="k">Applications</div>
+        <div class="ico">🧾</div>
       </div>
+      <div class="v">{{ stats.applied }}</div>
+    </div>
 
-      <div class="cards">
-        <div class="card">
-          <div class="cardTop">
-            <div class="k">Applications</div>
-            <div class="ico">🧾</div>
-          </div>
-          <div class="v">{{ stats.applied }}</div>
-        </div>
-
-        <div class="card">
-          <div class="cardTop">
-            <div class="k">Viewed</div>
-            <div class="ico">👁️</div>
-          </div>
-          <div class="v">{{ stats.viewed }}</div>
-          <div class="rate">Rate: {{ stats.viewed_rate }}</div>
-        </div>
-
-        <div class="card">
-          <div class="cardTop">
-            <div class="k">Downloaded</div>
-            <div class="ico">⬇️</div>
-          </div>
-          <div class="v">{{ stats.downloaded }}</div>
-          <div class="rate">Rate: {{ stats.downloaded_rate }}</div>
-        </div>
-
-        <div class="card">
-          <div class="cardTop">
-            <div class="k">Rejected</div>
-            <div class="ico">❌</div>
-          </div>
-          <div class="v">{{ stats.rejected }}</div>
-          <div class="rate">Rate: {{ stats.rejected_rate }}</div>
-        </div>
-
-        <div class="card">
-          <div class="cardTop">
-            <div class="k">Favorites</div>
-            <div class="ico">⭐</div>
-          </div>
-          <div class="v">{{ stats.favorites }}</div>
-        </div>
+    <div class="card">
+      <div class="cardTop">
+        <div class="k">Viewed</div>
+        <div class="ico">👁️</div>
       </div>
+      <div class="v">{{ stats.viewed }}</div>
+      <div class="rate">Rate: {{ stats.viewed_rate }}</div>
+    </div>
 
-      <div class="panel">
-        {% if synced %}
-          <div class="syncNotice">
-            Sync completed ({{ sync_mode }}). Processed: {{ processed }}, Skipped: {{ skipped }}.
-          </div>
-        {% endif %}
-        <form method="get" id="filterForm">
-          <div class="searchBox">
-            <input type="text" name="search" value="{{ search }}" placeholder="Search company, title, location" data-live-search>
-          </div>
+    <div class="card">
+      <div class="cardTop">
+        <div class="k">Downloaded</div>
+        <div class="ico">⬇️</div>
+      </div>
+      <div class="v">{{ stats.downloaded }}</div>
+      <div class="rate">Rate: {{ stats.downloaded_rate }}</div>
+    </div>
 
-          <label><input type="checkbox" name="viewed" value="1" {% if viewed_only %}checked{% endif %} data-live-filter> Viewed only</label>
-          <label><input type="checkbox" name="downloaded" value="1" {% if downloaded_only %}checked{% endif %} data-live-filter> Downloaded only</label>
-          <label><input type="checkbox" name="rejected" value="1" {% if rejected_only %}checked{% endif %} data-live-filter> Rejected only</label>
-        </form>
+    <div class="card">
+      <div class="cardTop">
+        <div class="k">Rejected</div>
+        <div class="ico">❌</div>
+      </div>
+      <div class="v">{{ stats.rejected }}</div>
+      <div class="rate">Rate: {{ stats.rejected_rate }}</div>
+    </div>
 
-        <div class="tableWrap">
-        <table>
-          <thead>
+    <div class="card">
+      <div class="cardTop">
+        <div class="k">Favorites</div>
+        <div class="ico">⭐</div>
+      </div>
+      <div class="v">{{ stats.favorites }}</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    {% if synced %}
+      <div class="notice">
+        <strong>Sync completed.</strong>
+        Processed: {{ processed }}, skipped: {{ skipped }}, added to review: {{ needs_review_added }}, reused manual corrections: {{ manual_corrections_used }}.
+      </div>
+    {% endif %}
+
+    <form method="get" id="filterForm" class="filterBar">
+      <div class="searchBox">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search company, title, location" data-live-search>
+      </div>
+      <label class="chip"><input type="checkbox" name="viewed" value="1" {% if viewed_only %}checked{% endif %} data-live-filter> Viewed only</label>
+      <label class="chip"><input type="checkbox" name="downloaded" value="1" {% if downloaded_only %}checked{% endif %} data-live-filter> Downloaded only</label>
+      <label class="chip"><input type="checkbox" name="rejected" value="1" {% if rejected_only %}checked{% endif %} data-live-filter> Rejected only</label>
+    </form>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 72px; text-align: center;">⭐</th>
+            <th style="width: 16%;">Company</th>
+            <th style="width: 17%;">Job Title</th>
+            <th style="width: 11%;">Location</th>
+            <th style="width: 140px;">Actions</th>
+            <th style="width: 108px; text-align: center;">Applied</th>
+            <th style="width: 140px;">
+              <span class="thStack">
+                <span>Applied Time</span>
+                <span class="sort">
+                  <a href="{{ current_path }}?search={{ search }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=asc" class="{% if sort == 'applied_time' and order == 'asc' %}active{% endif %}" title="Sort ASC">▲</a>
+                  <a href="{{ current_path }}?search={{ search }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=desc" class="{% if sort == 'applied_time' and order == 'desc' %}active{% endif %}" title="Sort DESC">▼</a>
+                </span>
+              </span>
+            </th>
+            <th style="width: 108px; text-align: center;">Viewed</th>
+            <th style="width: 140px;">
+              <span class="thStack">
+                <span>Viewed Time</span>
+                <span class="sort">
+                  <a href="{{ current_path }}?search={{ search }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=asc" class="{% if sort == 'viewed_time' and order == 'asc' %}active{% endif %}" title="Sort ASC">▲</a>
+                  <a href="{{ current_path }}?search={{ search }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=desc" class="{% if sort == 'viewed_time' and order == 'desc' %}active{% endif %}" title="Sort DESC">▼</a>
+                </span>
+              </span>
+            </th>
+            <th style="width: 108px; text-align: center;">Downloaded</th>
+            <th style="width: 108px; text-align: center;">Rejected</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
             <tr>
-              <th class="col-favorite">Fav</th>
-              <th class="col-company">Company</th>
-              <th class="col-title">Job Title</th>
-              <th class="col-location">Location</th>
-              <th class="col-actions">Actions</th>
-              <th class="col-status">Applied</th>
-              <th class="col-time">
-                <span class="thStack">
-                  <span>Applied Time</span>
-                  <span class="sort">
-                    <a
-                      href="{{ current_path }}?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=asc"
-                      class="{% if sort=='applied_time' and order=='asc' %}active{% endif %}"
-                      title="Sort ASC"
-                    >&#9650;</a>
-                    <a
-                      href="{{ current_path }}?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=desc"
-                      class="{% if sort=='applied_time' and order=='desc' %}active{% endif %}"
-                      title="Sort DESC"
-                    >&#9660;</a>
-                  </span>
-                </span>
-              </th>
-              <th class="col-status">Viewed</th>
-              <th class="col-time">
-                <span class="thStack">
-                  <span>Viewed Time</span>
-                  <span class="sort">
-                    <a
-                      href="{{ current_path }}?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=asc"
-                      class="{% if sort=='viewed_time' and order=='asc' %}active{% endif %}"
-                      title="Sort ASC"
-                    >&#9650;</a>
-                    <a
-                      href="{{ current_path }}?search={{ search }}&applied={{ '1' if applied_only else '' }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=desc"
-                      class="{% if sort=='viewed_time' and order=='desc' %}active{% endif %}"
-                      title="Sort DESC"
-                    >&#9660;</a>
-                  </span>
-                </span>
-              </th>
-              <th class="col-status">Downloaded</th>
-              <th class="col-status">Rejected</th>
+              <td style="text-align: center;">
+                <button
+                  type="button"
+                  class="secondaryBtn favoriteToggle {% if r.favorite %}on{% endif %}"
+                  data-toggle-favorite
+                  data-row-id="{{ r.row_id|urlencode }}"
+                  data-favorite="{{ '1' if r.favorite else '0' }}"
+                  title="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
+                  aria-label="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
+                >⭐</button>
+              </td>
+              <td>{{ r.company }}</td>
+              <td>{{ r.job_title }}</td>
+              <td>{{ r.location or '-' }}</td>
+              <td>
+                {% if r.job_url %}
+                  <div class="actionsRow">
+                    <a class="buttonLink secondaryBtn" href="{{ r.job_url }}" target="_blank" rel="noopener noreferrer">↗</a>
+                    <button class="secondaryBtn" type="button" data-copy="{{ r.job_url }}">📋</button>
+                  </div>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td style="text-align: center;">{% if r.applied %}<span class="badge ok">✅</span>{% else %}<span class="badge no">-</span>{% endif %}</td>
+              <td>{{ r.applied_time_fmt }}</td>
+              <td style="text-align: center;">{% if r.viewed %}<span class="badge ok">👁️</span>{% else %}<span class="badge no">⏳</span>{% endif %}</td>
+              <td>{{ r.viewed_time_fmt }}</td>
+              <td style="text-align: center;">
+                <button
+                  type="button"
+                  class="secondaryBtn downloadToggle {% if r.downloaded %}on{% endif %}"
+                  data-toggle-downloaded
+                  data-row-id="{{ r.row_id|urlencode }}"
+                  data-downloaded="{{ '1' if r.downloaded else '0' }}"
+                >{% if r.downloaded %}⬇️{% else %}⏳{% endif %}</button>
+              </td>
+              <td style="text-align: center;">{% if r.rejected %}<span class="badge ok">❌</span>{% else %}<span class="badge no">⏳</span>{% endif %}</td>
             </tr>
-          </thead>
-
-          <tbody>
-            {% for r in rows %}
-              <tr>
-                <td class="col-favorite">
-                  <button
-                    type="button"
-                    class="favoriteToggle {% if r.favorite %}on{% endif %}"
-                    data-toggle-favorite
-                    data-row-id="{{ r.row_id|urlencode }}"
-                    data-favorite="{{ '1' if r.favorite else '0' }}"
-                    title="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
-                    aria-label="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
-                  >&#9733;</button>
-                </td>
-                <td class="col-company">{{ r.company }}</td>
-                <td class="col-title">{{ r.job_title }}</td>
-                <td class="col-location">{{ r.location or '-' }}</td>
-
-                <td class="col-actions">
-                  {% if r.job_url %}
-                    <div class="actions">
-                      <a class="btnLink" href="{{ r.job_url }}" target="_blank" rel="noopener noreferrer">↗</a>
-                      <button class="btnIcon" type="button" title="Copy link" data-copy="{{ r.job_url }}">📋</button>
-                    </div>
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
-
-                <td class="col-status statusCell">
-                  {% if r.applied %}
-                    <span class="badge ok">✅</span>
-                  {% else %}
-                    <span class="badge no">-</span>
-                  {% endif %}
-                </td>
-                <td class="nowrap">{{ r.applied_time_fmt }}</td>
-
-                <td class="col-status statusCell">
-                  {% if r.viewed %}
-                    <span class="badge ok">👁️</span>
-                  {% else %}
-                    <span class="badge no">⏳</span>
-                  {% endif %}
-                </td>
-                <td class="nowrap">{{ r.viewed_time_fmt or '-' }}</td>
-
-                <td class="col-status statusCell">
-                  <button
-                    type="button"
-                    class="downloadToggle {% if r.downloaded %}on{% endif %}"
-                    data-toggle-downloaded
-                    data-row-id="{{ r.row_id|urlencode }}"
-                    data-downloaded="{{ '1' if r.downloaded else '0' }}"
-                    title="{% if r.downloaded %}Remove downloaded mark{% else %}Mark as downloaded{% endif %}"
-                    aria-label="{% if r.downloaded %}Remove downloaded mark{% else %}Mark as downloaded{% endif %}"
-                  >
-                    {% if r.downloaded %}⬇️{% else %}⏳{% endif %}
-                  </button>
-                </td>
-
-                <td class="col-status statusCell">
-                  {% if r.rejected %}
-                    <span class="badge ok">❌</span>
-                  {% else %}
-                    <span class="badge no">⏳</span>
-                  {% endif %}
-                </td>
-              </tr>
-            {% else %}
-              <tr>
-                <td colspan="11">No records match this filter.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        </div>
-      </div>
+          {% else %}
+            <tr>
+              <td colspan="11" class="emptyState">No records match this filter.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+  </div>
+{% endblock %}
 
-    <div class="toast" id="toast">Copied!</div>
-    <div class="syncOverlay" id="syncOverlay">
-      <div class="syncBox">
-        <div class="syncRow">
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Syncing emails, please wait...</span>
-        </div>
-        <div class="progress" aria-hidden="true"><span></span></div>
-      </div>
-    </div>
+{% block scripts %}
+  <script>
+    const filterForm = document.getElementById("filterForm");
+    const liveSearchInput = document.querySelector("[data-live-search]");
+    const liveFilterInputs = document.querySelectorAll("[data-live-filter]");
 
-    <script>
-      const toast = document.getElementById("toast");
-      const syncForm = document.getElementById("syncForm");
-      const syncBtn = document.getElementById("syncBtn");
-      const syncFullForm = document.getElementById("syncFullForm");
-      const syncFullBtn = document.getElementById("syncFullBtn");
-      const syncOverlay = document.getElementById("syncOverlay");
-      const filterForm = document.getElementById("filterForm");
-      const liveSearchInput = document.querySelector("[data-live-search]");
-      const liveFilterInputs = document.querySelectorAll("[data-live-filter]");
-
-      function showToast(msg) {
-        toast.textContent = msg;
-        toast.classList.add("show");
-        clearTimeout(showToast._t);
-        showToast._t = setTimeout(() => toast.classList.remove("show"), 1200);
+    function submitFilterForm() {
+      if (!filterForm) return;
+      if (typeof filterForm.requestSubmit === "function") {
+        filterForm.requestSubmit();
+        return;
       }
+      filterForm.submit();
+    }
 
-      function submitFilterForm() {
-        if (!filterForm) return;
-        if (typeof filterForm.requestSubmit === "function") {
-          filterForm.requestSubmit();
-          return;
-        }
-        filterForm.submit();
-      }
-
-      if (liveSearchInput) {
-        let searchTimer;
-        liveSearchInput.addEventListener("input", () => {
-          clearTimeout(searchTimer);
-          searchTimer = setTimeout(() => submitFilterForm(), 250);
-        });
-
-        window.addEventListener("pageshow", () => {
-          if (!liveSearchInput.value) return;
-          liveSearchInput.focus();
-          const end = liveSearchInput.value.length;
-          liveSearchInput.setSelectionRange(end, end);
-        });
-      }
-
-      liveFilterInputs.forEach((input) => {
-        input.addEventListener("change", () => submitFilterForm());
+    if (liveSearchInput) {
+      let searchTimer;
+      liveSearchInput.addEventListener("input", () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => submitFilterForm(), 250);
       });
+    }
 
-      document.addEventListener("click", async (e) => {
-        const btn = e.target.closest("[data-copy]");
-        if (!btn) return;
-        const text = btn.getAttribute("data-copy");
+    liveFilterInputs.forEach((input) => {
+      input.addEventListener("change", () => submitFilterForm());
+    });
 
+    document.addEventListener("click", async (e) => {
+      const copyBtn = e.target.closest("[data-copy]");
+      if (copyBtn) {
+        const text = copyBtn.getAttribute("data-copy");
+        if (!text) return;
         try {
           await navigator.clipboard.writeText(text);
-          showToast("Link copied");
         } catch (err) {
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          ta.remove();
-          showToast("Link copied");
+          return;
         }
-      });
+        return;
+      }
 
-      document.addEventListener("click", async (e) => {
-        const btn = e.target.closest("[data-toggle-downloaded]");
-        if (!btn) return;
-
-        const rowId = btn.getAttribute("data-row-id");
+      const downloadBtn = e.target.closest("[data-toggle-downloaded]");
+      if (downloadBtn) {
+        const rowId = downloadBtn.getAttribute("data-row-id");
         if (!rowId) return;
-
-        btn.disabled = true;
+        downloadBtn.disabled = true;
         try {
           const res = await fetch(`/toggle-downloaded/${rowId}`, { method: "POST" });
           const data = await res.json();
-          if (!res.ok || !data.success) {
-            showToast("Update failed");
-            return;
-          }
-
-          const isDownloaded = !!data.downloaded;
-          btn.setAttribute("data-downloaded", isDownloaded ? "1" : "0");
-          btn.classList.toggle("on", isDownloaded);
-          btn.textContent = isDownloaded ? "⬇️" : "⏳";
-          const label = isDownloaded ? "Remove downloaded mark" : "Mark as downloaded";
-          btn.setAttribute("aria-label", label);
-          btn.setAttribute("title", label);
-          showToast(isDownloaded ? "Marked as downloaded" : "Downloaded mark removed");
-        } catch (err) {
-          showToast("Update failed");
+          if (!res.ok || !data.success) return;
+          downloadBtn.classList.toggle("on", !!data.downloaded);
+          downloadBtn.textContent = data.downloaded ? "⬇️" : "⏳";
         } finally {
-          btn.disabled = false;
+          downloadBtn.disabled = false;
         }
-      });
-
-      document.addEventListener("click", async (e) => {
-        const btn = e.target.closest("[data-toggle-favorite]");
-        if (!btn) return;
-
-        const rowId = btn.getAttribute("data-row-id");
-        if (!rowId) return;
-
-        btn.disabled = true;
-        try {
-          const res = await fetch(`/toggle-favorite/${rowId}`, { method: "POST" });
-          const data = await res.json();
-          if (!res.ok || !data.success) {
-            showToast("Favorite update failed");
-            return;
-          }
-
-          const isFavorite = !!data.favorite;
-          btn.setAttribute("data-favorite", isFavorite ? "1" : "0");
-          btn.classList.toggle("on", isFavorite);
-          const label = isFavorite ? "Remove from favorites" : "Add to favorites";
-          btn.setAttribute("aria-label", label);
-          btn.setAttribute("title", label);
-          showToast(isFavorite ? "Added to favorites" : "Removed from favorites");
-
-          if (!isFavorite && window.location.pathname === "/favorites") {
-            const row = btn.closest("tr");
-            if (row) row.remove();
-            const tbody = document.querySelector("tbody");
-            if (tbody && !tbody.querySelector("tr")) {
-              tbody.innerHTML = '<tr><td colspan="11">No records match this filter.</td></tr>';
-            }
-          }
-        } catch (err) {
-          showToast("Favorite update failed");
-        } finally {
-          btn.disabled = false;
-        }
-      });
-
-      document.addEventListener("click", (e) => {
-        const a = e.target.closest(".sort a");
-        if (!a || !a.classList.contains("active")) return;
-        e.preventDefault();
-        const url = new URL(window.location.href);
-        url.searchParams.delete("sort");
-        url.searchParams.delete("order");
-        window.location.href = url.toString();
-      });
-
-      if (syncForm) {
-        syncForm.addEventListener("submit", () => {
-          if (syncBtn) syncBtn.disabled = true;
-          if (syncFullBtn) syncFullBtn.disabled = true;
-          if (syncOverlay) syncOverlay.classList.add("show");
-        });
+        return;
       }
 
-      if (syncFullForm) {
-        syncFullForm.addEventListener("submit", () => {
-          if (syncBtn) syncBtn.disabled = true;
-          if (syncFullBtn) syncFullBtn.disabled = true;
-          if (syncOverlay) syncOverlay.classList.add("show");
-        });
+      const favoriteBtn = e.target.closest("[data-toggle-favorite]");
+      if (!favoriteBtn) return;
+      const rowId = favoriteBtn.getAttribute("data-row-id");
+      if (!rowId) return;
+      favoriteBtn.disabled = true;
+      try {
+        const res = await fetch(`/toggle-favorite/${rowId}`, { method: "POST" });
+        const data = await res.json();
+        if (!res.ok || !data.success) return;
+        favoriteBtn.classList.toggle("on", !!data.favorite);
+        if (!data.favorite && window.location.pathname === "/favorites") {
+          const row = favoriteBtn.closest("tr");
+          if (row) row.remove();
+        }
+      } finally {
+        favoriteBtn.disabled = false;
       }
-    </script>
-  </body>
-</html>
+    });
+  </script>
+{% endblock %}

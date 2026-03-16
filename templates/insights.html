@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block sync_endpoint %}insights{% endblock %}
+{% block sync_full_endpoint %}insights{% endblock %}
+
+{% block content %}
+  {% if synced %}
+    <div class="notice">
+      <strong>Sync completed.</strong>
+      Processed: {{ processed }}, skipped: {{ skipped }}, added to review: {{ needs_review_added }}, reused manual corrections: {{ manual_corrections_used }}.
+    </div>
+  {% endif %}
+
+  <div class="panel">
+    <h2 class="sectionTitle">Follow-up Suggestions</h2>
+    <div class="stack">
+      {% for row in followups %}
+        <div
+          class="card listCard"
+          style="{% if row.follow_up_done %}background: var(--ok-bg); border-color: color-mix(in srgb, var(--ok-text) 22%, var(--line));{% else %}background: var(--no-bg); border-color: color-mix(in srgb, var(--no-text) 22%, var(--line));{% endif %}"
+        >
+          <h3>{{ row.company }} - {{ row.job_title }}</h3>
+          <p>{{ row.followup_hint }}</p>
+          <div class="meta">
+            Viewed: {{ format_time_with_date(row.viewed_time) }}
+            | Waiting: {{ row.days_waiting }} days
+            | Threshold: {{ row.followup_threshold }} days
+            | Location: {{ row.location or '-' }}
+          </div>
+          <div class="actionsRow" style="margin-top: 10px;">
+            <button
+              type="button"
+              class="{% if row.follow_up_done %}secondaryBtn{% endif %}"
+              data-toggle-follow-up
+              data-row-id="{{ row.row_id|urlencode }}"
+            >{% if row.follow_up_done %}Follow-up Done ✅{% else %}Follow-up?{% endif %}</button>
+            {% if row.job_url %}
+              <a class="buttonLink secondaryBtn" href="{{ row.job_url }}" target="_blank" rel="noopener noreferrer">↗</a>
+              <button class="secondaryBtn" type="button" data-copy="{{ row.job_url }}">📋</button>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <div class="emptyState">No follow-up candidates right now. Your recent applications are either fresh, already rejected, or not yet eligible.</div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener("click", async (e) => {
+      const copyBtn = e.target.closest("[data-copy]");
+      if (copyBtn) {
+        const text = copyBtn.getAttribute("data-copy");
+        if (!text) return;
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch (err) {
+          return;
+        }
+        return;
+      }
+
+      const followBtn = e.target.closest("[data-toggle-follow-up]");
+      if (!followBtn) return;
+      const rowId = followBtn.getAttribute("data-row-id");
+      if (!rowId) return;
+
+      followBtn.disabled = true;
+      try {
+        const res = await fetch(`/toggle-follow-up/${rowId}`, { method: "POST" });
+        const data = await res.json();
+        if (!res.ok || !data.success) return;
+        window.location.reload();
+      } finally {
+        followBtn.disabled = false;
+      }
+    });
+  </script>
+{% endblock %}

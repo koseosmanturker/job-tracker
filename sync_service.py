@@ -18,6 +18,13 @@ from linkedin_parser import (
     extract_rejected_event,
 )
 from repository import read_jobs_csv, upsert_job_csv, write_jobs_csv, show_viewed_jobs, mark_rejected_by_company_title
+from review_repository import (
+    NEEDS_REVIEW_FILE,
+    MANUAL_CORRECTIONS_FILE,
+    build_needs_review_item,
+    find_manual_correction,
+    queue_needs_review,
+)
 
 DEFAULT_QUERY = "from:(jobs-noreply@linkedin.com) newer_than:365d"
 SYNC_STATE_FILE = ".sync_state.json"
@@ -60,6 +67,11 @@ def build_incremental_query(state: dict) -> str:
     return f"from:(jobs-noreply@linkedin.com) after:{ts}"
 
 
+def build_full_window_query(days: int) -> str:
+    safe_days = max(1, min(int(days), 3650))
+    return f"from:(jobs-noreply@linkedin.com) newer_than:{safe_days}d"
+
+
 # Runs end-to-end synchronization from Gmail into local jobs CSV.
 # The function fetches candidate LinkedIn mails, parses events, merges each
 # record into repository, writes CSV, and returns a summary dict.
@@ -71,6 +83,8 @@ def run_sync(csv_path: str = "jobs.csv",
     service = get_gmail_service()
     jobs = read_jobs_csv(csv_path)
     state_path = str(Path(csv_path).with_name(SYNC_STATE_FILE))
+    review_path = str(Path(csv_path).with_name(NEEDS_REVIEW_FILE))
+    corrections_path = str(Path(csv_path).with_name(MANUAL_CORRECTIONS_FILE))
     sync_state = load_sync_state(state_path)
     if force_full:
         query_to_use = query or DEFAULT_QUERY
@@ -86,6 +100,8 @@ def run_sync(csv_path: str = "jobs.csv",
 
     processed = 0
     skipped = 0
+    needs_review_added = 0
+    manual_corrections_used = 0
 
     for mid in ids:
         try:
@@ -98,6 +114,26 @@ def run_sync(csv_path: str = "jobs.csv",
         subject = get_header(msg["payload"], "Subject")
         body = extract_body_text(msg["payload"])
         event_time = get_message_time_iso(msg)
+
+        manual_correction = find_manual_correction(corrections_path, subject=subject, body_text=body)
+        if manual_correction:
+            incoming = {
+                "company": manual_correction.get("company", ""),
+                "job_title": manual_correction.get("job_title", ""),
+                "location": manual_correction.get("location", ""),
+                "job_url": manual_correction.get("job_url", ""),
+                "applied": bool(manual_correction.get("applied", False)),
+                "applied_time": event_time if manual_correction.get("applied", False) else "",
+                "viewed": bool(manual_correction.get("viewed", False)),
+                "viewed_time": event_time if manual_correction.get("viewed", False) else "",
+                "downloaded": False,
+                "rejected": bool(manual_correction.get("rejected", False)),
+                "favorite": False,
+            }
+            upsert_job_csv(jobs, incoming)
+            processed += 1
+            manual_corrections_used += 1
+            continue
 
         rejected_company, rejected_title = extract_rejected_event(subject)
         if rejected_company and rejected_title:
@@ -112,6 +148,21 @@ def run_sync(csv_path: str = "jobs.csv",
 
         job_title, location = extract_job_title_and_location(subject, body, company)
         job_url = extract_job_url(body) or ""
+
+        if not company or not job_title:
+            added = queue_needs_review(
+                review_path,
+                build_needs_review_item(
+                    message_id=mid,
+                    subject=subject,
+                    body_text=body,
+                    event_time=event_time,
+                    reason="missing_company" if not company else "missing_job_title",
+                ),
+            )
+            if added:
+                needs_review_added += 1
+            continue
 
         incoming = {
             "company": company_display or company,
@@ -156,6 +207,8 @@ def run_sync(csv_path: str = "jobs.csv",
         "skipped": skipped,
         "rejected_marked": rejected_marked,
         "rejected_not_found": rejected_not_found,
+        "needs_review_added": needs_review_added,
+        "manual_corrections_used": manual_corrections_used,
         "query": query_to_use,
         "last_synced_at": sync_state.get("last_synced_at", ""),
         "csv_path": csv_path,
@@ -163,6 +216,7 @@ def run_sync(csv_path: str = "jobs.csv",
     print(
         "DONE "
         f"processed={processed} skipped={skipped} "
+        f"needs_review_added={needs_review_added} manual_corrections_used={manual_corrections_used} "
         f"rejected_marked={rejected_marked} rejected_not_found={rejected_not_found} "
         f"csv={csv_path}"
     )

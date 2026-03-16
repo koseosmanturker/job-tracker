@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block sync_endpoint %}needs_review{% endblock %}
+{% block sync_full_endpoint %}needs_review{% endblock %}
+
+{% block content %}
+  <div class="panel">
+    <h2 class="sectionTitle">Pending Parser Failures</h2>
+    <div class="stack">
+      {% for row in review_rows %}
+        <div class="card listCard">
+          <h3>{{ row.subject or "No subject" }}</h3>
+          <p class="meta">Reason: {{ row.reason }} | Message time: {{ format_time_with_date(row.event_time) }}</p>
+          <p>{{ row.body_preview or "No preview available." }}</p>
+          <div class="actionsRow">
+            <a class="buttonLink" href="/needs-review/{{ row.review_id }}">Review and Correct</a>
+          </div>
+        </div>
+      {% else %}
+        <div class="emptyState">The queue is empty. Parser misses will show up here after the next sync.</div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
