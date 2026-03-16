@@ -1,4 +1,5 @@
 company,job_title,location,job_url,applied,applied_time,viewed,viewed_time,downloaded,rejected,favorite
+-,Java Developer,İstanbul,https://www.linkedin.com/jobs/view/4384017722,True,2026-03-16T15:28:25+00:00,False,,False,False,False
 2N İnovasyon Araştırma Geliştirme Yazılım,Yazılımcılar aranıyor,Eskişehir,https://www.linkedin.com/jobs/view/4374810923,True,2026-02-26T01:36:56+00:00,False,,False,False,False
 3E,Planlama Mühendisi,Sincan,https://www.linkedin.com/jobs/view/4373944622,True,2026-02-21T21:34:26+00:00,False,,False,False,False
 4A Labs,Software Tester,Ankara,https://www.linkedin.com/jobs/view/4358815131,True,2026-02-19T13:42:35+00:00,True,2026-02-25T14:28:57+00:00,False,False,False
@@ -28,11 +29,13 @@ Advantech Türkiye,Application Engineer,Kağıthane,https://www.linkedin.com/job
 AF/AC Bilişim,Yazılım Uzmanı,Kayseri,https://www.linkedin.com/jobs/view/4376238811,True,2026-03-04T14:48:53+00:00,False,,False,False,False
 Agilex,Junior Java Developer,Milano Metropoliten Şehri,https://www.linkedin.com/jobs/view/4374250810,True,2026-02-23T13:27:32+00:00,False,,False,True,False
 Agoda,"Business Analyst (Supply Analytics, Bangkok-based, Relocation provided)",Ankara,https://www.linkedin.com/jobs/view/4334404470,True,2026-02-21T22:04:02+00:00,False,,False,False,False
-AGRIMAC S.A.,Web Developer,Selanik,https://www.linkedin.com/jobs/view/4383088641,True,2026-03-13T14:13:26+00:00,False,,False,False,False
+AGRIMAC S.A.,Web Developer,Selanik,https://www.linkedin.com/jobs/view/4383088641,True,2026-03-13T14:13:26+00:00,False,,False,True,False
 AI Business School,Full Stack Developer,Türkiye,https://www.linkedin.com/jobs/view/4372631636,True,2026-02-22T14:36:24+00:00,True,2026-02-22T21:48:21+00:00,True,False,False
 AI Jobs,Business Analyst (Remote),Avrupa Birliği,https://www.linkedin.com/jobs/view/4332444271,True,2025-11-03T11:00:58+00:00,False,,False,False,False
 Akakçe,Senior Software Test Engineer,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4363912432,True,2026-02-21T22:01:19+00:00,True,2026-02-23T06:36:11+00:00,False,False,False
+Akkodis,IT Project Management Specialist,"Bursa, Türkiye",https://www.linkedin.com/jobs/view/4384042165,True,2026-03-16T16:20:39+00:00,False,,False,False,False
 Akkodis,Powertrain/Driveline Test Mühendisi (Vize Engeli Olmayan),"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4372601174,True,2026-03-14T12:52:18+00:00,False,,False,False,False
+Akınsoft İzmir Bölge Bayi,Yazılım Destek Temsilcisi,İzmir,https://www.linkedin.com/jobs/view/4384042833,True,2026-03-16T15:30:00+00:00,False,,False,False,False
 Alpata Yazılım ve Teknoloji,Destek Hizmetleri Uzmanı,Eskişehir,https://www.linkedin.com/jobs/view/4379863379,True,2026-03-08T00:11:50+00:00,False,,False,False,False
 Alshaya Group Avrasya,IT Senior Specialist / Retail Applications,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4354163474,True,2026-03-04T14:59:55+00:00,False,,False,False,False
 ALTUNIŞIK Co.,Satış ve Pazarlama Uzmanı,Meram,https://www.linkedin.com/jobs/view/4291755669,True,2026-02-17T19:56:33+00:00,False,,False,False,False
@@ -92,12 +95,16 @@ Avansas.com,Jr. Data Analytics Specialist,Üsküdar,https://www.linkedin.com/job
 Avansas.com,Jr. Data Analytics Specialist,Üsküdar,https://www.linkedin.com/jobs/view/4375120567,True,2026-02-20T21:15:10+00:00,False,,False,False,False
 Avansas.com,Jr. Data Analytics Specialist,Üsküdar,https://www.linkedin.com/jobs/view/4385192990,True,2026-03-13T14:24:08+00:00,False,,False,False,False
 AVD Danışmanlık,Android Developer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4367234180,True,2026-02-20T21:04:52+00:00,False,,False,False,False
+AVD Danışmanlık,Data Platform Support Engineer (1-3 years),Kağıthane,https://www.linkedin.com/jobs/view/4385244628,True,2026-03-16T15:16:37+00:00,False,,False,False,False
 Avoca,Software Engineer,Polonya,https://www.linkedin.com/jobs/view/4366110354,True,2026-02-01T22:10:59+00:00,False,,False,True,False
 AVT Yazılım,Yazılım Programcısı,AVT Yazılım,https://www.linkedin.com/jobs/view/4373104333,True,2026-02-23T13:32:15+00:00,True,2026-02-23T13:53:53+00:00,False,False,False
 Avukat Ömer Sefa Canata - avukatcanata.com,Wordpress Geliştirici,Bursa,https://www.linkedin.com/jobs/view/4374531983,True,2026-02-28T14:35:58+00:00,True,2026-02-28T16:51:27+00:00,True,False,False
 Axpe Consulting,Java Backend Developer (Banking Project),Madrid Metropol Bölgesi,https://www.linkedin.com/jobs/view/4378760338,True,2026-03-02T00:53:15+00:00,False,,False,False,False
+Aydem Enerji,Bilgi Teknolojileri Denetçisi,"İzmir, Türkiye",https://www.linkedin.com/jobs/view/4384047363,True,2026-03-16T15:23:20+00:00,False,,False,False,False
+AYESAŞ,Test Mühendisi,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4386303822,True,2026-03-16T15:23:42+00:00,False,,False,False,False
 Azberry BV,Adtech Specialist,Türkiye,https://www.linkedin.com/jobs/view/4337317609,True,2026-02-03T21:06:15+00:00,True,2026-02-04T20:44:29+00:00,False,False,False
 Azerion,Fresh graduate/Jr. Adops Manager,Maltepe,https://www.linkedin.com/jobs/view/4383099381,True,2026-03-15T14:33:03+00:00,False,,False,False,False
+Bacacı Yatırım Holding,ERP Uzmanı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4385311306,True,2026-03-16T15:14:58+00:00,False,,False,False,False
 Bacacı Yatırım Holding,İş Zekası Uzmanı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4369763864,True,2026-02-26T01:54:20+00:00,False,,False,False,False
 Badakan,Développeur back-end java,Fransa,https://www.linkedin.com/jobs/view/4366776295,True,2026-02-01T22:12:24+00:00,False,,False,True,False
 Baked,Data Entry Clerk,İrlanda,https://www.linkedin.com/jobs/view/4357490191,True,2026-02-01T22:01:20+00:00,False,,False,True,False
@@ -127,6 +134,7 @@ BGTS,Data Scientist (Freelance),Türkiye,https://www.linkedin.com/jobs/view/4356
 Bimser Türkiye,QDMS Yazılım Destek Uzmanı,Başiskele,https://www.linkedin.com/jobs/view/4374275606,True,2026-02-23T13:24:24+00:00,False,,False,False,False
 Bimser Türkiye,SYNERGY SOFTWARE CONSULTANT,Başiskele,https://www.linkedin.com/jobs/view/4377376031,True,2026-03-03T00:50:47+00:00,False,,False,False,False
 BioSystems,Müşteri Destek Uzmanı - Otoimmünite,"İzmir, Türkiye",https://www.linkedin.com/jobs/view/4363654383,True,2026-02-05T21:08:24+00:00,True,2026-02-12T12:05:48+00:00,False,False,False
+Birsel,Satınalma Uzmanı,Ankara,https://www.linkedin.com/jobs/view/4384008734,True,2026-03-16T15:27:20+00:00,False,,False,False,False
 BiSoft Bilgi Teknolojileri A.Ş.,Veri Ambarı & İş Zekası Danışmanı (DWH & Business Intelligence Consultant),"Ankara, Ankara, Türkiye",https://www.linkedin.com/jobs/view/4377302079,True,2026-03-03T01:03:49+00:00,True,2026-03-09T10:56:02+00:00,True,False,False
 Bitexen,Data Engineer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4382432490,True,2026-03-13T14:37:22+00:00,False,,False,False,False
 Bitexen,Fraud Uzman Yardımcısı / Uzman,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4378814061,True,2026-03-03T00:52:19+00:00,False,,False,False,False
@@ -234,6 +242,7 @@ DenizBank,Expert Software Quality Engineer,"İstanbul, Türkiye",https://www.lin
 DestekBank,VIP BT Destek Uzmanı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4379348293,True,2026-03-10T05:52:56+00:00,False,,False,False,False
 Dev4Side Software,Sviluppatore Full Stack .net,Milan Metropol Bölgesi,https://www.linkedin.com/jobs/view/4382107791,True,2026-03-09T01:29:49+00:00,False,,False,True,False
 DEVA Holding A.Ş.,Sistem Destek Uzmanı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4375951075,True,2026-03-10T05:47:40+00:00,False,,False,False,False
+Devoks,QA Engineer,İstanbul,https://www.linkedin.com/jobs/view/4384025793,True,2026-03-16T15:29:29+00:00,False,,False,False,False
 Devotion Interactive,Porting Developer (Console),Kadıköy,https://www.linkedin.com/jobs/view/4372608561,True,2026-02-22T14:38:56+00:00,False,,False,False,False
 Değer Galvano Metal Kaplama,Proje ve Teknik Gelişim Mühendisi,Bornova,https://www.linkedin.com/jobs/view/4357380201,True,2026-03-09T01:30:30+00:00,False,,False,False,False
 DigiFist,Technical Support Engineer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4342936719,True,2026-01-06T22:02:26+00:00,False,,False,False,False
@@ -285,7 +294,7 @@ ErasmusTalent,Investment Banking Intern,Amsterdam,https://www.linkedin.com/jobs/
 ErasmusTalent,Junior Data Analist,Rotterdam,https://www.linkedin.com/jobs/view/4375649656,True,2026-02-22T14:10:52+00:00,False,,False,True,False
 ErasmusTalent,Junior Data Analist,Rotterdam,https://www.linkedin.com/jobs/view/4369441912,True,2026-02-05T13:13:18+00:00,False,,False,False,False
 ErasmusTalent,Trainee Consultancy,"The Randstad, Hollanda",https://www.linkedin.com/jobs/view/4376545935,True,2026-02-24T01:24:23+00:00,False,,False,True,False
-ErikLabs,İş Analisti,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4383095799,True,2026-03-13T14:27:33+00:00,False,,False,False,False
+ErikLabs,İş Analisti,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4383095799,True,2026-03-13T14:27:33+00:00,True,2026-03-16T11:31:02+00:00,False,False,False
 ETA Bilgisayar,Software Engineer,Şişli,https://www.linkedin.com/jobs/view/4353963987,True,2026-02-09T00:17:42+00:00,False,,False,False,False
 Etiya,"Principal Specialist, Software Development","İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4373537354,True,2026-02-26T01:57:31+00:00,False,,False,False,False
 Etstur,Full Stack Developer,Kadıköy,https://www.linkedin.com/jobs/view/4381710529,True,2026-03-12T10:48:15+00:00,False,,False,False,False
@@ -310,12 +319,14 @@ Fides Mühendislik,Kurumsal Yazılım ve Sistem Geliştirme Uzmanı,Ankara,https
 Fides Mühendislik,Kurumsal Yazılım ve Sistem Geliştirme Uzmanı,Ankara,https://www.linkedin.com/jobs/view/4374625628,True,2026-02-21T21:33:31+00:00,True,2026-02-21T22:01:59+00:00,True,False,False
 Findr,"Software Engineer – Financial Systems (Loans & Transactions) – Java - Remote – €90,000",Almanya,https://www.linkedin.com/jobs/view/4379040516,True,2026-03-02T00:54:30+00:00,False,,False,True,False
 Findr,"Software Engineer – Java - IT Security - Remote – €80,000",Almanya,https://www.linkedin.com/jobs/view/4379023819,True,2026-03-02T00:52:50+00:00,False,,False,True,False
+Finex Soft,Full Stack Developer (.NET Core),"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4384028447,True,2026-03-16T15:19:14+00:00,False,,False,False,False
 Fintecia,Business Analyst,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4370429104,True,2026-02-26T01:41:23+00:00,False,,False,False,False
 Fintecia,Java Developer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4368095155,True,2026-02-07T23:43:18+00:00,False,,False,False,False
 First Advantage,"Solutions Engineer (Remote, SINGAPORE)",Singapur,https://www.linkedin.com/jobs/view/4378602094,True,2026-02-28T14:19:03+00:00,False,,False,False,False
 FIT Global,SAP IT Project Manager,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4378171559,True,2026-03-04T15:08:24+00:00,False,,False,True,False
 Fix Bilisim Teknolojileri LTD. STI.,Bilgi Teknolojileri Saha Mühendisi,"İzmir, Türkiye",https://www.linkedin.com/jobs/view/4376259760,True,2026-03-08T00:08:40+00:00,True,2026-03-10T19:54:23+00:00,False,False,False
 FLO Group,IT Satın Alma Uzman Yardımcısı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4379858757,True,2026-03-15T14:32:38+00:00,False,,False,False,False
+FLORMAR,Backend Developer (12 Month-Fixed Term Contract),"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4384019962,True,2026-03-16T15:18:16+00:00,False,,False,False,False
 Formation Search,Software Engineer,"Avrupa, Ortadoğu ve Afrika",https://www.linkedin.com/jobs/view/4372376860,True,2026-02-21T21:56:33+00:00,False,,False,False,False
 Formation Search,Software Engineer,"Avrupa, Ortadoğu ve Afrika",https://www.linkedin.com/jobs/view/4366455962,True,2026-01-28T13:59:53+00:00,False,,False,False,False
 Framaco International,Logistics Operations Specialist,Ankara,https://www.linkedin.com/jobs/view/4358822784,True,2026-02-07T23:30:12+00:00,True,2026-02-09T10:17:28+00:00,False,True,False
@@ -345,6 +356,8 @@ Gizli Şirket,Dijitalleşme ve Bilgi Yönetimi Mühendisi,"Ankara, Türkiye",htt
 GİLTAŞ A.Ş.,NEBİM ERP YAZILIMI SATIŞ YÖNETİCİSİ,"İzmir, Türkiye",https://www.linkedin.com/jobs/view/4373122258,True,2026-03-03T00:34:51+00:00,True,2026-03-10T14:08:24+00:00,True,False,False
 GİZLİ,Assistant IT Manager,Ankara,https://www.linkedin.com/jobs/view/4375514083,True,2026-03-02T00:00:14+00:00,True,2026-03-02T06:39:20+00:00,True,False,False
 GİZLİ,Son Kullanıcı Destek Uzmanı,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4380305943,True,2026-03-10T05:53:11+00:00,False,,False,False,False
+GİZLİ,Uygulama Geliştirici,"Çankaya, Ankara, Türkiye",https://www.linkedin.com/jobs/view/4386355876,True,2026-03-16T15:15:01+00:00,True,2026-03-16T15:40:34+00:00,True,False,False
+GoWit Technology,Full-Stack Developer,Türkiye,https://www.linkedin.com/jobs/view/4384048706,True,2026-03-16T15:15:53+00:00,False,,False,False,False
 GoWit Technology,Junior QA Engineer,Türkiye,https://www.linkedin.com/jobs/view/4355887687,True,2026-01-27T11:33:02+00:00,False,,False,False,False
 Grand Hyatt,IT Supervisor,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4377394238,True,2026-03-03T01:06:29+00:00,False,,False,False,False
 Gravitas Recruitment Group (Global) Ltd,Graduate Management Trainee (2026 Graduates),Rotterdam,https://www.linkedin.com/jobs/view/4333936770,True,2026-01-07T06:52:49+00:00,False,,False,True,False
@@ -377,6 +390,7 @@ Hireshire,Data Analytics Internship,Polonya,https://www.linkedin.com/jobs/view/4
 Hireshire,Data Engineering Intern,Avrupa Birliği,https://www.linkedin.com/jobs/view/4351089157,True,2026-01-06T21:40:50+00:00,False,,False,False,False
 Hireshire,Data Science Intern,Avrupa Birliği,https://www.linkedin.com/jobs/view/4328778512,True,2025-12-24T20:57:15+00:00,False,,False,False,False
 Hitit,Junior Java Developer,Sarıyer,https://www.linkedin.com/jobs/view/4347389134,True,2026-01-06T22:00:45+00:00,False,,False,False,False
+HIVITECH Bilişim Sistemleri,IT Destek Uzmanı,Ankara,https://www.linkedin.com/jobs/view/4383002016,True,2026-03-16T15:27:48+00:00,False,,False,False,False
 Honda Türkiye A.Ş.,SAP Support Specialist,Aliağa,https://www.linkedin.com/jobs/view/4363990180,True,2026-03-09T01:45:18+00:00,False,,False,False,False
 HRINNO,Java Software Engineer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4375180755,True,2026-02-20T17:08:16+00:00,False,,False,False,False
 HRINNO,Java Software Engineer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4359862692,True,2026-02-05T13:42:10+00:00,False,,False,False,False
@@ -402,6 +416,7 @@ ICTWORKS Bilişim ve Yazılım A.Ş.,Software Architect,"İstanbul, Türkiye",ht
 IGNIS,Ingeniero/a Junior de Desarrollo de Proyectos,Madrid,https://www.linkedin.com/jobs/view/4373460392,True,2026-02-22T13:54:04+00:00,False,,False,True,False
 IKEA,Bilgi Teknolojileri Uzmanı - IKEA Türkiye İnternet Mağazası,Kartal,https://www.linkedin.com/jobs/view/4356187843,True,2026-03-04T15:04:18+00:00,False,,False,False,False
 ila Bank,Fresh Graduate Opportunities,Bahreyn,https://www.linkedin.com/jobs/view/4144377940,True,2025-12-10T23:50:57+00:00,False,,False,False,False
+Imona Technologies A.S.,AWS Administrator,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4384003315,True,2026-03-16T15:26:59+00:00,False,,False,False,False
 ImpressiveGreenApple,IT Innovatie Consultant | Traineeship april 2026,"The Randstad, Hollanda",https://www.linkedin.com/jobs/view/4374268869,True,2026-02-24T01:19:47+00:00,False,,False,False,False
 Improvado,Junior Python Developer,Türkiye,https://www.linkedin.com/jobs/view/4367382402,True,2026-01-30T19:22:21+00:00,False,,False,False,False
 Inetum,Business Analyst,Lizbon,https://www.linkedin.com/jobs/view/4379025682,True,2026-03-01T23:56:38+00:00,False,,False,True,False
@@ -426,8 +441,10 @@ Innovance Consultancy,Java Developer,"İstanbul, Türkiye",https://www.linkedin.
 Innovance Consultancy,Java Developer Intern,Sarıyer,https://www.linkedin.com/jobs/view/4351644388,True,2026-01-26T12:51:46+00:00,False,,False,False,False
 Innovance Consultancy,System Engineer,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4368231794,True,2026-02-18T21:03:08+00:00,True,2026-02-18T21:43:30+00:00,False,False,False
 Innovance Consultancy,System Engineer,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4368987794,True,2026-02-07T23:49:49+00:00,False,,False,False,False
+Innovance Consultancy,Veritabanı Yöneticisi,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4382852197,True,2026-03-16T15:20:10+00:00,False,,False,False,False
 Innowise,Business analyst with Trading experience,Varşova,https://www.linkedin.com/jobs/view/4313743667,True,2025-11-03T11:03:11+00:00,False,,False,True,False
 Inoweiser,Fullstack Developer | Remote,Lizbon Metropol Bölgesi,https://www.linkedin.com/jobs/view/4378765899,True,2026-02-28T14:14:25+00:00,False,,False,True,False
+Integral Group®,Kalite Kontrol Mühendisi,Başakşehir,https://www.linkedin.com/jobs/view/4380259810,True,2026-03-16T15:24:53+00:00,False,,False,False,False
 Intellect Group,Graduate Analyst,"Londra, Birleşik Krallık",https://www.linkedin.com/jobs/view/4342170060,True,2025-12-10T23:54:23+00:00,False,,False,True,False
 InterEx Group,SQL Developer,Avrupa Birliği,https://www.linkedin.com/jobs/view/4351490030,True,2026-01-06T21:41:49+00:00,False,,False,False,False
 INTERTECH,"Yatırım Ürünleri, Sigorta, İK ve Dış Ticaret Software Engineer (Hybrid)","İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4381715516,True,2026-03-14T13:55:21+00:00,False,,False,False,False
@@ -492,12 +509,12 @@ Kardo,Teknik Destek Temsilcisi,Denizli,https://www.linkedin.com/jobs/view/438309
 KARL STORZ,Finance Intern,Madrid,https://www.linkedin.com/jobs/view/4325737893,True,2025-12-10T23:46:14+00:00,False,,False,True,False
 Kartaca,Business Analyst,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4379576188,True,2026-03-01T23:46:35+00:00,True,2026-03-04T11:44:42+00:00,False,True,False
 Kartaca,Business Analyst,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4382667025,True,2026-03-09T01:36:06+00:00,False,,False,False,False
-Kartaca,Java Developer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4385316214,True,2026-03-13T14:10:23+00:00,False,,False,False,False
+Kartaca,Java Developer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4385316214,True,2026-03-13T14:10:23+00:00,True,2026-03-16T11:02:02+00:00,False,False,False
 Kartesia,Investment Team Intern - 4 to 6 months internship,Amsterdam,https://www.linkedin.com/jobs/view/4340246101,True,2025-12-10T23:35:36+00:00,False,,False,True,False
 Kayra Export,Backend Developer,Kayseri,https://www.linkedin.com/jobs/view/4382049507,True,2026-03-13T14:42:55+00:00,False,,False,False,False
 Kervan Gıda,Kalite Güvence Uzmanı,Akhisar,https://www.linkedin.com/jobs/view/4377726238,True,2026-03-03T00:53:19+00:00,False,,False,False,False
 Key Yazılım Çözümleri A.Ş.,JAVA Yazılım Geliştirme Uzmanı,Ankara,https://www.linkedin.com/jobs/view/4361486391,True,2026-02-07T23:42:54+00:00,True,2026-02-20T11:18:54+00:00,False,False,False
-Key Yazılım Çözümleri A.Ş.,JAVA Yazılım Geliştirme Uzmanı,Ankara,https://www.linkedin.com/jobs/view/4382768798,True,2026-03-13T14:41:46+00:00,False,,False,False,False
+Key Yazılım Çözümleri A.Ş.,JAVA Yazılım Geliştirme Uzmanı,"Ankara, Ankara, Türkiye",https://www.linkedin.com/jobs/view/4382768798,True,2026-03-13T14:41:46+00:00,True,2026-03-16T13:40:19+00:00,False,False,False
 KEYTECH Elektronik,Junior Yazılım Geliştirici,"Ankara, Ankara, Türkiye",https://www.linkedin.com/jobs/view/4378513053,True,2026-03-08T00:18:25+00:00,True,2026-03-09T06:42:48+00:00,False,True,False
 Kivi Technologies,"Computer Vision Engineer (C++, Onsite)",İstanbul,https://www.linkedin.com/jobs/view/4364557253,True,2026-02-22T14:37:01+00:00,True,2026-02-22T15:12:37+00:00,False,True,False
 Klimasan,Yazılım Mühendisi,"Manisa, Türkiye",https://www.linkedin.com/jobs/view/4353825017,True,2026-01-30T19:32:31+00:00,False,,False,False,False
@@ -548,6 +565,7 @@ Maroteknoloji,Data Scientist,Türkiye,https://www.linkedin.com/jobs/view/4381700
 Maroteknoloji,İş Analisti,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4352207931,True,2026-02-05T13:05:05+00:00,False,,False,False,False
 Maroteknoloji,İş Analisti (Temel Bankacılık),"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4373451075,True,2026-02-22T14:02:09+00:00,False,,False,False,False
 Maroteknoloji,Yazılım Uzmanı (.Net),Türkiye,https://www.linkedin.com/jobs/view/4371908977,True,2026-02-19T14:03:22+00:00,False,,False,False,False
+Maroteknoloji,Yazılım Uzmanı (Java),"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4384022886,True,2026-03-16T16:33:07+00:00,False,,False,False,False
 Mars Athletic Club,Assistant Club Manager,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4373551159,True,2026-02-21T21:56:16+00:00,False,,False,False,False
 Mars Logistics,Süreç Geliştirme Uzman Yardımcısı,Bağcılar,https://www.linkedin.com/jobs/view/4371905460,True,2026-02-17T20:09:21+00:00,True,2026-02-18T06:08:52+00:00,False,False,False
 Marti Technologies (NYSE: MRT),Software Test Engineer (Manual & Automation),"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4306217425,True,2026-02-19T14:15:52+00:00,False,,False,True,False
@@ -560,6 +578,7 @@ mayaICT,Bilgi İşlem Destek Uzmanı,İstanbul,https://www.linkedin.com/jobs/vie
 Meditopia,Yeni Mezun Saha Satış Uzmanı,Türkiye,https://www.linkedin.com/jobs/view/4354128121,True,2026-01-27T11:42:15+00:00,False,,False,True,False
 Medworld Clinic,Web Yazılım Uzmanı,Antalya,https://www.linkedin.com/jobs/view/4375536341,True,2026-02-28T13:56:09+00:00,False,,False,False,False
 Medya Vista,Wordpress - Geliştirici Web Uzmanı,Ankara,https://www.linkedin.com/jobs/view/4374249385,True,2026-02-23T13:21:29+00:00,True,2026-02-23T23:03:58+00:00,False,False,False
+Medya Vista,Wordpress - Geliştirici Web Uzmanı,Ankara,https://www.linkedin.com/jobs/view/4384039661,True,2026-03-16T15:14:26+00:00,True,2026-03-16T15:21:59+00:00,False,False,False
 MEGACODE YAZILIM VE TİCARET ANONİM ŞİRKETİ,.NET Core Geliştirici,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4353601222,True,2026-02-09T00:17:08+00:00,False,,False,True,False
 Meleni Home,E-Ticaret Ürün Giriş Uzman Yardımcısı,Esenler,https://www.linkedin.com/jobs/view/4371947424,True,2026-02-22T14:35:55+00:00,True,2026-02-23T02:17:07+00:00,False,False,False
 Melissa Ai,AI Engineer (Junior–Mid) - Conversational Chatbot (Python + AWS Cloud Services),Kadıköy,https://www.linkedin.com/jobs/view/4348185434,True,2026-03-04T15:01:44+00:00,False,,False,False,False
@@ -582,8 +601,9 @@ Migros One,Test Engineer,Ataşehir,https://www.linkedin.com/jobs/view/4345774779
 Mintus,Machine Learning Engineer,Türkiye,https://www.linkedin.com/jobs/view/4351709408,True,2026-03-02T00:32:43+00:00,False,,False,True,False
 Mirsis Bilgi Teknolojileri,Java Software Engineer,Türkiye,https://www.linkedin.com/jobs/view/4359833696,True,2026-02-07T23:37:50+00:00,False,,False,True,False
 Mirsis Bilgi Teknolojileri,Junior Java Software Developer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4363222223,True,2026-02-18T20:43:04+00:00,False,,False,True,False
-MKAtelier&Danışmanlık,Finansal Güvence Danışmanı,Greater Izmir,https://www.linkedin.com/jobs/view/4383141368,True,2026-03-14T12:45:05+00:00,False,,False,False,False
+MKAtelier&Danışmanlık,Finansal Güvence Danışmanı,Greater Izmir,https://www.linkedin.com/jobs/view/4383141368,True,2026-03-14T12:45:05+00:00,True,2026-03-16T14:41:02+00:00,True,False,False
 MLPCARE,ERP Sistemleri Uygulama Geliştirme Müdür Yardımcısı,Eyüpsultan,https://www.linkedin.com/jobs/view/4372480506,True,2026-03-04T14:40:47+00:00,False,,False,False,False
+MNG Airlines,Backend Developer,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4384055333,True,2026-03-16T15:15:19+00:00,False,,False,False,False
 MNM Teknoloji,Yazılım Geliştirici (Yetiştirilmek Üzere),Kadıköy,https://www.linkedin.com/jobs/view/4375552347,True,2026-02-28T13:47:43+00:00,False,,False,False,False
 MobileAction,Software Test Engineer,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4379915412,True,2026-03-08T00:21:28+00:00,True,2026-03-09T13:05:17+00:00,False,True,False
 Mobiversite,Flutter Developer,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4330495789,True,2026-02-19T13:58:40+00:00,False,,False,False,False
@@ -596,7 +616,7 @@ Monovi Information Technology A.S.,Power BI Developer,Türkiye,https://www.linke
 Monovi Information Technology A.S.,Software Support Engineer,Urla,https://www.linkedin.com/jobs/view/4374562695,True,2026-02-26T02:13:19+00:00,False,,False,True,False
 Monster Notebook,Genel Başvuru,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4372737671,True,2026-02-17T19:51:11+00:00,False,,False,False,False
 Moonstep Games,Data Analyst,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4327669663,True,2026-03-03T00:43:46+00:00,False,,False,True,False
-Motus Software Technologies,Java Developer | Banking / Cash Management,Maltepe,https://www.linkedin.com/jobs/view/4382788727,True,2026-03-13T14:43:13+00:00,False,,False,False,False
+Motus Software Technologies,Java Developer | Banking / Cash Management,"Maltepe, İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4382788727,True,2026-03-13T14:43:13+00:00,True,2026-03-16T11:13:24+00:00,False,False,False
 MR DIY Türkiye,IT Uzmanı,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4364164323,True,2026-02-20T21:17:22+00:00,False,,False,False,False
 MRC Türkiye,Enerji Veri Analitiği Danışmanı,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4375511859,True,2026-02-28T14:29:53+00:00,False,,False,False,False
 MRLLOG Logistics,Yetiştirilmek Üzere Yönetici Adayı,Küçükçekmece,https://www.linkedin.com/jobs/view/4356043238,True,2026-02-07T23:44:51+00:00,False,,False,False,False
@@ -624,7 +644,7 @@ Netelsan,Kalite Kontrol Yardımcısı,"Ankara, Ankara, Türkiye",https://www.lin
 Netgsm İletişim ve Bilgi Teknolojileri A.Ş,IT Network Support Specialist,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4375508225,True,2026-02-28T13:29:18+00:00,True,2026-03-03T09:18:26+00:00,False,False,False
 Netgsm İletişim ve Bilgi Teknolojileri A.Ş,PHP Developer,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4364472704,True,2026-02-22T14:41:06+00:00,True,2026-02-23T10:20:06+00:00,False,False,False
 Netgsm İletişim ve Bilgi Teknolojileri A.Ş,Yazılım Destek Uzmanı,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4358856876,True,2026-02-09T00:12:47+00:00,True,2026-02-09T08:45:08+00:00,True,False,False
-Netgsm İletişim ve Bilgi Teknolojileri A.Ş,Yazılım Destek Uzmanı,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4383150488,True,2026-03-14T12:40:07+00:00,False,,False,False,False
+Netgsm İletişim ve Bilgi Teknolojileri A.Ş,Yazılım Destek Uzmanı,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4383150488,True,2026-03-14T12:40:07+00:00,True,2026-03-16T13:41:08+00:00,True,False,False
 Netnucleus,Frontend Web Developer,Türkiye,https://www.linkedin.com/jobs/view/4371917935,True,2026-02-17T20:17:55+00:00,False,,False,False,False
 NetViaLab,İş Analisti,Ankara,https://www.linkedin.com/jobs/view/4363906221,True,2026-03-02T00:33:44+00:00,False,,False,False,False
 NetViaLab,Web Tasarım Uzmanı,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4363184512,True,2026-03-02T00:51:40+00:00,False,,False,False,False
@@ -640,7 +660,7 @@ Nielsen,Junior Client Data Analyst,NielsenIQ,https://www.linkedin.com/jobs/view/
 Niltek Yazılım Teknolojileri A.Ş,Dijital Pazarlama Uzmanı,Samsun,https://www.linkedin.com/jobs/view/4374566990,True,2026-02-28T13:46:38+00:00,False,,False,True,False
 Nobel Ilac A.S,IT Information Security Specialist,Nobel İlaç,https://www.linkedin.com/jobs/view/4348871614,True,2026-03-04T14:35:08+00:00,False,,False,False,False
 Nodus Works,Geliştirici,Türkiye,https://www.linkedin.com/jobs/view/4381215623,True,2026-03-08T00:04:56+00:00,False,,False,False,False
-NovaTech Group,Java Software Engineer (Junior & Mid-Level),Rome Metropol Bölgesi,https://www.linkedin.com/jobs/view/4383136013,True,2026-03-13T14:33:16+00:00,False,,False,False,False
+NovaTech Group,Java Software Engineer (Junior & Mid-Level),Rome Metropol Bölgesi,https://www.linkedin.com/jobs/view/4383136013,True,2026-03-13T14:33:16+00:00,False,,False,True,False
 NRF (Nederlandse Radiateuren Fabriek),Junior Product Specialist (Automotive),"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4366813198,True,2026-01-30T19:25:42+00:00,False,,False,False,False
 Nuevo Softwarehouse,Dotnet Geliştirici,Türkiye,https://www.linkedin.com/jobs/view/4380281168,True,2026-03-08T00:17:23+00:00,False,,False,False,False
 Nuevo Softwarehouse,Python Geliştirici,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4357587746,True,2026-02-05T13:06:03+00:00,False,,False,False,False
@@ -674,11 +694,13 @@ Online Marketing United,Web & Tracking Specialist (m/w/d) | 100% Homeoffice,Alma
 Onyx Capital Group,Graduate Trader,Londra,https://www.linkedin.com/jobs/view/4310143390,True,2025-12-10T23:55:53+00:00,False,,False,False,False
 Opsin Electro Optical Systems,Görüntü İşleme Aday Mühendisi,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4332966241,True,2025-10-30T14:53:14+00:00,False,,False,False,False
 Opsin Electro Optical Systems,Kıdemli İş Geliştirme Mühendisi,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4373933908,True,2026-02-21T22:13:03+00:00,True,2026-02-23T08:58:07+00:00,False,False,False
+Optimus Yazılım,Flutter Mobile Developer,Ataşehir,https://www.linkedin.com/jobs/view/4384032107,True,2026-03-16T15:35:35+00:00,False,,False,False,False
 ORDİNO,Mobile Application Developer,İstanbul,https://www.linkedin.com/jobs/view/4383016428,True,2026-03-13T14:40:43+00:00,False,,False,False,False
 OREDATA,Full Stack Engineer,İstanbul,https://www.linkedin.com/jobs/view/4374398583,True,2026-02-22T14:17:37+00:00,False,,False,False,False
 OREDATA,Mobile Developer,İstanbul,https://www.linkedin.com/jobs/view/4374398680,True,2026-02-22T14:18:33+00:00,False,,False,False,False
 Otokoç Otomotiv,Otokoç Ankara Fiat - Sales Leader - Used Car,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4350392233,True,2026-02-21T22:01:03+00:00,False,,False,False,False
 Otom Concept,Yazılım Uzmanı,Sakarya,https://www.linkedin.com/jobs/view/4374258990,True,2026-02-26T02:00:54+00:00,False,,False,False,False
+Ototronik,Denetçi,İstanbul,https://www.linkedin.com/jobs/view/4384055115,True,2026-03-16T15:36:38+00:00,False,,False,False,False
 Owen Thomas | Pending B Corp™,Owen Thomas | Pending B Corp™,"Lizbon, Portekiz",https://www.linkedin.com/jobs/view/4382691164,True,2026-03-09T01:32:48+00:00,False,,False,False,False
 Owen Thomas | Pending B Corp™,Owen Thomas | Pending B Corp™,"Lizbon, Portekiz",https://www.linkedin.com/jobs/view/4386034972,True,2026-03-15T14:20:30+00:00,False,,False,False,False
 Padima Technology,Database Administrator,Türkiye,https://www.linkedin.com/jobs/view/4373593664,True,2026-02-17T19:58:29+00:00,False,,False,True,False
@@ -697,14 +719,19 @@ Paxie Games,QA Specialist,"İstanbul, Türkiye",https://www.linkedin.com/jobs/vi
 PAYTR,İş Analizi Uzmanı,Türkiye,https://www.linkedin.com/jobs/view/4325396033,True,2026-02-09T00:18:21+00:00,False,,False,False,False
 PayTR,Test Engineer,Türkiye,https://www.linkedin.com/jobs/view/4372849421,True,2026-02-21T21:27:58+00:00,False,,False,False,False
 PayTR,Ticari Analiz Uzmanı / Uzman Yardımcısı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4369550246,True,2026-02-26T01:51:16+00:00,False,,False,False,False
+Pek Food,Bilgi İşlem Sorumlusu,Tekirdağ,https://www.linkedin.com/jobs/view/4384052295,True,2026-03-16T15:33:01+00:00,False,,False,False,False
 Pentanom Talent,Full Stack Engineer,Kağıthane,https://www.linkedin.com/jobs/view/4382928790,True,2026-03-15T14:38:25+00:00,False,,False,False,False
+Pentanom Talent,İş Zekası Uzmanı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4386360690,True,2026-03-16T15:15:42+00:00,False,,False,False,False
 Pentanom Talent,Veritabanı Yöneticisi,Sarıyer,https://www.linkedin.com/jobs/view/4381419178,True,2026-03-08T00:15:28+00:00,False,,False,True,False
 Peoployed.,SAP ABAP Geliştirme Uzmanı,"Manisa, Türkiye",https://www.linkedin.com/jobs/view/4378801640,True,2026-03-03T01:07:42+00:00,False,,False,False,False
 Petamaster Technology Investment,"IT Donanım/ Kurumsal Satış , Tekliflendirme Sorumlusu","İstanbul, İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4381262610,True,2026-03-09T01:35:15+00:00,True,2026-03-09T08:47:17+00:00,False,False,False
 Petra Kurumsal İnovasyon ve Yönetim Danışmanlık,Python ML Backend Developer,Türkiye,https://www.linkedin.com/jobs/view/4383084728,True,2026-03-13T14:11:30+00:00,False,,False,False,False
 PGC Digital (India): CMMI Level 3 Company,Immediate Joiner | Gen Z Java Software Engineer (Remote – Fresher Role),"Avrupa, Ortadoğu ve Afrika",https://www.linkedin.com/jobs/view/4332055353,True,2025-10-30T14:40:26+00:00,False,,False,False,False
+PiData Bilişim Teknolojileri A.Ş.,Satış Destek / Junior Sales (Yazılım & ERP),Ankara,https://www.linkedin.com/jobs/view/4384040424,True,2026-03-16T15:25:16+00:00,False,,False,False,False
+PiData Bilişim Teknolojileri A.Ş.,Yazılım Geliştirme Uzmanı (.NET Core | Frontend Ağırlıklı),Ankara,https://www.linkedin.com/jobs/view/4384037663,True,2026-03-16T15:26:38+00:00,False,,False,False,False
 PK Digital Marketing Services,Machine Learning Engineer,Fransa,https://www.linkedin.com/jobs/view/4357550228,True,2026-02-01T22:02:29+00:00,False,,False,False,False
 PKF Türkiye,IT Assistant Specialist,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4375223153,True,2026-02-26T02:08:33+00:00,True,2026-02-26T11:53:35+00:00,False,False,False
+PKF Türkiye,Yazılım Mühendisi,İstanbul,https://www.linkedin.com/jobs/view/4384023440,True,2026-03-16T15:26:56+00:00,False,,False,False,False
 Planet Talent,Junior technology consultant,Brüksel Metropol Bölgesi,https://www.linkedin.com/jobs/view/4381261863,True,2026-03-09T01:32:20+00:00,False,,False,False,False
 Plat4mation,AI Intern,"Utrecht, Hollanda",https://www.linkedin.com/jobs/view/4328529987,True,2025-12-22T13:35:08+00:00,False,,False,True,False
 Playrix,Lead C++ Software Engineer (Gameplay),Türkiye,https://www.linkedin.com/jobs/view/4346573206,True,2026-02-19T13:59:49+00:00,False,,False,True,False
@@ -726,6 +753,7 @@ QNB Türkiye,Yaptırımlar ve Müşteri Değerlendirme Yetkilisi / Ankara,"Ankar
 QNB Türkiye,ŞÜPHELİ İŞLEM İZLEME VE ANALİTİK UZMAN YARDIMCISI/UZMANI,İstanbul,https://www.linkedin.com/jobs/view/4349518213,True,2026-03-14T14:05:16+00:00,False,,False,False,False
 Qoolize,Junior NOC Specialist,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4378823447,True,2026-03-03T01:09:01+00:00,True,2026-03-05T17:56:02+00:00,False,False,False
 Qoolize LLC,Backend Developer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4377245652,True,2026-02-28T14:33:11+00:00,False,,False,False,False
+QRP,ERP Uygulama Danışmanı,Bursa,https://www.linkedin.com/jobs/view/4377791388,True,2026-03-16T15:16:49+00:00,False,,False,False,False
 Quaker Houghton,Teknik Destek Sorumlusu - Hatay / Adana / Osmaniye,"Adana, Türkiye",https://www.linkedin.com/jobs/view/4368753126,True,2026-02-05T13:46:21+00:00,False,,False,False,False
 Quatron Teknoloji Otomasyon,Otomasyon Yazılım & Devreye Alma Yetkilisi,Maltepe,https://www.linkedin.com/jobs/view/4379845159,True,2026-03-08T00:07:52+00:00,False,,False,True,False
 Radarsan,Yazılım Test Mühendisi,Pendik,https://www.linkedin.com/jobs/view/4374592095,True,2026-02-28T14:36:34+00:00,True,2026-03-03T06:26:58+00:00,False,False,False
@@ -767,7 +795,7 @@ SACA Electronics,IT Uzman Yardımcısı,Ankara,https://www.linkedin.com/jobs/vie
 Sachane,IT Project Assistant,Şişli,https://www.linkedin.com/jobs/view/4356643013,True,2026-02-01T21:58:41+00:00,True,2026-02-10T07:47:29+00:00,True,False,False
 Salam Booking,Junior Sosyal Medya ve Web İçerik Uzmanı,Türkiye,https://www.linkedin.com/jobs/view/4383120377,True,2026-03-13T14:19:57+00:00,False,,False,False,True
 Salesfinity,Software Engineer (Backend),"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4370046027,True,2026-02-07T23:38:44+00:00,False,,False,False,False
-Sameup,Frontend Developer,Zeytinburnu,https://www.linkedin.com/jobs/view/4383076531,True,2026-03-13T14:11:12+00:00,False,,False,False,False
+Sameup,Frontend Developer,Zeytinburnu,https://www.linkedin.com/jobs/view/4383076531,True,2026-03-13T14:11:12+00:00,False,,False,True,False
 Samsung Electronics,Trainee,Sofya,https://www.linkedin.com/jobs/view/4350810646,True,2026-01-07T06:45:43+00:00,False,,False,True,False
 Sanamekan,Full Stack Engineer,Sarıyer,https://www.linkedin.com/jobs/view/4374275591,True,2026-02-23T13:24:42+00:00,False,,False,True,False
 Sanipak,Part Time Financial Analyst,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4353019537,True,2026-02-03T21:30:43+00:00,False,,False,False,False
@@ -790,6 +818,7 @@ Sinyalizasyon Elektronik,Full-Stack Yazılım Geliştirici (Python + React),Anka
 Sinyalizasyon Elektronik,Yazılım Mühendisi,Ankara,https://www.linkedin.com/jobs/view/4375537015,True,2026-02-28T13:45:46+00:00,True,2026-03-03T09:21:07+00:00,True,False,False
 Siren Bilişim Yazılım,Full Stack Developer,Ankara,https://www.linkedin.com/jobs/view/4381404963,True,2026-03-08T00:16:22+00:00,False,,False,False,False
 Sisal Hub Türkiye,Software Development Trainee,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4355796973,True,2026-01-26T13:06:47+00:00,False,,False,False,False
+Siskon Yazılım & Otomasyon,Operational Technology Specialist,"İzmir, Türkiye",https://www.linkedin.com/jobs/view/4383548804,True,2026-03-16T15:13:01+00:00,True,2026-03-16T15:31:43+00:00,False,False,False
 Skagen Capital,Investment banking intern,Milano,https://www.linkedin.com/jobs/view/4349631786,True,2025-12-10T23:37:43+00:00,False,,False,False,False
 Skagen Capital,Investment banking intern,Amsterdam,https://www.linkedin.com/jobs/view/4349446110,True,2025-12-10T23:25:11+00:00,False,,False,False,False
 SKM Air Conditioning LLC,Junior Software Engineer,"Şârika Emirliği, Birleşik Arap Emirlikleri",https://www.linkedin.com/jobs/view/4371948833,True,2026-02-24T01:36:16+00:00,False,,False,True,False
@@ -834,6 +863,7 @@ Talan,Junior Data Engineer,Varşova,https://www.linkedin.com/jobs/view/432564836
 Talan,Junior Data Engineer (Relocation to Poland),İstanbul,https://www.linkedin.com/jobs/view/4325588241,True,2026-01-06T21:52:15+00:00,False,,False,False,False
 TalenTown İnsan Kaynakları - İşe Alım Ajansı,Yönetici Asistanı,Talentown Recruitment Agency - IT,https://www.linkedin.com/jobs/view/4384631864,True,2026-03-14T12:42:47+00:00,False,,False,False,False
 Talentown Recruitment Agency - IT,.Net Developer,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4384234865,True,2026-03-13T14:09:53+00:00,False,,False,False,False
+Talentown Recruitment Agency - IT,Test Mühendisi,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4384990652,True,2026-03-16T15:36:20+00:00,False,,False,False,False
 Taleo Consulting,Junior IT Functional Analyst Consultant,Brüksel,https://www.linkedin.com/jobs/view/4381716193,True,2026-03-15T14:28:36+00:00,False,,False,False,False
 Tam Finans,İş Analisti - Uzman,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4374269657,True,2026-02-23T13:30:55+00:00,False,,False,False,False
 Tanoto,SAP MM İş Analisti,Gölbaşı,https://www.linkedin.com/jobs/view/4363990449,True,2026-02-21T21:33:49+00:00,False,,False,False,False
@@ -858,7 +888,7 @@ Techland,Junior Programmer,Varşova,https://www.linkedin.com/jobs/view/424220799
 Technoly Istanbul,.Net Developer,Küçükçekmece,https://www.linkedin.com/jobs/view/4364558418,True,2026-02-17T20:10:44+00:00,True,2026-03-02T17:32:57+00:00,True,False,False
 TEI - TUSAŞ Motor Sanayii A.Ş.,Yazılım Geliştirme Mühendisi (.Net/Angular),"Eskişehir, Türkiye",https://www.linkedin.com/jobs/view/4375926208,True,2026-03-02T00:28:06+00:00,False,,False,False,False
 Tein Technology,Yazılım Geliştirme Uzmanı (C++),İstanbul,https://www.linkedin.com/jobs/view/4383088398,True,2026-03-13T14:08:57+00:00,False,,False,False,False
-Teketech Technologies,Yazılım ve Dijital Çözümler Satış Uzmanı (Business Development),Türkiye,https://www.linkedin.com/jobs/view/4383675936,True,2026-03-15T14:30:44+00:00,False,,False,False,False
+Teketech Technologies,Yazılım ve Dijital Çözümler Satış Uzmanı (Business Development),Türkiye,https://www.linkedin.com/jobs/view/4383675936,True,2026-03-15T14:30:44+00:00,True,2026-03-16T01:39:15+00:00,False,True,False
 Teknasyon,Golang Developer,Sarıyer,https://www.linkedin.com/jobs/view/4374238818,True,2026-02-23T13:32:57+00:00,False,,False,False,False
 Teknolya Bilgi Teknolojileri A.Ş.,Yazılım,Teknolya Bilgi Teknolojileri A.Ş,https://www.linkedin.com/jobs/view/4364501110,True,2026-02-17T19:51:50+00:00,True,2026-02-17T19:54:53+00:00,False,False,False
 TEUSAN Teknoloji ve Uzay Sanayi A.Ş,Yazılım Mühendisi,"Küçükçekmece, İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4373481659,True,2026-02-23T13:23:11+00:00,True,2026-02-26T12:16:46+00:00,True,False,False
@@ -873,6 +903,7 @@ TikTok,Android Software Engineer - TikTok - Singapore,Singapur,https://www.linke
 TimeLooper,Software Engineer,Türkiye,https://www.linkedin.com/jobs/view/4352060344,True,2026-02-19T13:41:29+00:00,False,,False,False,False
 Tirsan Kardan,Business Analyst,"Manisa, Türkiye",https://www.linkedin.com/jobs/view/4358082454,True,2026-02-07T23:52:10+00:00,False,,False,False,False
 Titan Makina,Planlama Mühendisi,Sincan,https://www.linkedin.com/jobs/view/4380249568,True,2026-03-08T00:08:00+00:00,False,,False,False,False
+TİTAN2 IC İÇTAŞ İNŞAAT ANONİM ŞİRKETİ,Kalite Kontrol Mühendisi,"Mersin, Türkiye",https://www.linkedin.com/jobs/view/4384995116,True,2026-03-16T15:24:02+00:00,False,,False,False,False
 TİTRA,Mobil Yazılım Geliştirme Mühendisi,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4370385405,True,2026-02-18T20:58:12+00:00,False,,False,False,False
 TİTRA,Yazılım Mühendisi,Kazan,https://www.linkedin.com/jobs/view/4384809213,True,2026-03-12T10:45:47+00:00,False,,False,False,False
 Token Finansal Teknolojiler,Junior Database Administrator,Greater Istanbul,https://www.linkedin.com/jobs/view/4372684990,True,2026-03-04T15:01:29+00:00,False,,False,False,False
@@ -916,6 +947,7 @@ Turkish Technology,Software Architect (Software Product - Airline Cargo and Oper
 Turkish Technology,Wide Area Network Expert (İstanbul Office),"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4378806867,True,2026-03-03T00:52:19+00:00,False,,False,False,False
 Twelve,Junior Software Engineer,Amsterdam,https://www.linkedin.com/jobs/view/4350685898,True,2026-01-07T06:52:13+00:00,False,,False,True,False
 Twelve,Junior Software Engineer,Amsterdam,https://www.linkedin.com/jobs/view/4383100202,True,2026-03-13T14:36:47+00:00,False,,False,False,False
+TwoShotMedya,Jr. Videographer,Bornova,https://www.linkedin.com/jobs/view/4383696501,True,2026-03-16T15:32:29+00:00,True,2026-03-16T16:41:03+00:00,False,False,False
 Türk Telekom,Cihaz Gelir Paylaşımı Uzmanı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4381266711,True,2026-03-09T01:35:27+00:00,True,2026-03-09T05:51:06+00:00,False,False,False
 Türk Telekom,Finansal Teknolojiler Satış Operasyon Uzmanı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4381269551,True,2026-03-09T01:35:02+00:00,False,,False,False,False
 Türk Telekom,IT Operasyon Uzmanı (BT Şebeke&Arayüz-Mediation),"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4311453454,True,2026-02-18T21:10:39+00:00,False,,False,False,False
@@ -936,6 +968,7 @@ Unico Studio,Junior QA Tester,Türkiye,https://www.linkedin.com/jobs/view/435982
 Unit8,Young Talent in Data and Software Engineering February 2026 (Kraków or Wrocław),Krakov,https://www.linkedin.com/jobs/view/4313760401,True,2025-10-24T08:41:44+00:00,False,,False,False,False
 UNO - UNMAŞ AŞ,UNO Genç Mühendisler,Ümraniye,https://www.linkedin.com/jobs/view/4329552988,True,2026-01-26T14:20:28+00:00,False,,False,False,False
 Unordinary Company,Junior Full Stack Engineer,Milano,https://www.linkedin.com/jobs/view/4376272509,True,2026-03-01T23:54:24+00:00,False,,False,False,False
+Userfeel,User experience (remote),"İzmir, Türkiye",https://www.linkedin.com/jobs/view/4384056561,True,2026-03-16T15:30:27+00:00,False,,False,False,False
 V.P. Nandakumar,Junior Data Engineer,"Berlin, Almanya",https://www.linkedin.com/jobs/view/4345814887,True,2025-12-22T14:05:32+00:00,False,,False,True,False
 Valid,Jr. Software Developer,Madrid,https://www.linkedin.com/jobs/view/4336839254,True,2026-01-07T06:47:41+00:00,False,,False,True,False
 VBT Yazılım A.Ş.,Site Reliability Engineer,Türkiye,https://www.linkedin.com/jobs/view/4361015413,True,2026-03-04T14:46:49+00:00,False,,False,True,False
@@ -955,7 +988,7 @@ Vitalen Holding A.Ş.,Full Stack Engineer,"Yenimahalle, Ankara, Türkiye",https:
 Vitalen Holding A.Ş.,Full Stack Engineer,Yenimahalle,https://www.linkedin.com/jobs/view/4359551124,True,2026-02-22T14:41:25+00:00,False,,False,False,False
 VITOL SERVICES LIMITED,Early Careers - Technology,Vitol,https://www.linkedin.com/jobs/view/4325585017,True,2025-12-10T23:51:42+00:00,False,,False,False,False
 VmWay S.r.l.,React Developer,Cagliari ili,https://www.linkedin.com/jobs/view/4383155281,True,2026-03-14T12:45:39+00:00,False,,False,False,False
-Volition,Java Developer (Graduate +1 to 3 years) – Capital Markets FinTech £50-70k | London (1 day per week onsite),"Londra, Birleşik Krallık",https://www.linkedin.com/jobs/view/4385344124,True,2026-03-13T14:17:43+00:00,False,,False,False,False
+Volition,Java Developer (Graduate +1 to 3 years) – Capital Markets FinTech £50-70k | London (1 day per week onsite),"Londra, Birleşik Krallık",https://www.linkedin.com/jobs/view/4385344124,True,2026-03-13T14:17:43+00:00,False,,False,True,False
 VOLTURK TEKNOLOJİ,AI / Computer Vision Uzmanı,Kemalpaşa,https://www.linkedin.com/jobs/view/4371970386,True,2026-02-18T20:37:09+00:00,True,2026-02-19T12:32:29+00:00,False,False,False
 Voyager,Growth Manager (New Grad.),Türkiye,https://www.linkedin.com/jobs/view/4383092751,True,2026-03-13T14:28:20+00:00,False,,False,False,False
 VTC Energy,Frontend Developer,"Kocaeli, Türkiye",https://www.linkedin.com/jobs/view/4351712788,True,2026-02-09T00:14:50+00:00,False,,False,False,False
@@ -971,7 +1004,7 @@ WNS,Junior Application Engineer,Kielce Metropol Bölgesi,https://www.linkedin.co
 Workforce İnsan Kaynakları,İş Geliştirme Mühendisi,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4378812026,True,2026-03-03T01:04:13+00:00,False,,False,False,False
 Workforce İnsan Kaynakları,Yazılım Kalite Güvence Mühendisi,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4370638499,True,2026-02-18T21:01:01+00:00,False,,False,False,False
 Workforce İnsan Kaynakları,Yazılım Kalite Güvence Mühendisi,"Ankara, Türkiye",https://www.linkedin.com/jobs/view/4382287162,True,2026-03-12T11:17:42+00:00,False,,False,False,False
-Worldpronet,BizDev,Türkiye,https://www.linkedin.com/jobs/view/4384638276,True,2026-03-15T14:31:19+00:00,False,,False,False,False
+Worldpronet,BizDev,Türkiye,https://www.linkedin.com/jobs/view/4384638276,True,2026-03-15T14:31:19+00:00,True,2026-03-16T04:44:12+00:00,False,True,False
 WPMU DEV,WordPress Technical Support Specialist <> [Remote],Panama,https://www.linkedin.com/jobs/view/4378264214,True,2026-02-28T14:17:51+00:00,False,,False,False,False
 Xcelerit,Graduate Software Developer – Software Development,Dublin,https://www.linkedin.com/jobs/view/4377840690,True,2026-03-01T23:54:05+00:00,False,,False,True,False
 Xiaomi Technology,2026 Xiaomi Turkey Graduate Program,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4314015829,True,2025-12-10T23:54:46+00:00,False,,False,False,False
@@ -987,6 +1020,7 @@ Yapı Kredi Teknoloji,Software Engineer 'Generative AI',"İstanbul, Türkiye",ht
 Yazaki Europe Middle East and Africa,Quality Engineer,Akyazı,https://www.linkedin.com/jobs/view/4375165808,True,2026-03-14T13:03:02+00:00,False,,False,False,False
 YEDAŞ - Yeşilırmak Elektrik Dağıtım A.Ş.,Business Development & Grid Solutions Specialist,"Samsun, Türkiye",https://www.linkedin.com/jobs/view/4359843535,True,2026-02-18T21:02:49+00:00,False,,False,False,False
 Yenasoft Yazılım,Satış Destek Sorumlusu,Ümraniye,https://www.linkedin.com/jobs/view/4376714500,True,2026-03-09T01:41:22+00:00,False,,False,True,False
+Yeryüzü Doktorları (Doctors Worldwide Türkiye),Full-Stack Developer,Zeytinburnu,https://www.linkedin.com/jobs/view/4384050111,True,2026-03-16T15:14:51+00:00,False,,False,False,False
 YM İDİS Engineering,İş Analisti,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4380924580,True,2026-03-09T01:38:28+00:00,False,,False,False,False
 YM İDİS Engineering,Yazılım Test Uzmanı,"İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4380936282,True,2026-03-07T16:23:10+00:00,False,,False,False,False
 Yongatek Microelectronics,Digital Design Engineers,İstanbul,https://www.linkedin.com/jobs/view/4375937334,True,2026-03-02T00:33:24+00:00,False,,False,False,False
@@ -1010,6 +1044,7 @@ ZZeti,Artificial Intelligence Researcher,İstanbul,https://www.linkedin.com/jobs
 ÇİMSA,Çimsa Technology & Impact Center | III.Term Program,"Eskişehir, Türkiye",https://www.linkedin.com/jobs/view/4352940141,True,2026-01-30T19:26:58+00:00,False,,False,False,False
 ÇOLAKOĞLU Metalurji A.Ş.,Veri Bilimci,Beykoz,https://www.linkedin.com/jobs/view/4373951477,True,2026-02-20T21:17:06+00:00,False,,False,False,False
 Çözüm Yayın Grubu,Edtech Sales Specialist,Etimesgut,https://www.linkedin.com/jobs/view/4358882448,True,2026-02-17T20:09:44+00:00,True,2026-02-18T14:25:25+00:00,False,False,False
+Özak Global Holding,IT AUDİTOR,Zeytinburnu,https://www.linkedin.com/jobs/view/4386070666,True,2026-03-16T15:13:33+00:00,False,,False,False,False
 Özdemir Group,Full Stack Software Engineer (Node.js & React),Ankara,https://www.linkedin.com/jobs/view/4379891549,True,2026-03-08T00:16:50+00:00,False,,False,False,False
 Özdisan Elektronik A.Ş.,IFS ERP GELİŞTİRİCİ,"Ümraniye, İstanbul, Türkiye",https://www.linkedin.com/jobs/view/4373452178,True,2026-02-20T21:03:28+00:00,True,2026-03-09T06:09:09+00:00,False,False,False
 Özel Çankaya Hastanesi,Danışman,Ankara,https://www.linkedin.com/jobs/view/4373762930,True,2026-02-21T21:41:21+00:00,False,,False,False,False

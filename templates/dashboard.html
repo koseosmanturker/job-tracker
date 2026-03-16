@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Job Tracker</title>
+    <title>Your Career Agent</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,9 +57,20 @@
       }
 
       .wrap {
-        max-width: 1300px;
+        max-width: 1500px;
         margin: 24px auto;
         padding: 0 16px;
+      }
+
+      .pageSwitch {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: color-mix(in srgb, var(--card) 88%, var(--chip));
+        box-shadow: var(--shadow);
       }
 
       .top {
@@ -83,13 +94,16 @@
       .syncModeBtn { background: linear-gradient(135deg, #2563eb, #38bdf8); }
       .syncBtn { text-decoration: none; display: inline-flex; align-items: center; }
       .navBtn {
-        padding: 10px 14px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        background: color-mix(in srgb, var(--card) 92%, var(--chip));
+        min-width: 120px;
+        padding: 10px 18px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        background: transparent;
         color: var(--text);
         text-decoration: none;
         font-weight: 600;
+        text-align: center;
+        transition: background .15s ease, color .15s ease, border-color .15s ease;
       }
       .navBtn.active {
         background: linear-gradient(135deg, #f59e0b, #facc15);
@@ -271,11 +285,18 @@
         cursor: pointer;
       }
 
+      .tableWrap {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 12px;
+      }
+
       table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        overflow: hidden;
+        table-layout: fixed;
+        min-width: 1260px;
         border-radius: 12px;
         border: 1px solid var(--line);
       }
@@ -285,11 +306,16 @@
         padding: 12px 10px;
         text-align: left;
         vertical-align: middle;
+        overflow-wrap: anywhere;
       }
       .nowrap { white-space: nowrap; }
-      .col-time { width: 150px; }
+      .col-company { width: 16%; }
+      .col-title { width: 17%; }
+      .col-location { width: 11%; }
+      .col-actions { width: 120px; }
+      .col-time { width: 140px; }
       .col-favorite { width: 72px; text-align: center; }
-      .col-status { width: 120px; text-align: center; }
+      .col-status { width: 108px; text-align: center; }
 
       th {
         font-size: 12px;
@@ -300,6 +326,7 @@
         position: sticky;
         top: 0;
         z-index: 1;
+        white-space: nowrap;
       }
 
       .sort {
@@ -365,6 +392,15 @@
         display: flex;
         gap: 8px;
         align-items: center;
+      }
+
+      .statusCell {
+        text-align: center;
+      }
+
+      .statusCell .badge,
+      .statusCell .downloadToggle {
+        min-width: 42px;
       }
 
       .btnLink {
@@ -471,6 +507,14 @@
       @media (max-width: 960px) {
         .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         form { grid-template-columns: 1fr; }
+        .pageSwitch {
+          display: flex;
+          width: 100%;
+        }
+        .navBtn {
+          flex: 1 1 0;
+          min-width: 0;
+        }
         .topActions { width: 100%; align-items: stretch; }
         .syncButtons { width: 100%; }
         .syncButtons form { width: 100%; }
@@ -489,8 +533,10 @@
         </div>
         <div class="topActions">
           <div class="syncButtons">
-            <a class="navBtn {% if not favorites_only %}active{% endif %}" href="/">Jobs</a>
-            <a class="navBtn {% if favorites_only %}active{% endif %}" href="/favorites">Favorites</a>
+            <div class="pageSwitch" role="tablist" aria-label="Page switcher">
+              <a class="navBtn {% if not favorites_only %}active{% endif %}" href="/">Jobs</a>
+              <a class="navBtn {% if favorites_only %}active{% endif %}" href="/favorites">Favorites</a>
+            </div>
             <form id="syncForm" method="post" action="/sync">
               <input type="hidden" name="sync_mode" value="incremental">
               <button id="syncBtn" type="submit" class="syncBtn">Sync Emails</button>
@@ -555,26 +601,25 @@
             Sync completed ({{ sync_mode }}). Processed: {{ processed }}, Skipped: {{ skipped }}.
           </div>
         {% endif %}
-        <form method="get">
+        <form method="get" id="filterForm">
           <div class="searchBox">
-            <input type="text" name="search" value="{{ search }}" placeholder="Search company, title, location">
+            <input type="text" name="search" value="{{ search }}" placeholder="Search company, title, location" data-live-search>
           </div>
 
-          <label><input type="checkbox" name="applied" value="1" {% if applied_only %}checked{% endif %}> Applied only</label>
-          <label><input type="checkbox" name="viewed" value="1" {% if viewed_only %}checked{% endif %}> Viewed only</label>
-          <label><input type="checkbox" name="downloaded" value="1" {% if downloaded_only %}checked{% endif %}> Downloaded only</label>
-          <label><input type="checkbox" name="rejected" value="1" {% if rejected_only %}checked{% endif %}> Rejected only</label>
-          <button type="submit">Filter</button>
+          <label><input type="checkbox" name="viewed" value="1" {% if viewed_only %}checked{% endif %} data-live-filter> Viewed only</label>
+          <label><input type="checkbox" name="downloaded" value="1" {% if downloaded_only %}checked{% endif %} data-live-filter> Downloaded only</label>
+          <label><input type="checkbox" name="rejected" value="1" {% if rejected_only %}checked{% endif %} data-live-filter> Rejected only</label>
         </form>
 
+        <div class="tableWrap">
         <table>
           <thead>
             <tr>
               <th class="col-favorite">Fav</th>
-              <th>Company</th>
-              <th>Job Title</th>
-              <th>Location</th>
-              <th>Actions</th>
+              <th class="col-company">Company</th>
+              <th class="col-title">Job Title</th>
+              <th class="col-location">Location</th>
+              <th class="col-actions">Actions</th>
               <th class="col-status">Applied</th>
               <th class="col-time">
                 <span class="thStack">
@@ -630,11 +675,11 @@
                     aria-label="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
                   >&#9733;</button>
                 </td>
-                <td>{{ r.company }}</td>
-                <td>{{ r.job_title }}</td>
-                <td>{{ r.location or '-' }}</td>
+                <td class="col-company">{{ r.company }}</td>
+                <td class="col-title">{{ r.job_title }}</td>
+                <td class="col-location">{{ r.location or '-' }}</td>
 
-                <td>
+                <td class="col-actions">
                   {% if r.job_url %}
                     <div class="actions">
                       <a class="btnLink" href="{{ r.job_url }}" target="_blank" rel="noopener noreferrer">↗</a>
@@ -645,7 +690,7 @@
                   {% endif %}
                 </td>
 
-                <td class="col-status">
+                <td class="col-status statusCell">
                   {% if r.applied %}
                     <span class="badge ok">✅</span>
                   {% else %}
@@ -654,7 +699,7 @@
                 </td>
                 <td class="nowrap">{{ r.applied_time_fmt }}</td>
 
-                <td class="col-status">
+                <td class="col-status statusCell">
                   {% if r.viewed %}
                     <span class="badge ok">👁️</span>
                   {% else %}
@@ -663,7 +708,7 @@
                 </td>
                 <td class="nowrap">{{ r.viewed_time_fmt or '-' }}</td>
 
-                <td class="col-status">
+                <td class="col-status statusCell">
                   <button
                     type="button"
                     class="downloadToggle {% if r.downloaded %}on{% endif %}"
@@ -677,7 +722,7 @@
                   </button>
                 </td>
 
-                <td class="col-status">
+                <td class="col-status statusCell">
                   {% if r.rejected %}
                     <span class="badge ok">❌</span>
                   {% else %}
@@ -692,6 +737,7 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 
@@ -713,6 +759,9 @@
       const syncFullForm = document.getElementById("syncFullForm");
       const syncFullBtn = document.getElementById("syncFullBtn");
       const syncOverlay = document.getElementById("syncOverlay");
+      const filterForm = document.getElementById("filterForm");
+      const liveSearchInput = document.querySelector("[data-live-search]");
+      const liveFilterInputs = document.querySelectorAll("[data-live-filter]");
 
       function showToast(msg) {
         toast.textContent = msg;
@@ -720,6 +769,34 @@
         clearTimeout(showToast._t);
         showToast._t = setTimeout(() => toast.classList.remove("show"), 1200);
       }
+
+      function submitFilterForm() {
+        if (!filterForm) return;
+        if (typeof filterForm.requestSubmit === "function") {
+          filterForm.requestSubmit();
+          return;
+        }
+        filterForm.submit();
+      }
+
+      if (liveSearchInput) {
+        let searchTimer;
+        liveSearchInput.addEventListener("input", () => {
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(() => submitFilterForm(), 250);
+        });
+
+        window.addEventListener("pageshow", () => {
+          if (!liveSearchInput.value) return;
+          liveSearchInput.focus();
+          const end = liveSearchInput.value.length;
+          liveSearchInput.setSelectionRange(end, end);
+        });
+      }
+
+      liveFilterInputs.forEach((input) => {
+        input.addEventListener("change", () => submitFilterForm());
+      });
 
       document.addEventListener("click", async (e) => {
         const btn = e.target.closest("[data-copy]");
@@ -759,7 +836,7 @@
           const isDownloaded = !!data.downloaded;
           btn.setAttribute("data-downloaded", isDownloaded ? "1" : "0");
           btn.classList.toggle("on", isDownloaded);
-          btn.textContent = isDownloaded ? "Downloaded" : "Pending";
+          btn.textContent = isDownloaded ? "⬇️" : "⏳";
           const label = isDownloaded ? "Remove downloaded mark" : "Mark as downloaded";
           btn.setAttribute("aria-label", label);
           btn.setAttribute("title", label);

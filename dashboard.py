@@ -221,12 +221,12 @@ def render_jobs_page(*, favorites_only: bool = False):
         last_sync_time_fmt=last_sync_time_fmt,
         csv_path=str(CSV_PATH),
         favorites_only=favorites_only,
-        page_title="Favorites" if favorites_only else "LinkedIn Job Tracker",
-        page_subtitle=(
-            "Starred job posts in one place."
-            if favorites_only
-            else "Track applied, viewed, downloaded, rejected, and favorite statuses in one place."
-        ),
+        page_title="Favorites" if favorites_only else "Your Career Agent",
+        # page_subtitle=(
+        #     "Starred job posts in one place."
+        #     if favorites_only
+        #     else "Track applied, viewed, downloaded, rejected, and favorite statuses in one place."
+        # ),
         current_path="/favorites" if favorites_only else "/",
         sort=sort,
         order=order,
