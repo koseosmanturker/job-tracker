@@ -107,7 +107,7 @@
                   type="button"
                   class="secondaryBtn favoriteToggle {% if r.favorite %}on{% endif %}"
                   data-toggle-favorite
-                  data-row-id="{{ r.row_id|urlencode }}"
+                  data-row-id="{{ r.row_id }}"
                   data-favorite="{{ '1' if r.favorite else '0' }}"
                   title="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
                   aria-label="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
@@ -135,7 +135,7 @@
                   type="button"
                   class="secondaryBtn downloadToggle {% if r.downloaded %}on{% endif %}"
                   data-toggle-downloaded
-                  data-row-id="{{ r.row_id|urlencode }}"
+                  data-row-id="{{ r.row_id }}"
                   data-downloaded="{{ '1' if r.downloaded else '0' }}"
                 >{% if r.downloaded %}⬇️{% else %}⏳{% endif %}</button>
               </td>
@@ -198,7 +198,7 @@
         if (!rowId) return;
         downloadBtn.disabled = true;
         try {
-          const res = await fetch(`/toggle-downloaded/${rowId}`, { method: "POST" });
+        const res = await fetch(`/toggle-downloaded/${encodeURIComponent(rowId)}`, { method: "POST" });
           const data = await res.json();
           if (!res.ok || !data.success) return;
           downloadBtn.classList.toggle("on", !!data.downloaded);
@@ -215,10 +215,13 @@
       if (!rowId) return;
       favoriteBtn.disabled = true;
       try {
-        const res = await fetch(`/toggle-favorite/${rowId}`, { method: "POST" });
+        const res = await fetch(`/toggle-favorite/${encodeURIComponent(rowId)}`, { method: "POST" });
         const data = await res.json();
         if (!res.ok || !data.success) return;
         favoriteBtn.classList.toggle("on", !!data.favorite);
+        favoriteBtn.setAttribute("data-favorite", data.favorite ? "1" : "0");
+        favoriteBtn.setAttribute("title", data.favorite ? "Remove from favorites" : "Add to favorites");
+        favoriteBtn.setAttribute("aria-label", data.favorite ? "Remove from favorites" : "Add to favorites");
         if (!data.favorite && window.location.pathname === "/favorites") {
           const row = favoriteBtn.closest("tr");
           if (row) row.remove();
