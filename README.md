@@ -1,54 +1,55 @@
 # Job Tracker
 
-LinkedIn basvuru maillerini Gmail uzerinden okuyup yerel bir CSV veri tabanina yazan, sonra da bunlari kullanisli bir Flask arayuzunde takip etmeni saglayan kucuk ama pratik bir is takip sistemi.
+Job Tracker is a lightweight Flask-based dashboard that pulls LinkedIn job application emails from Gmail, parses them into structured records, and helps you track your application pipeline from one place.
 
-Bu proje su problemlere odaklanir:
+It is built for a simple workflow:
 
-- Basvurdugun rolleri tek yerde toplamak
-- Gorulen, indirilen, reddedilen ve favori ilanlari takip etmek
-- Takip edilmesi gereken rolleri one cikarmak
-- Parser'in ayiklayamadigi mailleri manuel duzeltip sistemi zamanla gelistirmek
+- collect LinkedIn application activity automatically
+- store everything in a local CSV file
+- review the pipeline in a clean web UI
+- mark favorites and follow-ups
+- manually repair parser misses when needed
 
-## Neler Yapabiliyor?
+## Features
 
-- Gmail API ile LinkedIn bildirim maillerini okur
-- Mail iceriginden `company`, `job_title`, `location`, `job_url` ve event durumlarini ayiklar
-- Verileri `jobs.csv` icinde merge ederek duplicate kayitlari azaltir
-- Incremental sync ve full sync akisini destekler
-- Dashboard uzerinden filtreleme, arama ve siralama sunar
-- `downloaded`, `favorite` ve `follow_up_done` gibi durumlari arayuzden degistirebilir
-- Favori ilanlar icin ayri bir sayfa sunar
-- Gec kalan gorulmus ilanlar icin follow-up odakli bir `Insights` sayfasi sunar
-- Ayiklanamayan mailleri `Needs Review` alanina atar
-- Manuel duzeltmeleri kaydederek sonraki sync'lerde yeniden kullanir
+- Reads LinkedIn notification emails through the Gmail API
+- Extracts structured fields such as `company`, `job_title`, `location`, and `job_url`
+- Merges records into `jobs.csv` while reducing duplicates
+- Supports both incremental sync and full sync
+- Lets you search, filter, and sort records in the dashboard
+- Toggle `downloaded`, `favorite`, and `follow_up_done` states from the UI
+- Includes a dedicated Favorites page
+- Includes an Insights page for follow-up candidates
+- Sends parser failures to a Needs Review workflow instead of silently losing data
+- Saves manual corrections so similar emails can be handled better later
 
-## Ekran Goruntuleri
+## Screenshots
 
-### Genel Gorunum
+### Main Overview
 
-![Genel gorunum](./image.png)
+![Main overview](./image.png)
 
 ### Jobs Dashboard
 
 ![Jobs dashboard](./jobs.png)
 
-### Favorites Sayfasi
+### Favorites Page
 
-![Favorites sayfasi](./favorites.png)
+![Favorites page](./favorites.png)
 
-### Insights Sayfasi
+### Insights Page
 
-![Insights sayfasi](./insights.png)
+![Insights page](./insights.png)
 
-### Full Sync Penceresi
+### Full Sync Dialog
 
-![Full sync](./full_sync.png)
+![Full sync dialog](./full_sync.png)
 
-### Sync Sirasinda
+### Sync In Progress
 
-![Syncing](./syncing.png)
+![Sync in progress](./syncing.png)
 
-## Proje Yapisi
+## Project Structure
 
 ```text
 job-tracker/
@@ -74,126 +75,129 @@ job-tracker/
 `- syncing.png
 ```
 
-## Temel Dosyalar
+## Core Files
 
-- `dashboard.py`: Flask arayuzu, filtreleme, toggle endpoint'leri ve sayfa yonlendirmeleri
-- `sync_service.py`: Gmail -> parser -> CSV senkronizasyon akisi
-- `gmail_client.py`: Gmail API baglantisi ve mail cekme yardimcilari
-- `linkedin_parser.py`: LinkedIn mail parse, normalize etme ve alan cikarma mantigi
-- `repository.py`: CSV okuma, yazma, merge, toggle ve kayit guncelleme islemleri
-- `review_repository.py`: `Needs Review` ve manuel correction verilerinin yonetimi
-- `set_downloaded.py`: Terminalden kayit bulup `downloaded=True` yapmak icin yardimci CLI
+- `dashboard.py`: Flask routes, page rendering, filters, and toggle endpoints
+- `sync_service.py`: end-to-end Gmail -> parser -> CSV sync flow
+- `gmail_client.py`: Gmail API helpers for listing and reading messages
+- `linkedin_parser.py`: parsing and normalization logic for LinkedIn emails
+- `repository.py`: CSV read/write, merge, deduplication, and toggle helpers
+- `review_repository.py`: storage and workflow for parser review items and manual corrections
+- `set_downloaded.py`: small CLI helper to mark a record as downloaded from the terminal
 
-## Gereksinimler
+## Requirements
 
 - Python 3.10+
-- Google Cloud uzerinde olusturulmus Gmail API credentials
+- Gmail API credentials created in Google Cloud
 - `credentials.json`
-- Ilk giristen sonra olusan `token.json`
+- `token.json` after the first OAuth login
 
-Onerilen kurulum:
+Suggested installation:
 
 ```bash
 pip install flask google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
 
-## Kurulum
+## Setup
 
-### 1. Repoyu hazirla
+### 1. Clone the repository
 
 ```bash
 git clone <repo-url>
 cd job-tracker
 ```
 
-### 2. Bagimliliklari kur
+### 2. Install dependencies
 
 ```bash
 pip install flask google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
 
-### 3. Gmail API ayarlarini ekle
+### 3. Add Gmail credentials
 
-Google Cloud tarafinda Gmail API erisimi acildiktan sonra `credentials.json` dosyasini proje kokune koy.
+After enabling Gmail API access in Google Cloud, place `credentials.json` in the project root.
 
-Ilk calistirmada OAuth akisi tamamlaninca `token.json` olusur.
+When you run the app for the first time, the OAuth flow will create `token.json`.
 
-## Calistirma
+## Running the Project
 
-### Mail senkronizasyonu
+### Sync emails
 
 ```bash
 python sync_service.py
 ```
 
-Bu komut:
+This command:
 
-- Gmail'den LinkedIn maillerini bulur
-- Mail icerigini parse eder
-- `jobs.csv` dosyasini gunceller
-- Gerekirse `Needs Review` kuyruğunu besler
-- Son sync bilgisini `.sync_state.json` icinde saklar
+- fetches matching LinkedIn emails from Gmail
+- parses the email content
+- updates `jobs.csv`
+- writes review items when parsing is incomplete
+- stores the latest sync metadata in `.sync_state.json`
 
-### Dashboard'u acma
+### Start the dashboard
 
 ```bash
 python dashboard.py
 ```
 
-Ardindan tarayicida su adrese git:
+Then open:
 
 ```text
 http://127.0.0.1:5000
 ```
 
-### Opsiyonel: Terminalden downloaded isaretleme
+### Optional: mark a record as downloaded from the terminal
 
 ```bash
 python set_downloaded.py
 ```
 
-## Uygulama Akisi
+## Application Pages
 
 ### 1. Jobs
 
-Ana sayfa tum kayitlari listeler. Burada:
+The main dashboard shows all tracked records. From here you can:
 
-- Canli arama yapabilirsin
-- `viewed`, `downloaded` ve `rejected` filtreleri uygulayabilirsin
-- Basvuru ve gorulme zamanina gore siralayabilirsin
-- Kaydi favoriye alabilirsin
-- `downloaded` durumunu tek tikla guncelleyebilirsin
+- search in real time
+- filter by `viewed`, `downloaded`, and `rejected`
+- sort by applied time or viewed time
+- open the job link directly
+- mark a role as favorite
+- toggle downloaded status with one click
 
 ### 2. Favorites
 
-Yildizlanan ilanlar ayri bir sayfada listelenir. Bu sayfa, tekrar donmek istedigin veya takip etmek istedigin rolleri hizlica ayirmak icin kullanislidir.
+The Favorites page shows only starred roles. It is useful for separating the opportunities you want to revisit or keep an eye on.
 
 ### 3. Insights
 
-Gorulmus ama henuz reddedilmemis ve belli bir sure gecmis ilanlari one cikarir:
+The Insights page highlights viewed jobs that have not been rejected and may be ready for follow-up.
 
-- `downloaded=True` ise daha kisa follow-up esigi kullanir
-- Diger kayitlar icin daha genis bekleme suresi uygular
-- Takip ettigin ilanlari `follow_up_done` olarak isaretlemene izin verir
+- Jobs with `downloaded=True` get a shorter follow-up threshold
+- Other viewed jobs use a longer waiting threshold
+- You can mark follow-up items as done from the interface
 
 ### 4. Needs Review
 
-Parser bir mailden yeterli bilgi cikarmazsa kaydi dogrudan kaybetmez. Bunun yerine:
+If the parser cannot extract enough information from an email, the record is not discarded. Instead, it is sent to the review workflow.
 
-- `Needs Review` listesine ekler
-- Manuel duzeltme ekrani sunar
-- Kaydettigin duzeltmeleri tekrar kullanmak uzere saklar
+This page lets you:
 
-Bu sayede sistem zamanla daha dayanikli hale gelir.
+- inspect incomplete parser results
+- manually fix missing fields
+- save corrections for future reuse
 
-## Veri Dosyalari
+That makes the system more resilient over time.
 
-- `jobs.csv`: Tum basvurularin ana veri kaynagi
-- `.sync_state.json`: Son sync zamani ve son kullanilan query bilgisi
-- `needs_review.json` benzeri review verileri: parser'in cozemedigi mailler
-- Manuel correction verileri: gelecekte ayni tip mailleri otomatik duzeltmek icin saklanir
+## Data Files
 
-## Sık Kullanilan Komutlar
+- `jobs.csv`: the main application dataset
+- `.sync_state.json`: last sync metadata and query history
+- review data files: queued parser failures that need manual attention
+- manual correction data: saved fixes that can improve future syncs
+
+## Common Commands
 
 ```bash
 python sync_service.py
@@ -201,26 +205,26 @@ python dashboard.py
 python set_downloaded.py
 ```
 
-## Guvenlik Notlari
+## Security Notes
 
-Repoya sunlari eklememen iyi olur:
+It is a good idea to keep these files out of version control:
 
 - `credentials.json`
 - `token.json`
-- Kisisel veri iceren gercek `jobs.csv` kopyalari
-- OAuth veya API anahtari iceren ek config dosyalari
+- real `jobs.csv` files containing personal data
+- any other config file containing OAuth or API secrets
 
-`.gitignore` dosyasini bu dosyalari kapsayacak sekilde guncel tut.
+Make sure your `.gitignore` covers them properly.
 
-## Gelistirme Fikirleri
+## Possible Improvements
 
-- Export/import destegi
-- Daha gelismis dashboard istatistikleri
-- Otomatik testler
-- Docker kurulumu
-- `requirements.txt` veya `pyproject.toml` eklenmesi
-- Gmail disindaki kaynaklar icin adaptor yapisi
+- export and import support
+- richer analytics on the dashboard
+- automated tests
+- Docker setup
+- `requirements.txt` or `pyproject.toml`
+- adapters for sources beyond Gmail
 
-## Lisans
+## License
 
-Bu repo su an acik bir lisans dosyasi icermiyor. Istersen `MIT` lisansi ekleyerek dagitim ve tekrar kullanimi daha net hale getirebilirsin.
+This repository does not currently include a license file. If you want to make reuse clearer, adding an `MIT` license is a good next step.
