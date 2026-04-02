@@ -1,14 +1,22 @@
+import json
+import os
 from datetime import datetime
 from pathlib import Path
+from urllib import error as urllib_error
+from urllib import request as urllib_request
 
-from flask import Flask, abort, jsonify, redirect, render_template, request, url_for
+from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, url_for
 
 from linkedin_parser import normalize_text
 from repository import (
+    get_job_row_by_index,
+    is_incomplete_job_row,
+    list_incomplete_job_rows,
     read_jobs_csv,
     toggle_downloaded_by_row_id,
     toggle_favorite_by_row_id,
     toggle_follow_up_done_by_row_id,
+    update_job_row_by_index,
     upsert_job_csv,
     write_jobs_csv,
 )
@@ -29,6 +37,40 @@ NEEDS_REVIEW_PATH = BASE_DIR / NEEDS_REVIEW_FILE
 MANUAL_CORRECTIONS_PATH = BASE_DIR / MANUAL_CORRECTIONS_FILE
 
 web = Flask(__name__)
+
+
+def load_dotenv_file(dotenv_path: Path) -> None:
+    if not dotenv_path.exists():
+        return
+
+    try:
+        lines = dotenv_path.read_text(encoding="utf-8").splitlines()
+    except Exception:
+        return
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        env_key = key.strip()
+        if not env_key or env_key in os.environ:
+            continue
+        env_value = value.strip().strip('"').strip("'")
+        os.environ[env_key] = env_value
+
+
+load_dotenv_file(BASE_DIR / ".env")
+
+
+@web.get("/favicon.png")
+def favicon_png():
+    return send_from_directory(BASE_DIR, "favicon.png", mimetype="image/png")
+
+
+@web.get("/favicon.ico")
+def favicon_ico():
+    return redirect(url_for("favicon_png"))
 
 
 def _parse_dt(value: str | None) -> datetime | None:
@@ -87,12 +129,14 @@ def build_base_context(*, current_path: str, page_title: str, page_subtitle: str
     state_path = str(CSV_PATH.with_name(SYNC_STATE_FILE))
     sync_state = load_sync_state(state_path)
     pending_reviews = list_needs_review(str(NEEDS_REVIEW_PATH), status="pending")
+    incomplete_csv_reviews = list_incomplete_job_rows(str(CSV_PATH))
     return {
         "current_path": current_path,
         "page_title": page_title,
+        "page_title_html": page_title,
         "page_subtitle": page_subtitle,
         "last_sync_time_fmt": format_time(sync_state.get("last_synced_at")),
-        "needs_review_count": len(pending_reviews),
+        "needs_review_count": len(pending_reviews) + len(incomplete_csv_reviews),
     }
 
 
@@ -119,12 +163,14 @@ def build_followup_items(rows: list[dict]) -> list[dict]:
             if is_downloaded
             else f"Viewed {days_waiting} days ago with no rejection yet. Consider a follow-up now."
         )
+        followup_status = "viewed and downloaded, no response" if is_downloaded else "viewed, no response"
         items.append(
             {
                 **row,
                 "days_waiting": days_waiting,
                 "followup_hint": reason,
                 "followup_threshold": threshold_days,
+                "followup_status": followup_status,
             }
         )
 
@@ -188,17 +234,113 @@ def toggle_follow_up(row_id: str):
     return jsonify({"success": True, "follow_up_done": follow_up_done})
 
 
+def generate_followup_email(*, job_title: str, company: str, days: int, status: str = "viewed, no response") -> str:
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not set.")
+
+    safe_job_title = job_title.strip()
+    safe_company = company.strip()
+    safe_status = status.strip() or "viewed, no response"
+    safe_days = max(0, int(days))
+
+    payload = {
+        "model": "gpt-5-mini",
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "Write a concise professional follow-up email. "
+                    "Use only the provided job title, company, days since application, and status. "
+                    "Do not invent personal details, recruiter names, or job facts. "
+                    "Keep it natural, polished, and under 5 sentences."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Job title: {safe_job_title}\n"
+                    f"Company: {safe_company}\n"
+                    f"Days since application: {safe_days}\n"
+                    f"Status: {safe_status}\n\n"
+                    "Write a short follow-up email that explicitly mentions the job title and company."
+                ),
+            },
+        ],
+        "max_completion_tokens": 180,
+        "temperature": 0.6,
+        "n": 1,
+        "reasoning_effort": "minimal",
+    }
+
+    req = urllib_request.Request(
+        "https://api.openai.com/v1/chat/completions",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST",
+    )
+    try:
+        with urllib_request.urlopen(req, timeout=20) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except urllib_error.HTTPError as exc:
+        try:
+            raw_error = exc.read().decode("utf-8")
+            parsed_error = json.loads(raw_error)
+            error_body = parsed_error.get("error", {}).get("message") or raw_error
+        except Exception:
+            error_body = exc.reason
+        raise RuntimeError(f"OpenAI API error: {error_body}") from exc
+    except urllib_error.URLError as exc:
+        raise RuntimeError(f"OpenAI connection error: {exc.reason}") from exc
+
+    choices = body.get("choices") or []
+    message = choices[0].get("message", {}) if choices else {}
+    content = (message.get("content") or "").strip()
+    if not content:
+        raise RuntimeError("OpenAI returned an empty response.")
+    return content
+
+
+@web.post("/generate-followup")
+def generate_followup():
+    payload = request.get_json(silent=True) or {}
+    job_title = (payload.get("job_title") or "").strip()
+    company = (payload.get("company") or "").strip()
+    status = (payload.get("status") or "viewed, no response").strip()
+    raw_days = payload.get("days", 0)
+
+    try:
+        days = int(raw_days)
+    except (TypeError, ValueError):
+        return jsonify({"error": "invalid_days"}), 400
+
+    if not job_title or not company:
+        return jsonify({"error": "missing_fields"}), 400
+
+    try:
+        email = generate_followup_email(job_title=job_title, company=company, days=days, status=status)
+    except RuntimeError as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    return jsonify({"email": email})
+
+
 def render_jobs_page(*, favorites_only: bool = False):
     jobs = to_rows(read_jobs_csv(str(CSV_PATH)))
     context = build_base_context(
         current_path="/favorites" if favorites_only else "/",
-        page_title="Favorites" if favorites_only else "Your Career Agent",
+        page_title="Favorites" if favorites_only else "Career Intelligence Tool",
         page_subtitle=(
             "Starred roles that are still worth attention."
             if favorites_only
             else "Track your pipeline, surface follow-ups, and clean up parser misses."
         ),
     )
+    if not favorites_only:
+        context["page_title_html"] = 'Career <span class="titleGradient">Intelligence</span> Tool'
 
     search = request.args.get("search", "").strip().lower()
     viewed_only = request.args.get("viewed") == "1"
@@ -315,14 +457,17 @@ def insights():
 
 @web.get("/needs-review")
 def needs_review():
+    pending_parser_reviews = list_needs_review(str(NEEDS_REVIEW_PATH), status="pending")
+    incomplete_csv_reviews = list_incomplete_job_rows(str(CSV_PATH))
     context = build_base_context(
         current_path="/needs-review",
         page_title="Needs Review",
-        page_subtitle="Parser misses land here so you can repair them and teach the system.",
+        page_subtitle="Parser misses and incomplete CSV rows land here so you can repair them quickly.",
     )
     return render_template(
         "needs_review.html",
-        review_rows=list_needs_review(str(NEEDS_REVIEW_PATH), status="pending"),
+        review_rows=pending_parser_reviews,
+        csv_review_rows=incomplete_csv_reviews,
         format_time_with_date=format_time_with_date,
         **context,
     )
@@ -389,6 +534,61 @@ def review_detail(review_id: str):
     return render_template(
         "review_detail.html",
         item=item,
+        initial_values={},
+        format_time_with_date=format_time_with_date,
+        **context,
+    )
+
+
+@web.route("/needs-review/csv/<int:row_index>", methods=["GET", "POST"])
+def csv_review_detail(row_index: int):
+    item = get_job_row_by_index(str(CSV_PATH), row_index)
+    if not item or not is_incomplete_job_row(item):
+        return redirect(url_for("needs_review"))
+
+    if request.method == "POST":
+        action = (request.form.get("action") or "apply").strip().lower()
+        if action == "dismiss":
+            return redirect(url_for("needs_review"))
+
+        updated_row = update_job_row_by_index(
+            str(CSV_PATH),
+            row_index,
+            {
+                "company": request.form.get("company"),
+                "job_title": request.form.get("job_title"),
+                "location": request.form.get("location"),
+                "job_url": request.form.get("job_url"),
+            },
+        )
+        if not updated_row:
+            abort(404)
+        if is_incomplete_job_row(updated_row):
+            return redirect(url_for("csv_review_detail", row_index=row_index))
+        return redirect(url_for("needs_review"))
+
+    context = build_base_context(
+        current_path="/needs-review",
+        page_title="Edit CSV Row",
+        page_subtitle="Fill in the missing job details and the row will leave the review queue automatically.",
+    )
+    return render_template(
+        "review_detail.html",
+        item={
+            "reason": "missing_csv_fields",
+            "event_time": item.get("applied_time") or item.get("viewed_time") or "",
+            "subject": "Incomplete CSV Row",
+            "body_text": "",
+            "body_preview": "",
+            "source_kind": "csv",
+            "csv_row_index": row_index,
+        },
+        initial_values={
+            "company": item.get("company", ""),
+            "job_title": item.get("job_title", ""),
+            "location": item.get("location", ""),
+            "job_url": item.get("job_url", ""),
+        },
         format_time_with_date=format_time_with_date,
         **context,
     )

@@ -28,6 +28,87 @@ CSV_HEADERS = [
 ]
 
 
+def _normalize_csv_row(row: dict | None) -> dict:
+    normalized = {header: "" for header in CSV_HEADERS}
+    for header in CSV_HEADERS:
+        normalized[header] = str((row or {}).get(header, "") or "").strip()
+    return normalized
+
+
+def _is_missing_review_value(value: str) -> bool:
+    normalized = normalize_text(value)
+    return normalized in {"", "-", "unknown title"}
+
+
+def is_incomplete_job_row(row: dict) -> bool:
+    return any(
+        _is_missing_review_value(row.get(field, ""))
+        for field in ("company", "job_title", "location")
+    )
+
+
+def is_unloaded_job_row(row: dict) -> bool:
+    return _is_missing_review_value(row.get("company", "")) or _is_missing_review_value(row.get("job_title", ""))
+
+
+def read_job_rows(csv_path: str) -> list[dict]:
+    if not os.path.exists(csv_path):
+        return []
+
+    rows: list[dict] = []
+    with open(csv_path, "r", encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(_normalize_csv_row(row))
+    return rows
+
+
+def write_job_rows(csv_path: str, rows: list[dict]):
+    normalized_rows = [_normalize_csv_row(row) for row in rows]
+    with open(csv_path, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_HEADERS)
+        writer.writeheader()
+        writer.writerows(normalized_rows)
+
+
+def list_incomplete_job_rows(csv_path: str) -> list[dict]:
+    items: list[dict] = []
+    for idx, row in enumerate(read_job_rows(csv_path)):
+        if not is_incomplete_job_row(row):
+            continue
+        item = dict(row)
+        item["csv_row_index"] = idx
+        item["review_id"] = f"csv-{idx}"
+        items.append(item)
+    return items
+
+
+def get_job_row_by_index(csv_path: str, row_index: int) -> dict | None:
+    rows = read_job_rows(csv_path)
+    if row_index < 0 or row_index >= len(rows):
+        return None
+    item = dict(rows[row_index])
+    item["csv_row_index"] = row_index
+    item["review_id"] = f"csv-{row_index}"
+    return item
+
+
+def update_job_row_by_index(csv_path: str, row_index: int, updates: dict) -> dict | None:
+    rows = read_job_rows(csv_path)
+    if row_index < 0 or row_index >= len(rows):
+        return None
+
+    row = _normalize_csv_row(rows[row_index])
+    row["company"] = (updates.get("company") or "").strip()
+    row["job_title"] = (updates.get("job_title") or "").strip()
+    row["location"] = (updates.get("location") or "").strip()
+    row["job_url"] = normalize_job_url((updates.get("job_url") or "").strip()) or ""
+    write_job_rows(csv_path, rows[:row_index] + [row] + rows[row_index + 1 :])
+    row["csv_row_index"] = row_index
+    row["review_id"] = f"csv-{row_index}"
+    return row
+
+
 # Picks the better display form for company name while keeping matching logic normalized.
 # Preference is given to the variant that contains uppercase styling if old value
 # is plain-lowercase, so UI gradually improves as new mails are parsed.
@@ -76,35 +157,30 @@ def choose_earliest_time(old_val: str, new_val: str) -> str:
 # to keep state internally consistent.
 def read_jobs_csv(csv_path: str) -> Dict[str, dict]:
     jobs: Dict[str, dict] = {}
-    if not os.path.exists(csv_path):
-        return jobs
+    for row in read_job_rows(csv_path):
+        company = row.get("company", "")
+        job_title = row.get("job_title", "")
+        if is_unloaded_job_row(row):
+            continue
 
-    with open(csv_path, "r", encoding="utf-8-sig", newline="") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            company = (row.get("company") or "").strip()
-            job_title = (row.get("job_title") or "").strip()
-            if not company or not job_title:
-                continue
+        normalized_row = {
+            "company": company,
+            "job_title": job_title,
+            "location": row.get("location", ""),
+            "job_url": normalize_job_url(row.get("job_url", "")) or "",
+            "applied": True if row.get("applied", "") == "" else str_to_bool(row.get("applied", "")),
+            "applied_time": row.get("applied_time", ""),
+            "viewed": str_to_bool(row.get("viewed", "")),
+            "viewed_time": row.get("viewed_time", ""),
+            "downloaded": str_to_bool(row.get("downloaded", "")),
+            "rejected": str_to_bool(row.get("rejected", "")),
+            "favorite": str_to_bool(row.get("favorite", "")),
+            "follow_up_done": str_to_bool(row.get("follow_up_done", "")),
+        }
+        if normalized_row["viewed"]:
+            normalized_row["applied"] = True
 
-            normalized_row = {
-                "company": company,
-                "job_title": job_title,
-                "location": (row.get("location") or "").strip(),
-                "job_url": normalize_job_url((row.get("job_url") or "").strip()) or "",
-                "applied": True if row.get("applied", "") == "" else str_to_bool(row.get("applied", "")),
-                "applied_time": (row.get("applied_time") or "").strip(),
-                "viewed": str_to_bool(row.get("viewed", "")),
-                "viewed_time": (row.get("viewed_time") or "").strip(),
-                "downloaded": str_to_bool(row.get("downloaded", "")),
-                "rejected": str_to_bool(row.get("rejected", "")),
-                "favorite": str_to_bool(row.get("favorite", "")),
-                "follow_up_done": str_to_bool(row.get("follow_up_done", "")),
-            }
-            if normalized_row["viewed"]:
-                normalized_row["applied"] = True
-
-            jobs[row_key(normalized_row)] = normalized_row
+        jobs[row_key(normalized_row)] = normalized_row
 
     return jobs
 
@@ -213,11 +289,13 @@ def mark_rejected_by_company_title(jobs: Dict[str, dict], company: str, job_titl
 # Writes normalized job rows back to CSV in deterministic order.
 # Sorting by company/title makes diffs and manual review easier.
 def write_jobs_csv(csv_path: str, jobs: Dict[str, dict]):
-    rows = sorted(jobs.values(), key=lambda x: (x["company"].lower(), x["job_title"].lower()))
-    with open(csv_path, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_HEADERS)
-        writer.writeheader()
-        writer.writerows(rows)
+    valid_rows = sorted(jobs.values(), key=lambda x: (x["company"].lower(), x["job_title"].lower()))
+    preserved_rows = [
+        {header: row.get(header, "") for header in CSV_HEADERS}
+        for row in read_job_rows(csv_path)
+        if is_unloaded_job_row(row)
+    ]
+    write_job_rows(csv_path, valid_rows + preserved_rows)
 
 
 # Prints viewed job summary to terminal for quick post-sync inspection.

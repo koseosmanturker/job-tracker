@@ -5,6 +5,22 @@
 
 {% block content %}
   <div class="panel">
+    <h2 class="sectionTitle">Incomplete CSV Rows</h2>
+    <div class="stack" style="margin-bottom: 18px;">
+      {% for row in csv_review_rows %}
+        <div class="card listCard">
+          <h3>{{ row.company or "Missing company" }} | {{ row.job_title or "Missing title" }}</h3>
+          <p class="meta">Reason: Missing company, job title, or location | Applied time: {{ format_time_with_date(row.applied_time or row.viewed_time) }}</p>
+          <p>Location: {{ row.location or "-" }} | URL: {{ row.job_url or "-" }}</p>
+          <div class="actionsRow">
+            <a class="buttonLink" href="/needs-review/csv/{{ row.csv_row_index }}">Edit CSV Row</a>
+          </div>
+        </div>
+      {% else %}
+        <div class="emptyState">No incomplete CSV rows right now.</div>
+      {% endfor %}
+    </div>
+
     <h2 class="sectionTitle">Pending Parser Failures</h2>
     <div class="stack">
       {% for row in review_rows %}
@@ -17,7 +33,7 @@
           </div>
         </div>
       {% else %}
-        <div class="emptyState">The queue is empty. Parser misses will show up here after the next sync.</div>
+        <div class="emptyState">No pending parser misses right now.</div>
       {% endfor %}
     </div>
   </div>

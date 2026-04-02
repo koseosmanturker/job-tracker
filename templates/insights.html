@@ -4,6 +4,100 @@
 {% block sync_full_endpoint %}insights{% endblock %}
 
 {% block content %}
+  <style>
+    .followupCallout {
+      margin: 10px 0 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+      border: 1px solid transparent;
+    }
+
+    .followupCallout.pending {
+      background: color-mix(in srgb, var(--no-bg) 72%, var(--card));
+      color: color-mix(in srgb, var(--no-text) 84%, var(--text));
+      border-color: color-mix(in srgb, var(--no-text) 30%, var(--line));
+    }
+
+    .followupCallout.done {
+      background: color-mix(in srgb, var(--ok-bg) 78%, var(--card));
+      color: color-mix(in srgb, var(--ok-text) 84%, var(--text));
+      border-color: color-mix(in srgb, var(--ok-text) 30%, var(--line));
+    }
+
+    .aiGenerateBtn {
+      background: linear-gradient(135deg, #f59e0b, #fb7185);
+    }
+
+    .modalOverlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 10000;
+    }
+
+    .modalOverlay.show {
+      display: flex;
+    }
+
+    .modalCard {
+      width: min(720px, 100%);
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .modalHeader {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .modalHeader h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .modalHeader p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .iconBtn {
+      min-width: 40px;
+      min-height: 40px;
+      padding: 0;
+      font-size: 18px;
+    }
+
+    .aiOutput {
+      min-height: 220px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .aiStatus {
+      min-height: 20px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+  </style>
+
   {% if synced %}
     <div class="notice">
       <strong>Sync completed.</strong>
@@ -20,7 +114,7 @@
           style="{% if row.follow_up_done %}background: var(--ok-bg); border-color: color-mix(in srgb, var(--ok-text) 22%, var(--line));{% else %}background: var(--no-bg); border-color: color-mix(in srgb, var(--no-text) 22%, var(--line));{% endif %}"
         >
           <h3>{{ row.company }} - {{ row.job_title }}</h3>
-          <p>{{ row.followup_hint }}</p>
+          <p class="followupCallout {% if row.follow_up_done %}done{% else %}pending{% endif %}">{{ row.followup_hint }}</p>
           <div class="meta">
             Viewed: {{ format_time_with_date(row.viewed_time) }}
             | Waiting: {{ row.days_waiting }} days
@@ -33,10 +127,19 @@
               class="{% if row.follow_up_done %}secondaryBtn{% endif %}"
               data-toggle-follow-up
               data-row-id="{{ row.row_id|urlencode }}"
-            >{% if row.follow_up_done %}Follow-up Done ✅{% else %}Follow-up?{% endif %}</button>
+            >{% if row.follow_up_done %}Follow-up Done{% else %}Follow-up?{% endif %}</button>
+            <button
+              type="button"
+              class="aiGenerateBtn"
+              data-generate-follow-up
+              data-job-title="{{ row.job_title }}"
+              data-company="{{ row.company }}"
+              data-days="{{ row.days_waiting }}"
+              data-status="{{ row.followup_status }}"
+            >Generate with AI</button>
             {% if row.job_url %}
-              <a class="buttonLink secondaryBtn" href="{{ row.job_url }}" target="_blank" rel="noopener noreferrer">↗</a>
-              <button class="secondaryBtn" type="button" data-copy="{{ row.job_url }}">📋</button>
+              <a class="buttonLink secondaryBtn" href="{{ row.job_url }}" target="_blank" rel="noopener noreferrer">Open</a>
+              <button class="secondaryBtn" type="button" data-copy="{{ row.job_url }}">Copy Link</button>
             {% endif %}
           </div>
         </div>
@@ -45,10 +148,46 @@
       {% endfor %}
     </div>
   </div>
+
+  <div class="modalOverlay" id="followupModal" aria-hidden="true">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <div>
+          <h3>AI Follow-up Draft</h3>
+          <p id="followupModalMeta">A short professional draft will appear here.</p>
+        </div>
+        <button type="button" class="secondaryBtn iconBtn" id="closeFollowupModal" aria-label="Close dialog">x</button>
+      </div>
+      <textarea id="followupOutput" class="aiOutput" placeholder="Generating..." spellcheck="true"></textarea>
+      <div class="aiStatus" id="followupStatus"></div>
+      <div class="actionsRow" style="margin-top: 12px;">
+        <button type="button" class="secondaryBtn" id="copyFollowupBtn">Copy</button>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block scripts %}
   <script>
+    const followupModal = document.getElementById("followupModal");
+    const closeFollowupModal = document.getElementById("closeFollowupModal");
+    const followupOutput = document.getElementById("followupOutput");
+    const followupStatus = document.getElementById("followupStatus");
+    const followupModalMeta = document.getElementById("followupModalMeta");
+    const copyFollowupBtn = document.getElementById("copyFollowupBtn");
+
+    function openFollowupModal() {
+      if (!followupModal) return;
+      followupModal.classList.add("show");
+      followupModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeAiModal() {
+      if (!followupModal) return;
+      followupModal.classList.remove("show");
+      followupModal.setAttribute("aria-hidden", "true");
+    }
+
     document.addEventListener("click", async (e) => {
       const copyBtn = e.target.closest("[data-copy]");
       if (copyBtn) {
@@ -58,6 +197,71 @@
           await navigator.clipboard.writeText(text);
         } catch (err) {
           return;
+        }
+        return;
+      }
+
+      if (copyFollowupBtn && e.target === copyFollowupBtn) {
+        const text = followupOutput ? followupOutput.value.trim() : "";
+        if (!text) return;
+        try {
+          await navigator.clipboard.writeText(text);
+          if (followupStatus) followupStatus.textContent = "Copied.";
+        } catch (err) {
+          if (followupStatus) followupStatus.textContent = "Copy failed.";
+        }
+        return;
+      }
+
+      if (closeFollowupModal && e.target === closeFollowupModal) {
+        closeAiModal();
+        return;
+      }
+
+      if (followupModal && e.target === followupModal) {
+        closeAiModal();
+        return;
+      }
+
+      const generateBtn = e.target.closest("[data-generate-follow-up]");
+      if (generateBtn) {
+        const jobTitle = generateBtn.getAttribute("data-job-title") || "";
+        const company = generateBtn.getAttribute("data-company") || "";
+        const days = Number(generateBtn.getAttribute("data-days") || "0");
+        const status = generateBtn.getAttribute("data-status") || "viewed, no response";
+
+        generateBtn.disabled = true;
+        const originalLabel = generateBtn.textContent;
+        generateBtn.textContent = "Generating...";
+
+        if (followupOutput) followupOutput.value = "";
+        if (followupStatus) followupStatus.textContent = "Generating...";
+        if (followupModalMeta) followupModalMeta.textContent = `${company} | ${jobTitle} | ${days} days | ${status}`;
+        openFollowupModal();
+
+        try {
+          const res = await fetch("/generate-followup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              job_title: jobTitle,
+              company,
+              days,
+              status
+            })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.email) {
+            throw new Error(data.error || "Unable to generate follow-up.");
+          }
+          if (followupOutput) followupOutput.value = data.email;
+          if (followupStatus) followupStatus.textContent = "Generated.";
+        } catch (err) {
+          if (followupOutput) followupOutput.value = "";
+          if (followupStatus) followupStatus.textContent = err.message || "Generation failed.";
+        } finally {
+          generateBtn.disabled = false;
+          generateBtn.textContent = originalLabel;
         }
         return;
       }
@@ -76,6 +280,10 @@
       } finally {
         followBtn.disabled = false;
       }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeAiModal();
     });
   </script>
 {% endblock %}
