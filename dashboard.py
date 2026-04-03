@@ -3,6 +3,7 @@ import os
 import io
 import hashlib
 import re
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from urllib import error as urllib_error
@@ -314,6 +315,120 @@ def _extract_job_requirements(job_excerpt: str) -> dict:
     }
 
 
+SNAPSHOT_STOPWORDS = {
+    "a", "about", "after", "all", "also", "an", "and", "any", "as", "at", "be", "because", "been", "but", "by",
+    "can", "could", "do", "for", "from", "have", "if", "in", "into", "is", "it", "its", "may", "more", "must",
+    "nice", "not", "of", "on", "or", "our", "role", "should", "some", "the", "their", "this", "to", "using",
+    "we", "will", "with", "you", "your", "years", "year", "plus", "preferred", "required", "requirements",
+    "responsibilities", "responsibility", "experience", "knowledge", "skills", "skill", "work", "working",
+    "team", "ability", "strong", "good", "excellent", "including", "across", "within", "through", "over",
+    "need", "needs", "looking", "seeking", "candidate", "candidates", "position", "job",
+    "ve", "veya", "ile", "için", "icin", "olan", "olarak", "bir", "bu", "çok", "cok", "gibi", "gore", "göre",
+    "tercihen", "zorunlu", "gereken", "gereklidir", "deneyim", "tecrube", "tecrübe", "bilgi", "beceri",
+}
+
+
+def _tokenize_for_snapshot(text: str) -> list[str]:
+    cleaned = _normalize_phrase(text)
+    if not cleaned:
+        return []
+    return re.findall(r"[a-z0-9+#./-]{2,}", cleaned)
+
+
+def _clean_snapshot_term(value: str) -> str:
+    text = _normalize_phrase(value)
+    text = re.sub(r"\b(?:and|or|with|using|in|of|the|a|an|ve|veya|ile)\b", " ", text)
+    text = re.sub(r"\s+", " ", text).strip(" -,:;/")
+    return text
+
+
+def _split_requirement_fragments(text: str) -> list[str]:
+    parts = re.split(r",|/|;|\band\b|\bor\b|\bve\b|\bveya\b", text, flags=re.I)
+    return [_clean_snapshot_term(part) for part in parts if _clean_snapshot_term(part)]
+
+
+def _extract_snapshot_job_terms(job_text: str) -> tuple[list[str], list[str]]:
+    normalized_job = _clean_text(job_text)
+    requirement_candidates = []
+
+    cue_patterns = [
+        r"(?:must have|required|requirements|experience with|proficient in|expertise in|knowledge of|familiar with|skills?|tech stack|tools?)[:\s]+([^\n]+)",
+        r"(?:we need|we are looking for|looking for|seeking|must know|must be familiar with)[:\s]+([^\n]+)",
+        r"(?:aranan nitelikler|gereksinimler|gereken yetkinlikler|teknolojiler|araçlar|beceriler)[:\s]+([^\n]+)",
+    ]
+    for pattern in cue_patterns:
+        for match in re.findall(pattern, normalized_job, flags=re.I):
+            requirement_candidates.extend(_split_requirement_fragments(match))
+
+    tech_candidates = re.findall(r"\b[a-zA-Z][a-zA-Z0-9+#./-]{1,}\b", normalized_job)
+    tech_terms = []
+    for item in tech_candidates:
+        normalized = _clean_snapshot_term(item)
+        if len(normalized) < 2 or normalized in SNAPSHOT_STOPWORDS:
+            continue
+        if any(ch in normalized for ch in "+#./") or normalized.isupper():
+            tech_terms.append(normalized)
+
+    token_counts = Counter(
+        token for token in _tokenize_for_snapshot(normalized_job)
+        if token not in SNAPSHOT_STOPWORDS and len(token) > 2
+    )
+    keyword_candidates = [token for token, _ in token_counts.most_common(30)]
+
+    required_terms = _dedupe_list(requirement_candidates + tech_terms)[:12]
+    keyword_terms = _dedupe_list(keyword_candidates + tech_terms + requirement_candidates)
+    keyword_terms = [term for term in keyword_terms if term not in {_normalize_phrase(item) for item in required_terms}]
+    return required_terms, keyword_terms[:20]
+
+
+def _cv_contains_term(cv_text: str, cv_tokens: set[str], term: str) -> bool:
+    normalized_term = _normalize_phrase(term)
+    if not normalized_term:
+        return False
+    if " " in normalized_term:
+        return normalized_term in cv_text
+    return normalized_term in cv_tokens
+
+
+def _calculate_cv_snapshot(cv_text: str, job_text: str) -> dict:
+    normalized_cv = _normalize_phrase(cv_text)
+    cv_tokens = set(_tokenize_for_snapshot(normalized_cv))
+    required_terms, keyword_terms = _extract_snapshot_job_terms(job_text)
+
+    matched_required = [term for term in required_terms if _cv_contains_term(normalized_cv, cv_tokens, term)]
+    missing_required = [term for term in required_terms if term not in matched_required]
+    matched_keywords = [term for term in keyword_terms if _cv_contains_term(normalized_cv, cv_tokens, term)]
+    missing_keywords = [term for term in keyword_terms if term not in matched_keywords]
+
+    section_markers = (
+        ("experience", 0.35),
+        ("skills", 0.30),
+        ("education", 0.20),
+        ("projects", 0.15),
+    )
+    structure_score = 0.0
+    for marker, weight in section_markers:
+        if marker in normalized_cv:
+            structure_score += weight
+    structure_score = min(1.0, structure_score)
+
+    required_coverage = len(matched_required) / max(1, len(required_terms)) if required_terms else 0.0
+    keyword_coverage = len(matched_keywords) / max(1, len(keyword_terms)) if keyword_terms else 0.0
+
+    raw_score = (required_coverage * 0.65) + (keyword_coverage * 0.25) + (structure_score * 0.10)
+    snapshot_score = round(raw_score * 100)
+
+    missing_skills = _dedupe_list(missing_required + missing_keywords)[:8]
+    return {
+        "score": snapshot_score,
+        "missing_skills": missing_skills,
+        "required_terms_total": len(required_terms),
+        "required_terms_matched": len(matched_required),
+        "keyword_terms_total": len(keyword_terms),
+        "keyword_terms_matched": len(matched_keywords),
+    }
+
+
 def _match_cv_to_job(structured_cv: dict, job_requirements: dict) -> tuple[int, list[str], list[str]]:
     cv_skills_raw = structured_cv.get("skills") or []
     job_skills_raw = (job_requirements.get("required_skills") or []) + (job_requirements.get("keywords") or [])
@@ -614,6 +729,7 @@ def optimize_cv():
 
     cv_excerpt = _compact_cv_text(cv_text)
     job_excerpt = _compact_job_text(job_description)
+    snapshot = _calculate_cv_snapshot(cv_text, job_description)
 
     if not cv_excerpt:
         return jsonify({"error": "empty_cv_text"}), 400
@@ -632,11 +748,12 @@ def optimize_cv():
         pdf_filename = f"cv_{cache_key[:12]}.pdf"
         _write_pdf_from_html(html_content=html_content, output_path=GENERATED_DIR / pdf_filename)
     except RuntimeError as exc:
-        return jsonify({"error": str(exc)}), 502
+        return jsonify({"error": str(exc), "snapshot": snapshot}), 502
 
     response_payload = {
         "match_score": match_score,
         "missing_skills": missing_skills,
+        "snapshot": snapshot,
         "improved_cv_html": html_content,
         "pdf_url": url_for("generated_file", filename=pdf_filename),
     }
@@ -774,12 +891,17 @@ def favorites():
 
 
 @web.get("/insights")
-def insights():
+def insights_legacy():
+    return redirect(url_for("follow_up"))
+
+
+@web.get("/follow-up")
+def follow_up():
     jobs = to_rows(read_jobs_csv(str(CSV_PATH)))
     followups = build_followup_items(jobs)
     context = build_base_context(
-        current_path="/insights",
-        page_title="Insights",
+        current_path="/follow-up",
+        page_title="Follow-up",
         page_subtitle="Work through follow-ups in viewed-date order and mark them done as you go.",
     )
     return render_template(
@@ -800,12 +922,17 @@ def cv_optimizer():
     context = build_base_context(
         current_path="/cv-optimizer",
         page_title="CV Optimizer",
-        page_subtitle="Upload a CV, paste a target job description, and generate an ATS-friendly tailored version.",
+        page_subtitle="Upload a CV, paste a target job description, and generate a tailored version for that role.",
     )
     return render_template(
         "cv_optimizer.html",
         **context,
     )
+
+
+@web.get("/ai-cv-studio")
+def cv_optimizer_legacy():
+    return redirect(url_for("cv_optimizer"))
 
 
 @web.get("/needs-review")

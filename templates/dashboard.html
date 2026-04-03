@@ -4,52 +4,218 @@
 {% block sync_full_endpoint %}{% if favorites_only %}favorites{% else %}home{% endif %}{% endblock %}
 
 {% block content %}
-  <div class="cards">
-    <div class="card">
-      <div class="cardTop">
-        <div class="k">Applications</div>
-        <div class="ico">🧾</div>
-      </div>
-      <div class="v">{{ stats.applied }}</div>
-    </div>
+  <style>
+    .jobsPage {
+      display: grid;
+      gap: 18px;
+    }
 
-    <div class="card">
-      <div class="cardTop">
-        <div class="k">Viewed</div>
-        <div class="ico">👁️</div>
-      </div>
-      <div class="v">{{ stats.viewed }}</div>
-      <div class="rate">Rate: {{ stats.viewed_rate }}</div>
-    </div>
+    .jobsHero {
+      position: relative;
+      overflow: hidden;
+      padding: 28px;
+      border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--line));
+      border-radius: 24px;
+      background:
+        radial-gradient(520px 220px at 0% 0%, rgba(59, 130, 246, 0.14), transparent 60%),
+        radial-gradient(620px 240px at 100% 0%, rgba(251, 191, 36, 0.14), transparent 62%),
+        linear-gradient(135deg, color-mix(in srgb, var(--card) 96%, #eff6ff), color-mix(in srgb, var(--card) 94%, #fef3c7));
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+    }
 
-    <div class="card">
-      <div class="cardTop">
-        <div class="k">Downloaded</div>
-        <div class="ico">⬇️</div>
-      </div>
-      <div class="v">{{ stats.downloaded }}</div>
-      <div class="rate">Rate: {{ stats.downloaded_rate }}</div>
-    </div>
+    .jobsHeroBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--brand) 20%, var(--line));
+      background: rgba(255, 255, 255, 0.58);
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
 
-    <div class="card">
-      <div class="cardTop">
-        <div class="k">Rejected</div>
-        <div class="ico">❌</div>
-      </div>
-      <div class="v">{{ stats.rejected }}</div>
-      <div class="rate">Rate: {{ stats.rejected_rate }}</div>
-    </div>
+    .jobsHeroTitle {
+      margin: 16px 0 10px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+    }
 
-    <div class="card">
-      <div class="cardTop">
-        <div class="k">Favorites</div>
-        <div class="ico">⭐</div>
-      </div>
-      <div class="v">{{ stats.favorites }}</div>
-    </div>
-  </div>
+    .jobsHeroText {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
 
-  <div class="panel">
+    .jobsStats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .jobsStat {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .jobsStatTop {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .jobsStatLabel {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .jobsStatIcon {
+      width: 42px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(20,184,166,.18), rgba(56,189,248,.12));
+      border: 1px solid rgba(20,184,166,.20);
+      font-size: 18px;
+    }
+
+    .jobsStatValue {
+      margin-top: 12px;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .jobsFavoriteBtn {
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      border-radius: 16px;
+      font-size: 20px;
+      color: #94a3b8;
+      transition: color .15s ease, border-color .15s ease, background .15s ease, transform .15s ease;
+    }
+
+    .jobsFavoriteBtn:hover {
+      color: #f59e0b;
+      border-color: color-mix(in srgb, #f59e0b 45%, var(--line));
+    }
+
+    .jobsFavoriteBtn.on {
+      color: #facc15;
+      background: color-mix(in srgb, #f59e0b 16%, var(--card));
+      border-color: color-mix(in srgb, #f59e0b 50%, var(--line));
+    }
+
+    html.dark .jobsHero {
+      background:
+        radial-gradient(520px 220px at 0% 0%, rgba(59, 130, 246, 0.10), transparent 60%),
+        radial-gradient(620px 240px at 100% 0%, rgba(251, 191, 36, 0.10), transparent 62%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.98));
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+    }
+
+    html.dark .jobsHeroBadge,
+    html.dark .jobsStat {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.98));
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+    }
+
+    html.dark .jobsHeroText,
+    html.dark .jobsStatLabel {
+      color: #b8c4d9;
+    }
+
+    html.dark .jobsStatValue,
+    html.dark .k,
+    html.dark .v,
+    html.dark .rate {
+      color: #f8fafc;
+    }
+
+    @media (max-width: 1200px) {
+      .jobsStats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      .jobsStats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .jobsStats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <div class="jobsPage">
+    <section class="jobsHero">
+      <div class="jobsHeroBadge">{% if favorites_only %}Favorites{% else %}Career Intelligence{% endif %}</div>
+      <h2 class="jobsHeroTitle">{% if favorites_only %}Keep your strongest roles in one focused view{% else %}Track every opportunity like a polished recruiting dashboard{% endif %}</h2>
+      <p class="jobsHeroText">{% if favorites_only %}Your saved roles stay front and center here so you can revisit high-signal opportunities, open postings quickly, and keep traction on the jobs that matter most.{% else %}Search your pipeline, monitor signal changes, and move faster on the roles that are getting attention with a clearer, more premium workspace.{% endif %}</p>
+    </section>
+
+    <section class="jobsStats">
+      <div class="jobsStat">
+      <div class="jobsStatTop">
+        <div class="jobsStatLabel">Applications</div>
+          <div class="jobsStatIcon">🧾</div>
+      </div>
+      <div class="jobsStatValue">{{ stats.applied }}</div>
+    </div>
+      <div class="jobsStat">
+      <div class="jobsStatTop">
+          <div class="jobsStatLabel">Viewed</div>
+          <div class="jobsStatIcon">👀</div>
+        </div>
+        <div class="jobsStatValue">{{ stats.viewed }}</div>
+        <div class="rate">Rate: {{ stats.viewed_rate }}</div>
+      </div>
+      <div class="jobsStat">
+        <div class="jobsStatTop">
+          <div class="jobsStatLabel">Downloaded</div>
+          <div class="jobsStatIcon">📥</div>
+        </div>
+        <div class="jobsStatValue">{{ stats.downloaded }}</div>
+        <div class="rate">Rate: {{ stats.downloaded_rate }}</div>
+      </div>
+      <div class="jobsStat">
+        <div class="jobsStatTop">
+          <div class="jobsStatLabel">Rejected</div>
+          <div class="jobsStatIcon">❌</div>
+        </div>
+        <div class="jobsStatValue">{{ stats.rejected }}</div>
+        <div class="rate">Rate: {{ stats.rejected_rate }}</div>
+      </div>
+      <div class="jobsStat">
+        <div class="jobsStatTop">
+          <div class="jobsStatLabel">Favorites</div>
+          <div class="jobsStatIcon">⭐</div>
+        </div>
+        <div class="jobsStatValue">{{ stats.favorites }}</div>
+      </div>
+    </section>
+
     {% if synced %}
       <div class="notice">
         <strong>Sync completed.</strong>
@@ -57,97 +223,99 @@
       </div>
     {% endif %}
 
-    <form method="get" id="filterForm" class="filterBar">
-      <div class="searchBox">
-        <input type="text" name="search" value="{{ search }}" placeholder="Search company, title, location" data-live-search>
-      </div>
-      <label class="chip"><input type="checkbox" name="viewed" value="1" {% if viewed_only %}checked{% endif %} data-live-filter> Viewed only</label>
-      <label class="chip"><input type="checkbox" name="downloaded" value="1" {% if downloaded_only %}checked{% endif %} data-live-filter> Downloaded only</label>
-      <label class="chip"><input type="checkbox" name="rejected" value="1" {% if rejected_only %}checked{% endif %} data-live-filter> Rejected only</label>
-    </form>
+    <div class="panel">
+      <form method="get" id="filterForm" class="filterBar">
+        <div class="searchBox">
+          <input type="text" name="search" value="{{ search }}" placeholder="Search company, title, location" data-live-search>
+        </div>
+        <label class="chip"><input type="checkbox" name="viewed" value="1" {% if viewed_only %}checked{% endif %} data-live-filter> Viewed only</label>
+        <label class="chip"><input type="checkbox" name="downloaded" value="1" {% if downloaded_only %}checked{% endif %} data-live-filter> Downloaded only</label>
+        <label class="chip"><input type="checkbox" name="rejected" value="1" {% if rejected_only %}checked{% endif %} data-live-filter> Rejected only</label>
+      </form>
 
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 72px; text-align: center;">⭐</th>
-            <th style="width: 16%;">Company</th>
-            <th style="width: 17%;">Job Title</th>
-            <th style="width: 11%;">Location</th>
-            <th style="width: 140px;">Actions</th>
-            <th style="width: 108px; text-align: center;">Applied</th>
-            <th style="width: 140px;">
-              <span class="thStack">
-                <span>Applied Time</span>
-                <span class="sort">
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 72px; text-align: center;">⭐</th>
+              <th style="width: 16%;">Company</th>
+              <th style="width: 17%;">Job Title</th>
+              <th style="width: 11%;">Location</th>
+              <th style="width: 140px;">Actions</th>
+              <th style="width: 108px; text-align: center;">Applied</th>
+              <th style="width: 140px;">
+                <span class="thStack">
+                  <span>Applied Time</span>
+                  <span class="sort">
                   <a href="{{ current_path }}?search={{ search }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=asc" class="{% if sort == 'applied_time' and order == 'asc' %}active{% endif %}" title="Sort ASC">▲</a>
                   <a href="{{ current_path }}?search={{ search }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=applied_time&order=desc" class="{% if sort == 'applied_time' and order == 'desc' %}active{% endif %}" title="Sort DESC">▼</a>
+                  </span>
                 </span>
-              </span>
-            </th>
-            <th style="width: 108px; text-align: center;">Viewed</th>
-            <th style="width: 140px;">
-              <span class="thStack">
-                <span>Viewed Time</span>
-                <span class="sort">
+              </th>
+              <th style="width: 108px; text-align: center;">Viewed</th>
+              <th style="width: 140px;">
+                <span class="thStack">
+                  <span>Viewed Time</span>
+                  <span class="sort">
                   <a href="{{ current_path }}?search={{ search }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=asc" class="{% if sort == 'viewed_time' and order == 'asc' %}active{% endif %}" title="Sort ASC">▲</a>
                   <a href="{{ current_path }}?search={{ search }}&viewed={{ '1' if viewed_only else '' }}&downloaded={{ '1' if downloaded_only else '' }}&rejected={{ '1' if rejected_only else '' }}&sort=viewed_time&order=desc" class="{% if sort == 'viewed_time' and order == 'desc' %}active{% endif %}" title="Sort DESC">▼</a>
+                  </span>
                 </span>
-              </span>
-            </th>
-            <th style="width: 108px; text-align: center;">Downloaded</th>
-            <th style="width: 108px; text-align: center;">Rejected</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in rows %}
-            <tr>
-              <td style="text-align: center;">
-                <button
-                  type="button"
-                  class="secondaryBtn favoriteToggle {% if r.favorite %}on{% endif %}"
-                  data-toggle-favorite
-                  data-row-id="{{ r.row_id }}"
-                  data-favorite="{{ '1' if r.favorite else '0' }}"
-                  title="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
-                  aria-label="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
-                >⭐</button>
-              </td>
-              <td>{{ r.company }}</td>
-              <td>{{ r.job_title }}</td>
-              <td>{{ r.location or '-' }}</td>
-              <td>
-                {% if r.job_url %}
-                  <div class="actionsRow">
-                    <a class="buttonLink secondaryBtn" href="{{ r.job_url }}" target="_blank" rel="noopener noreferrer">↗</a>
-                    <button class="secondaryBtn" type="button" data-copy="{{ r.job_url }}">📋</button>
-                  </div>
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-              <td style="text-align: center;">{% if r.applied %}<span class="badge ok">✅</span>{% else %}<span class="badge no">-</span>{% endif %}</td>
-              <td>{{ r.applied_time_fmt }}</td>
-              <td style="text-align: center;">{% if r.viewed %}<span class="badge ok">👁️</span>{% else %}<span class="badge no">⏳</span>{% endif %}</td>
-              <td>{{ r.viewed_time_fmt }}</td>
-              <td style="text-align: center;">
-                <button
-                  type="button"
-                  class="secondaryBtn downloadToggle {% if r.downloaded %}on{% endif %}"
-                  data-toggle-downloaded
-                  data-row-id="{{ r.row_id }}"
-                  data-downloaded="{{ '1' if r.downloaded else '0' }}"
-                >{% if r.downloaded %}⬇️{% else %}⏳{% endif %}</button>
-              </td>
-              <td style="text-align: center;">{% if r.rejected %}<span class="badge ok">❌</span>{% else %}<span class="badge no">⏳</span>{% endif %}</td>
+              </th>
+              <th style="width: 108px; text-align: center;">Downloaded</th>
+              <th style="width: 108px; text-align: center;">Rejected</th>
             </tr>
-          {% else %}
-            <tr>
-              <td colspan="11" class="emptyState">No records match this filter.</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+              <tr>
+                <td style="text-align: center;">
+                  <button
+                    type="button"
+                    class="secondaryBtn jobsFavoriteBtn favoriteToggle {% if r.favorite %}on{% endif %}"
+                    data-toggle-favorite
+                    data-row-id="{{ r.row_id }}"
+                    data-favorite="{{ '1' if r.favorite else '0' }}"
+                    title="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
+                    aria-label="{% if r.favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
+                  >⭐</button>
+                </td>
+                <td>{{ r.company }}</td>
+                <td>{{ r.job_title }}</td>
+                <td>{{ r.location or '-' }}</td>
+                <td>
+                  {% if r.job_url %}
+                    <div class="actionsRow">
+                      <a class="buttonLink secondaryBtn" href="{{ r.job_url }}" target="_blank" rel="noopener noreferrer">🔗</a>
+                      <button class="secondaryBtn" type="button" data-copy="{{ r.job_url }}">📋</button>
+                    </div>
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td style="text-align: center;">{% if r.applied %}<span class="badge ok">✅</span>{% else %}<span class="badge no">-</span>{% endif %}</td>
+                <td>{{ r.applied_time_fmt }}</td>
+                <td style="text-align: center;">{% if r.viewed %}<span class="badge ok">👀</span>{% else %}<span class="badge no">⏳</span>{% endif %}</td>
+                <td>{{ r.viewed_time_fmt }}</td>
+                <td style="text-align: center;">
+                  <button
+                    type="button"
+                    class="secondaryBtn downloadToggle {% if r.downloaded %}on{% endif %}"
+                    data-toggle-downloaded
+                    data-row-id="{{ r.row_id }}"
+                    data-downloaded="{{ '1' if r.downloaded else '0' }}"
+                  >{% if r.downloaded %}📥{% else %}⏳{% endif %}</button>
+                </td>
+                <td style="text-align: center;">{% if r.rejected %}<span class="badge ok">❌</span>{% else %}<span class="badge no">⏳</span>{% endif %}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="11" class="emptyState">No records match this filter.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 {% endblock %}
@@ -198,11 +366,11 @@
         if (!rowId) return;
         downloadBtn.disabled = true;
         try {
-        const res = await fetch(`/toggle-downloaded/${encodeURIComponent(rowId)}`, { method: "POST" });
+          const res = await fetch(`/toggle-downloaded/${encodeURIComponent(rowId)}`, { method: "POST" });
           const data = await res.json();
           if (!res.ok || !data.success) return;
           downloadBtn.classList.toggle("on", !!data.downloaded);
-          downloadBtn.textContent = data.downloaded ? "⬇️" : "⏳";
+          downloadBtn.textContent = data.downloaded ? "📥" : "⏳";
         } finally {
           downloadBtn.disabled = false;
         }

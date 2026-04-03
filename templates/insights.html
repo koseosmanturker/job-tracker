@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block sync_endpoint %}insights{% endblock %}
-{% block sync_full_endpoint %}insights{% endblock %}
+{% block sync_endpoint %}follow_up{% endblock %}
+{% block sync_full_endpoint %}follow_up{% endblock %}
 
 {% block content %}
   {% set pending_count = followups|selectattr("follow_up_done", "equalto", False)|list|length %}

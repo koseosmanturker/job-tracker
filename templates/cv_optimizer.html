@@ -628,7 +628,7 @@
 
   <div class="cvPage">
     <section class="cvHero">
-      <div class="cvHeroBadge">AI CV Studio</div>
+      <div class="cvHeroBadge">CV Optimizer</div>
       <h2 class="cvHeroTitle">Optimize Your CV for Any Job</h2>
       <p class="cvHeroText">Upload your CV and match it perfectly to any job description with AI</p>
     </section>
@@ -636,7 +636,7 @@
     <div class="cvGrid">
       <section class="cvCard cvFormCard">
         <h3 class="cvSectionTitle">Tell the optimizer what you're targeting</h3>
-        <p class="cvSectionText">Paste a real job description, upload your CV, and we'll generate a cleaner ATS-friendly version tailored to that role without changing the backend logic.</p>
+        <p class="cvSectionText">Paste a real job description, upload your CV, and generate a cleaner ATS-friendly version tailored to that role.</p>
 
         <form id="cvOptimizerForm" class="cvFields" enctype="multipart/form-data">
           <div class="cvField">
@@ -689,7 +689,7 @@
           <div class="cvStatsHeader">
             <div>
               <h3>Job Match Snapshot</h3>
-              <p>See how well your current CV aligns before you export.</p>
+              <p>See how your current CV aligns before the optimized version is generated.</p>
             </div>
             <div id="cvScoreRing" class="cvScoreRing" style="--score-angle: 0deg;">
               <div style="text-align:center;">
@@ -715,13 +715,6 @@
             <ul id="cvOptimizerMissingSkills" class="cvMissingList">
               <li>No analysis yet</li>
             </ul>
-          </div>
-        </section>
-
-        <section class="cvCard cvStatsCard">
-          <div class="cvMetaLabel">What Happens</div>
-          <div class="cvSectionText" style="margin-bottom:0;">
-            Structured extraction keeps token usage lower, the match score is calculated without AI, and the output stays ATS-friendly and easy to export.
           </div>
         </section>
       </aside>
@@ -793,6 +786,12 @@
       if (cvOptimizerScore) cvOptimizerScore.textContent = `${safeScore}%`;
       if (cvOptimizerScoreMetric) cvOptimizerScoreMetric.textContent = String(safeScore);
       if (cvScoreRing) cvScoreRing.style.setProperty("--score-angle", `${safeScore * 3.6}deg`);
+    }
+
+    function applySnapshot(snapshot) {
+      if (!snapshot || typeof snapshot !== "object") return;
+      setScore(snapshot.score || 0);
+      renderMissingSkills(snapshot.missing_skills || []);
     }
 
     function renderMissingSkills(skills) {
@@ -878,12 +877,10 @@
             body: formData,
           });
           const data = await res.json();
+          applySnapshot(data.snapshot);
           if (!res.ok) {
             throw new Error(data.error || "CV optimization failed.");
           }
-
-          setScore(data.match_score);
-          renderMissingSkills(data.missing_skills);
 
           if (cvOptimizerStatus) {
             cvOptimizerStatus.textContent = "Optimized CV generated successfully.";
