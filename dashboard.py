@@ -1,5 +1,8 @@
 import json
 import os
+import io
+import hashlib
+import re
 from datetime import datetime
 from pathlib import Path
 from urllib import error as urllib_error
@@ -35,8 +38,12 @@ BASE_DIR = Path(__file__).resolve().parent
 CSV_PATH = BASE_DIR / "jobs.csv"
 NEEDS_REVIEW_PATH = BASE_DIR / NEEDS_REVIEW_FILE
 MANUAL_CORRECTIONS_PATH = BASE_DIR / MANUAL_CORRECTIONS_FILE
+GENERATED_DIR = BASE_DIR / "generated"
+CV_CACHE_DIR = BASE_DIR / ".cv_optimizer_cache"
 
 web = Flask(__name__)
+GENERATED_DIR.mkdir(exist_ok=True)
+CV_CACHE_DIR.mkdir(exist_ok=True)
 
 
 def load_dotenv_file(dotenv_path: Path) -> None:
@@ -63,9 +70,14 @@ def load_dotenv_file(dotenv_path: Path) -> None:
 load_dotenv_file(BASE_DIR / ".env")
 
 
+@web.get("/pngs/<path:filename>")
+def png_asset(filename: str):
+    return send_from_directory(BASE_DIR / "pngs", filename)
+
+
 @web.get("/favicon.png")
 def favicon_png():
-    return send_from_directory(BASE_DIR, "favicon.png", mimetype="image/png")
+    return send_from_directory(BASE_DIR / "pngs", "favicon.png", mimetype="image/png")
 
 
 @web.get("/favicon.ico")
@@ -112,6 +124,266 @@ def format_time_with_date(value: str | None) -> str:
     if not dt:
         return "-"
     return dt.strftime("%b %d, %Y %H:%M")
+
+
+def _clean_text(value: str) -> str:
+    text = (value or "").replace("\x00", " ")
+    text = re.sub(r"\r\n?", "\n", text)
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
+def _normalize_phrase(value: str) -> str:
+    cleaned = re.sub(r"[^a-z0-9+#./ -]+", "", (value or "").strip().lower())
+    return re.sub(r"\s+", " ", cleaned).strip()
+
+
+def _dedupe_list(values: list[str]) -> list[str]:
+    seen = set()
+    result = []
+    for value in values:
+        normalized = _normalize_phrase(value)
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        result.append(value.strip())
+    return result
+
+
+def _extract_pdf_text(pdf_bytes: bytes) -> str:
+    try:
+        import pdfplumber
+    except ImportError as exc:
+        raise RuntimeError("pdfplumber is not installed.") from exc
+
+    try:
+        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+            pages = [page.extract_text() or "" for page in pdf.pages]
+    except Exception as exc:
+        raise ValueError("Invalid PDF or unreadable PDF content.") from exc
+
+    text = _clean_text("\n\n".join(pages))
+    if not text:
+        raise ValueError("The uploaded PDF does not contain extractable text.")
+    return text
+
+
+def _compact_cv_text(cv_text: str, limit: int = 6000) -> str:
+    lines = [line.strip() for line in cv_text.splitlines() if line.strip()]
+    if not lines:
+        return ""
+
+    preferred = []
+    fallback = []
+    heading_pattern = re.compile(r"\b(experience|employment|work history|skills|education|summary|profile|projects|certifications)\b", re.I)
+    bullet_pattern = re.compile(r"^[-*•]")
+
+    for index, line in enumerate(lines):
+        target = preferred if heading_pattern.search(line) or bullet_pattern.search(line) else fallback
+        target.append(line)
+        if heading_pattern.search(line):
+            for next_line in lines[index + 1 : index + 4]:
+                if next_line not in target:
+                    target.append(next_line)
+
+    merged = _dedupe_list(preferred + fallback)
+    chunks = []
+    total = 0
+    for line in merged:
+        piece = line if not chunks else f"\n{line}"
+        if total + len(piece) > limit:
+            break
+        chunks.append(line)
+        total += len(piece)
+    return "\n".join(chunks)
+
+
+def _compact_job_text(job_text: str, limit: int = 4500) -> str:
+    cleaned = _clean_text(job_text)
+    if len(cleaned) <= limit:
+        return cleaned
+
+    lines = [line.strip() for line in cleaned.splitlines() if line.strip()]
+    selected = []
+    total = 0
+    for line in lines:
+        piece = line if not selected else f"\n{line}"
+        if total + len(piece) > limit:
+            break
+        selected.append(line)
+        total += len(piece)
+    return "\n".join(selected)
+
+
+def _extract_text_from_response(body: dict) -> str:
+    output = body.get("output") or []
+    for item in output:
+        for content in item.get("content") or []:
+            text = content.get("text")
+            if text:
+                return text.strip()
+    raise RuntimeError("OpenAI returned an empty response.")
+
+
+def _call_openai_responses(*, prompt: str, max_output_tokens: int = 700) -> str:
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not set.")
+
+    payload = {
+        "model": "gpt-5-mini",
+        "input": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": prompt,
+                    }
+                ],
+            }
+        ],
+        "max_output_tokens": max_output_tokens,
+        "reasoning": {"effort": "minimal"},
+    }
+
+    req = urllib_request.Request(
+        "https://api.openai.com/v1/responses",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST",
+    )
+    try:
+        with urllib_request.urlopen(req, timeout=35) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except urllib_error.HTTPError as exc:
+        try:
+            raw_error = exc.read().decode("utf-8")
+            parsed_error = json.loads(raw_error)
+            error_body = parsed_error.get("error", {}).get("message") or raw_error
+        except Exception:
+            error_body = exc.reason
+        raise RuntimeError(f"OpenAI API error: {error_body}") from exc
+    except TimeoutError as exc:
+        raise RuntimeError("OpenAI request timed out.") from exc
+    except urllib_error.URLError as exc:
+        raise RuntimeError(f"OpenAI connection error: {exc.reason}") from exc
+
+    return _extract_text_from_response(body)
+
+
+def _call_openai_json(*, prompt: str, max_output_tokens: int = 700) -> dict:
+    text = _call_openai_responses(prompt=prompt, max_output_tokens=max_output_tokens)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("OpenAI returned invalid JSON.") from exc
+
+
+def _extract_structured_cv_data(cv_excerpt: str) -> dict:
+    prompt = (
+        "Extract CV data into JSON only. No markdown. No hallucinations. "
+        'Return exactly {"experience":[{"title":"","company":"","dates":"","bullets":[]}],"skills":[],"education":[{"degree":"","institution":"","dates":""}]}. '
+        "Use only facts present in the CV text. Keep bullets short.\n\n"
+        f"CV TEXT:\n{cv_excerpt}"
+    )
+    data = _call_openai_json(prompt=prompt, max_output_tokens=900)
+    return {
+        "experience": data.get("experience") or [],
+        "skills": _dedupe_list([str(item).strip() for item in (data.get("skills") or []) if str(item).strip()]),
+        "education": data.get("education") or [],
+    }
+
+
+def _extract_job_requirements(job_excerpt: str) -> dict:
+    prompt = (
+        "Extract job requirements into JSON only. No markdown. "
+        'Return exactly {"required_skills":[],"keywords":[],"responsibilities":[]}. '
+        "Use only the job description. Keep lists concise and deduplicated.\n\n"
+        f"JOB DESCRIPTION:\n{job_excerpt}"
+    )
+    data = _call_openai_json(prompt=prompt, max_output_tokens=700)
+    return {
+        "required_skills": _dedupe_list([str(item).strip() for item in (data.get("required_skills") or []) if str(item).strip()]),
+        "keywords": _dedupe_list([str(item).strip() for item in (data.get("keywords") or []) if str(item).strip()]),
+        "responsibilities": _dedupe_list([str(item).strip() for item in (data.get("responsibilities") or []) if str(item).strip()]),
+    }
+
+
+def _match_cv_to_job(structured_cv: dict, job_requirements: dict) -> tuple[int, list[str], list[str]]:
+    cv_skills_raw = structured_cv.get("skills") or []
+    job_skills_raw = (job_requirements.get("required_skills") or []) + (job_requirements.get("keywords") or [])
+
+    cv_skill_map = {_normalize_phrase(skill): skill for skill in cv_skills_raw if _normalize_phrase(skill)}
+    job_skill_map = {_normalize_phrase(skill): skill for skill in job_skills_raw if _normalize_phrase(skill)}
+
+    if not job_skill_map:
+        return 0, [], []
+
+    overlap = sorted(set(cv_skill_map) & set(job_skill_map))
+    missing = sorted(set(job_skill_map) - set(cv_skill_map))
+    score = round((len(overlap) / max(1, len(job_skill_map))) * 100)
+    return score, [job_skill_map[item] for item in missing], [job_skill_map[item] for item in overlap]
+
+
+def _rewrite_cv_for_job(*, structured_cv: dict, job_requirements: dict) -> dict:
+    prompt = (
+        "Rewrite the CV for ATS fit using JSON only. "
+        "Do not invent experience, metrics, tools, employers, dates, degrees, or skills. "
+        "Only improve wording using provided job keywords when they truthfully fit existing experience. "
+        'Return exactly {"summary":"","skills":[],"experience":[{"title":"","company":"","dates":"","bullets":[]}],"education":[{"degree":"","institution":"","dates":""}]}. '
+        "Keep bullets concise and ATS-friendly.\n\n"
+        f"STRUCTURED CV:\n{json.dumps(structured_cv, ensure_ascii=True)}\n\n"
+        f"JOB REQUIREMENTS:\n{json.dumps(job_requirements, ensure_ascii=True)}"
+    )
+    data = _call_openai_json(prompt=prompt, max_output_tokens=1400)
+    return {
+        "summary": str(data.get("summary") or "").strip(),
+        "skills": _dedupe_list([str(item).strip() for item in (data.get("skills") or structured_cv.get("skills") or []) if str(item).strip()]),
+        "experience": data.get("experience") or structured_cv.get("experience") or [],
+        "education": data.get("education") or structured_cv.get("education") or [],
+    }
+
+
+def _render_optimized_cv_html(*, optimized_cv: dict, match_score: int, missing_skills: list[str], matched_skills: list[str]) -> str:
+    return render_template(
+        "optimized_cv.html",
+        cv=optimized_cv,
+        match_score=match_score,
+        missing_skills=missing_skills,
+        matched_skills=matched_skills,
+    )
+
+
+def _write_pdf_from_html(*, html_content: str, output_path: Path) -> None:
+    try:
+        from weasyprint import HTML
+    except ImportError as exc:
+        raise RuntimeError("WeasyPrint is not installed.") from exc
+
+    try:
+        HTML(string=html_content, base_url=str(BASE_DIR)).write_pdf(str(output_path))
+    except Exception as exc:
+        raise RuntimeError("Failed to generate PDF.") from exc
+
+
+def _load_cache(cache_key: str) -> dict | None:
+    cache_path = CV_CACHE_DIR / f"{cache_key}.json"
+    if not cache_path.exists():
+        return None
+    try:
+        return json.loads(cache_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def _save_cache(cache_key: str, payload: dict) -> None:
+    cache_path = CV_CACHE_DIR / f"{cache_key}.json"
+    cache_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def to_rows(jobs_dict: dict) -> list[dict]:
@@ -304,6 +576,74 @@ def generate_followup_email(*, job_title: str, company: str, days: int, status: 
     return content
 
 
+@web.get("/generated/<path:filename>")
+def generated_file(filename: str):
+    return send_from_directory(GENERATED_DIR, filename)
+
+
+@web.post("/optimize-cv")
+def optimize_cv():
+    job_description = _clean_text(request.form.get("job_description") or "")
+    cv_file = request.files.get("cv_file")
+
+    if not job_description:
+        return jsonify({"error": "missing_job_description"}), 400
+    if cv_file is None or not cv_file.filename:
+        return jsonify({"error": "missing_cv_file"}), 400
+
+    pdf_bytes = cv_file.read()
+    if not pdf_bytes:
+        return jsonify({"error": "empty_cv_file"}), 400
+
+    cv_hash = hashlib.sha256(pdf_bytes).hexdigest()
+    job_hash = hashlib.sha256(job_description.encode("utf-8")).hexdigest()
+    cache_key = hashlib.sha256(f"{cv_hash}:{job_hash}".encode("utf-8")).hexdigest()
+
+    cached = _load_cache(cache_key)
+    cached_pdf_url = (cached or {}).get("pdf_url", "")
+    cached_pdf_name = cached_pdf_url.rsplit("/", 1)[-1] if cached_pdf_url else ""
+    if cached and cached_pdf_name and (GENERATED_DIR / cached_pdf_name).exists():
+        return jsonify(cached)
+
+    try:
+        cv_text = _extract_pdf_text(pdf_bytes)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except RuntimeError as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    cv_excerpt = _compact_cv_text(cv_text)
+    job_excerpt = _compact_job_text(job_description)
+
+    if not cv_excerpt:
+        return jsonify({"error": "empty_cv_text"}), 400
+
+    try:
+        structured_cv = _extract_structured_cv_data(cv_excerpt)
+        job_requirements = _extract_job_requirements(job_excerpt)
+        match_score, missing_skills, matched_skills = _match_cv_to_job(structured_cv, job_requirements)
+        optimized_cv = _rewrite_cv_for_job(structured_cv=structured_cv, job_requirements=job_requirements)
+        html_content = _render_optimized_cv_html(
+            optimized_cv=optimized_cv,
+            match_score=match_score,
+            missing_skills=missing_skills,
+            matched_skills=matched_skills,
+        )
+        pdf_filename = f"cv_{cache_key[:12]}.pdf"
+        _write_pdf_from_html(html_content=html_content, output_path=GENERATED_DIR / pdf_filename)
+    except RuntimeError as exc:
+        return jsonify({"error": str(exc)}), 502
+
+    response_payload = {
+        "match_score": match_score,
+        "missing_skills": missing_skills,
+        "improved_cv_html": html_content,
+        "pdf_url": url_for("generated_file", filename=pdf_filename),
+    }
+    _save_cache(cache_key, response_payload)
+    return jsonify(response_payload)
+
+
 @web.post("/generate-followup")
 def generate_followup():
     payload = request.get_json(silent=True) or {}
@@ -451,6 +791,19 @@ def insights():
         needs_review_added=int(request.args.get("needs_review_added", "0") or 0),
         manual_corrections_used=int(request.args.get("manual_corrections_used", "0") or 0),
         format_time_with_date=format_time_with_date,
+        **context,
+    )
+
+
+@web.get("/cv-optimizer")
+def cv_optimizer():
+    context = build_base_context(
+        current_path="/cv-optimizer",
+        page_title="CV Optimizer",
+        page_subtitle="Upload a CV, paste a target job description, and generate an ATS-friendly tailored version.",
+    )
+    return render_template(
+        "cv_optimizer.html",
         **context,
     )
 

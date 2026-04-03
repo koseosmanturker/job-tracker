@@ -4,3 +4,5 @@ token.json
 credentials.json
 .env
 .sync_state.json
+generated/
+.cv_optimizer_cache/

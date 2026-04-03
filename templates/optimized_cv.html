@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Optimized CV</title>
+    <style>
+      @page {
+        margin: 22mm 18mm;
+        size: A4;
+      }
+
+      :root {
+        --text: #111827;
+        --muted: #4b5563;
+        --line: #d1d5db;
+        --accent: #1f2937;
+        --bg-soft: #f9fafb;
+      }
+
+      body {
+        margin: 0;
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 11pt;
+        line-height: 1.45;
+      }
+
+      .header {
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 22pt;
+        font-weight: 700;
+      }
+
+      h2 {
+        margin: 18px 0 8px;
+        color: var(--accent);
+        font-size: 12pt;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      p {
+        margin: 0 0 8px;
+      }
+
+      ul {
+        margin: 6px 0 10px 18px;
+        padding: 0;
+      }
+
+      li {
+        margin-bottom: 4px;
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 9.5pt;
+      }
+
+      .scoreBox {
+        background: var(--bg-soft);
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        margin-top: 10px;
+      }
+
+      .entry {
+        margin-bottom: 12px;
+        page-break-inside: avoid;
+      }
+
+      .entryTitle {
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Optimized CV</h1>
+      <div class="scoreBox">
+        <p><strong>Match Score:</strong> {{ match_score }}</p>
+        {% if matched_skills %}
+          <p><strong>Matched Skills:</strong> {{ matched_skills | join(", ") }}</p>
+        {% endif %}
+        {% if missing_skills %}
+          <p><strong>Missing Skills:</strong> {{ missing_skills | join(", ") }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if cv.summary %}
+      <h2>Professional Summary</h2>
+      <p>{{ cv.summary }}</p>
+    {% endif %}
+
+    {% if cv.skills %}
+      <h2>Core Skills</h2>
+      <p>{{ cv.skills | join(", ") }}</p>
+    {% endif %}
+
+    {% if cv.experience %}
+      <h2>Experience</h2>
+      {% for item in cv.experience %}
+        <div class="entry">
+          <div class="entryTitle">
+            {{ item.title or "Role" }}
+            {% if item.company %} | {{ item.company }}{% endif %}
+          </div>
+          {% if item.dates %}
+            <div class="meta">{{ item.dates }}</div>
+          {% endif %}
+          {% if item.bullets %}
+            <ul>
+              {% for bullet in item.bullets %}
+                <li>{{ bullet }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% if cv.education %}
+      <h2>Education</h2>
+      {% for item in cv.education %}
+        <div class="entry">
+          <div class="entryTitle">
+            {{ item.degree or "Education" }}
+            {% if item.institution %} | {{ item.institution }}{% endif %}
+          </div>
+          {% if item.dates %}
+            <div class="meta">{{ item.dates }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+  </body>
+</html>

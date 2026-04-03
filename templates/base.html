@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ page_title }}</title>
-    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="icon" type="image/png" href="{{ url_for('png_asset', filename='favicon.png') }}">
     <script>
       (() => {
         try {
@@ -635,6 +635,7 @@
             <a class="navBtn {% if current_path == '/' %}active{% endif %}" href="/">Jobs</a>
             <a class="navBtn {% if current_path == '/favorites' %}active{% endif %}" href="/favorites">Favorites</a>
             <a class="navBtn {% if current_path == '/insights' %}active{% endif %}" href="/insights">Insights</a>
+            <a class="navBtn {% if current_path == '/cv-optimizer' %}active{% endif %}" href="/cv-optimizer">CV Optimizer</a>
             <a class="navBtn {% if current_path == '/needs-review' %}active{% endif %}" href="/needs-review">Needs Review{% if needs_review_count %}<span class="pill">{{ needs_review_count }}</span>{% endif %}</a>
           </div>
         </div>

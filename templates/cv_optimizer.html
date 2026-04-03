@@ -1,0 +1,915 @@
+{% extends "base.html" %}
+
+{% block sync_endpoint %}cv_optimizer{% endblock %}
+{% block sync_full_endpoint %}cv_optimizer{% endblock %}
+
+{% block content %}
+  <style>
+    .cvPage {
+      display: grid;
+      gap: 18px;
+    }
+
+    .cvHero {
+      position: relative;
+      overflow: hidden;
+      padding: 28px;
+      border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--line));
+      border-radius: 24px;
+      background:
+        radial-gradient(520px 240px at 0% 0%, rgba(34, 197, 94, 0.12), transparent 60%),
+        radial-gradient(640px 280px at 100% 0%, rgba(59, 130, 246, 0.16), transparent 62%),
+        linear-gradient(135deg, color-mix(in srgb, var(--card) 96%, #eff6ff), color-mix(in srgb, var(--card) 94%, #ecfeff));
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+    }
+
+    .cvHero::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -110px auto;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(20, 184, 166, 0.20), transparent 70%);
+      pointer-events: none;
+    }
+
+    .cvHeroBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--brand) 20%, var(--line));
+      background: rgba(255, 255, 255, 0.58);
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .cvHeroTitle {
+      margin: 16px 0 10px;
+      font-size: clamp(32px, 4vw, 52px);
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+    }
+
+    .cvHeroText {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .cvGrid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .cvCard {
+      background: color-mix(in srgb, var(--card) 96%, transparent);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.07);
+    }
+
+    .cvFormCard {
+      padding: 22px;
+    }
+
+    .cvSectionTitle {
+      margin: 0 0 6px;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+    }
+
+    .cvSectionText {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .cvFields {
+      display: grid;
+      gap: 16px;
+    }
+
+    .cvField {
+      display: grid;
+      gap: 8px;
+    }
+
+    .cvLabelRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .cvLabel {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .cvHint {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .cvTextarea {
+      min-height: 300px;
+      padding: 18px 18px 20px;
+      border-radius: 20px;
+      border: 1px solid color-mix(in srgb, var(--line) 82%, #bfdbfe);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,250,252,0.98));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.8),
+        0 16px 30px rgba(15, 23, 42, 0.06);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.65;
+      resize: vertical;
+    }
+
+    .cvTextarea:focus {
+      border-color: color-mix(in srgb, var(--brand) 55%, #60a5fa);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.8),
+        0 0 0 4px rgba(59, 130, 246, 0.10),
+        0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .cvDropInput {
+      display: none;
+    }
+
+    .cvDropzone {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 214px;
+      padding: 22px;
+      border: 2px dashed color-mix(in srgb, var(--brand) 28%, var(--line));
+      border-radius: 24px;
+      background:
+        radial-gradient(180px 100px at 50% 0%, rgba(56, 189, 248, 0.08), transparent 70%),
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(241,245,249,0.96));
+      text-align: center;
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .cvDropzone:hover,
+    .cvDropzone.isDragOver {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--brand) 62%, #60a5fa);
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+      background:
+        radial-gradient(220px 120px at 50% 0%, rgba(20, 184, 166, 0.12), transparent 70%),
+        linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,246,255,0.98));
+    }
+
+    .cvDropIcon {
+      width: 72px;
+      height: 72px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #dbeafe, #ecfeff);
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+      font-size: 32px;
+      margin-bottom: 14px;
+    }
+
+    .cvDropTitle {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .cvDropText {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .cvDropMeta {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .cvFileCard {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--line));
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(240,253,250,0.92));
+      box-shadow: 0 14px 28px rgba(15, 23, 42, 0.05);
+    }
+
+    .cvFileCard.show {
+      display: flex;
+    }
+
+    .cvFileMeta {
+      min-width: 0;
+    }
+
+    .cvFileName {
+      display: block;
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cvFileType {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .cvRemoveBtn {
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 92%, var(--chip));
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .cvActions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .cvPrimaryBtn {
+      position: relative;
+      min-height: 58px;
+      padding: 0 26px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #0f766e, #14b8a6 55%, #38bdf8);
+      box-shadow: 0 18px 34px rgba(20, 184, 166, 0.28);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+
+    .cvPrimaryBtn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 22px 40px rgba(20, 184, 166, 0.34);
+      filter: saturate(1.05);
+    }
+
+    .cvPrimaryBtn:disabled {
+      opacity: 1;
+      cursor: wait;
+    }
+
+    .cvGhostBtn {
+      min-height: 54px;
+      padding: 0 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 94%, var(--chip));
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .cvStatusRow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .cvSpinner {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(56, 189, 248, 0.18);
+      border-top-color: var(--brand2);
+      animation: cvSpin .75s linear infinite;
+      display: none;
+    }
+
+    .cvSpinner.show {
+      display: inline-block;
+    }
+
+    .cvSide {
+      display: grid;
+      gap: 18px;
+    }
+
+    .cvStatsCard {
+      padding: 20px;
+    }
+
+    .cvStatsHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .cvStatsHeader h3 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.03em;
+    }
+
+    .cvStatsHeader p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .cvScoreRing {
+      width: 98px;
+      height: 98px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(closest-side, var(--card) 72%, transparent 73% 100%),
+        conic-gradient(#14b8a6 var(--score-angle, 0deg), rgba(148, 163, 184, 0.18) 0deg);
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
+    }
+
+    .cvScoreValue {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .cvScoreSub {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+
+    .cvMetrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .cvMetric {
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 94%, var(--chip));
+    }
+
+    .cvMetricLabel {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .cvMetricValue {
+      margin-top: 8px;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .cvMissingWrap {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(248,250,252,0.95));
+    }
+
+    .cvMetaLabel {
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .cvMissingList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .cvMissingList li {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--chip) 76%, var(--card));
+      border: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .cvPreviewCard {
+      overflow: hidden;
+    }
+
+    .cvPreviewHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 92%, var(--chip));
+    }
+
+    .cvPreviewTitle {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .cvPreviewSub {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .cvPreviewFrame {
+      width: 100%;
+      min-height: 760px;
+      border: 0;
+      background: #fff;
+    }
+
+    .cvPreviewPlaceholder {
+      display: grid;
+      place-items: center;
+      min-height: 760px;
+      padding: 28px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
+      text-align: center;
+    }
+
+    .cvPreviewPlaceholderInner {
+      max-width: 320px;
+    }
+
+    .cvPreviewPlaceholderIcon {
+      width: 76px;
+      height: 76px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #dbeafe, #ecfeff);
+      font-size: 34px;
+      margin-bottom: 14px;
+    }
+
+    .cvPreviewPlaceholder h4 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      letter-spacing: -0.03em;
+    }
+
+    .cvPreviewPlaceholder p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    html.dark .cvHero {
+      background:
+        radial-gradient(520px 240px at 0% 0%, rgba(34, 197, 94, 0.08), transparent 60%),
+        radial-gradient(640px 280px at 100% 0%, rgba(59, 130, 246, 0.10), transparent 62%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.98));
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+    }
+
+    html.dark .cvHeroBadge,
+    html.dark .cvDropzone,
+    html.dark .cvFileCard,
+    html.dark .cvMissingWrap,
+    html.dark .cvPreviewHeader,
+    html.dark .cvPreviewPlaceholder,
+    html.dark .cvMetric {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.98));
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+    }
+
+    html.dark .cvTextarea,
+    html.dark .aiOutputShell {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.98));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.04),
+        0 16px 30px rgba(0, 0, 0, 0.20);
+    }
+
+    html.dark .cvDropzone:hover,
+    html.dark .cvDropzone.isDragOver {
+      background:
+        radial-gradient(220px 120px at 50% 0%, rgba(20, 184, 166, 0.10), transparent 70%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(20, 28, 46, 0.98));
+    }
+
+    html.dark .cvDropIcon,
+    html.dark .cvPreviewPlaceholderIcon {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
+    }
+
+    html.dark .cvHeroText,
+    html.dark .cvSectionText,
+    html.dark .cvHint,
+    html.dark .cvDropText,
+    html.dark .cvDropMeta,
+    html.dark .cvFileType,
+    html.dark .cvStatusRow,
+    html.dark .cvMetricLabel,
+    html.dark .cvMetaLabel,
+    html.dark .cvPreviewSub,
+    html.dark .cvPreviewPlaceholder p {
+      color: #b8c4d9;
+    }
+
+    html.dark .cvTextarea,
+    html.dark .cvLabel,
+    html.dark .cvSectionTitle,
+    html.dark .cvDropTitle,
+    html.dark .cvFileName,
+    html.dark .cvScoreValue,
+    html.dark .cvMetricValue,
+    html.dark .cvPreviewTitle,
+    html.dark .cvPreviewPlaceholder h4 {
+      color: #f8fafc;
+    }
+
+    html.dark .cvPreviewFrame {
+      background: #0f172a;
+    }
+
+    @keyframes cvSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 1100px) {
+      .cvGrid {
+        grid-template-columns: 1fr;
+      }
+
+      .cvPreviewFrame,
+      .cvPreviewPlaceholder {
+        min-height: 520px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .cvHero {
+        padding: 22px;
+      }
+
+      .cvFormCard,
+      .cvStatsCard {
+        padding: 18px;
+      }
+
+      .cvMetrics {
+        grid-template-columns: 1fr;
+      }
+
+      .cvActions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .cvPrimaryBtn,
+      .cvGhostBtn {
+        width: 100%;
+      }
+    }
+  </style>
+
+  <div class="cvPage">
+    <section class="cvHero">
+      <div class="cvHeroBadge">AI CV Studio</div>
+      <h2 class="cvHeroTitle">Optimize Your CV for Any Job</h2>
+      <p class="cvHeroText">Upload your CV and match it perfectly to any job description with AI</p>
+    </section>
+
+    <div class="cvGrid">
+      <section class="cvCard cvFormCard">
+        <h3 class="cvSectionTitle">Tell the optimizer what you're targeting</h3>
+        <p class="cvSectionText">Paste a real job description, upload your CV, and we'll generate a cleaner ATS-friendly version tailored to that role without changing the backend logic.</p>
+
+        <form id="cvOptimizerForm" class="cvFields" enctype="multipart/form-data">
+          <div class="cvField">
+            <div class="cvLabelRow">
+              <label for="jobDescriptionInput" class="cvLabel">Job Description</label>
+              <span class="cvHint">Use the full posting for the best match</span>
+            </div>
+            <textarea id="jobDescriptionInput" name="job_description" class="cvTextarea" placeholder="Paste the full job description here..." required></textarea>
+          </div>
+
+          <div class="cvField">
+            <div class="cvLabelRow">
+              <span class="cvLabel">CV Upload</span>
+              <span class="cvHint">PDF only</span>
+            </div>
+
+            <label for="cvFileInput" id="cvDropzone" class="cvDropzone">
+              <input id="cvFileInput" class="cvDropInput" type="file" name="cv_file" accept="application/pdf,.pdf" required>
+              <div>
+                <div class="cvDropIcon" aria-hidden="true">📄</div>
+                <p class="cvDropTitle">Drag & drop your CV here or click to upload</p>
+                <p class="cvDropText">A single PDF works best. We'll parse the text, extract the key structure, and optimize it for the selected role.</p>
+                <div class="cvDropMeta">PDF only</div>
+              </div>
+            </label>
+
+            <div id="cvFileCard" class="cvFileCard">
+              <div class="cvFileMeta">
+                <span id="cvFileName" class="cvFileName">No file selected</span>
+                <div class="cvFileType">Ready for optimization</div>
+              </div>
+              <button id="cvRemoveFileBtn" type="button" class="cvRemoveBtn">Remove</button>
+            </div>
+          </div>
+
+          <div class="cvActions">
+            <button id="cvOptimizerSubmit" type="submit" class="cvPrimaryBtn">Optimize My CV ✨</button>
+            <a id="cvOptimizerPdfLink" class="cvGhostBtn buttonLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Open Generated PDF</a>
+          </div>
+
+          <div class="cvStatusRow" aria-live="polite">
+            <span id="cvOptimizerSpinner" class="cvSpinner" aria-hidden="true"></span>
+            <span id="cvOptimizerStatus">Ready when you are.</span>
+          </div>
+        </form>
+      </section>
+
+      <aside class="cvSide">
+        <section id="cvOptimizerResult" class="cvCard cvStatsCard" aria-live="polite">
+          <div class="cvStatsHeader">
+            <div>
+              <h3>Job Match Snapshot</h3>
+              <p>See how well your current CV aligns before you export.</p>
+            </div>
+            <div id="cvScoreRing" class="cvScoreRing" style="--score-angle: 0deg;">
+              <div style="text-align:center;">
+                <div id="cvOptimizerScore" class="cvScoreValue">0%</div>
+                <div class="cvScoreSub">match</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cvMetrics">
+            <div class="cvMetric">
+              <div class="cvMetricLabel">Score</div>
+              <div id="cvOptimizerScoreMetric" class="cvMetricValue">0</div>
+            </div>
+            <div class="cvMetric">
+              <div class="cvMetricLabel">Missing Skills</div>
+              <div id="cvMissingCount" class="cvMetricValue">0</div>
+            </div>
+          </div>
+
+          <div class="cvMissingWrap">
+            <div class="cvMetaLabel">Missing Skills</div>
+            <ul id="cvOptimizerMissingSkills" class="cvMissingList">
+              <li>No analysis yet</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="cvCard cvStatsCard">
+          <div class="cvMetaLabel">What Happens</div>
+          <div class="cvSectionText" style="margin-bottom:0;">
+            Structured extraction keeps token usage lower, the match score is calculated without AI, and the output stays ATS-friendly and easy to export.
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <section class="cvCard cvPreviewCard">
+      <div class="cvPreviewHeader">
+        <div>
+          <h3 class="cvPreviewTitle">Live CV Preview</h3>
+          <p class="cvPreviewSub">Your optimized CV will appear here after processing.</p>
+        </div>
+      </div>
+
+      <div id="cvPreviewPlaceholder" class="cvPreviewPlaceholder">
+        <div class="cvPreviewPlaceholderInner">
+          <div class="cvPreviewPlaceholderIcon" aria-hidden="true">✨</div>
+          <h4>Nothing to preview yet</h4>
+          <p>Upload your CV and submit a job description to generate a polished, job-specific version.</p>
+        </div>
+      </div>
+
+      <iframe id="cvOptimizerPreview" class="cvPreviewFrame" title="Optimized CV preview" hidden></iframe>
+    </section>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const cvOptimizerForm = document.getElementById("cvOptimizerForm");
+    const cvOptimizerSubmit = document.getElementById("cvOptimizerSubmit");
+    const cvOptimizerStatus = document.getElementById("cvOptimizerStatus");
+    const cvOptimizerSpinner = document.getElementById("cvOptimizerSpinner");
+    const cvOptimizerScore = document.getElementById("cvOptimizerScore");
+    const cvOptimizerScoreMetric = document.getElementById("cvOptimizerScoreMetric");
+    const cvOptimizerMissingSkills = document.getElementById("cvOptimizerMissingSkills");
+    const cvOptimizerPdfLink = document.getElementById("cvOptimizerPdfLink");
+    const cvOptimizerPreview = document.getElementById("cvOptimizerPreview");
+    const cvPreviewPlaceholder = document.getElementById("cvPreviewPlaceholder");
+    const cvScoreRing = document.getElementById("cvScoreRing");
+    const cvMissingCount = document.getElementById("cvMissingCount");
+    const cvFileInput = document.getElementById("cvFileInput");
+    const cvDropzone = document.getElementById("cvDropzone");
+    const cvFileCard = document.getElementById("cvFileCard");
+    const cvFileName = document.getElementById("cvFileName");
+    const cvRemoveFileBtn = document.getElementById("cvRemoveFileBtn");
+
+    function updateFileUI(file) {
+      if (!cvFileCard || !cvFileName || !cvDropzone || !cvFileInput) return;
+      if (file) {
+        cvFileName.textContent = file.name;
+        cvFileCard.classList.add("show");
+        cvDropzone.querySelector(".cvDropTitle").textContent = "CV ready to optimize";
+        cvDropzone.querySelector(".cvDropText").textContent = "Your PDF is attached. You can replace it by clicking again or dragging a new file here.";
+      } else {
+        cvFileName.textContent = "No file selected";
+        cvFileCard.classList.remove("show");
+        cvDropzone.querySelector(".cvDropTitle").textContent = "Drag & drop your CV here or click to upload";
+        cvDropzone.querySelector(".cvDropText").textContent = "A single PDF works best. We'll parse the text, extract the key structure, and optimize it for the selected role.";
+      }
+    }
+
+    function setLoadingState(isLoading) {
+      if (cvOptimizerSubmit) cvOptimizerSubmit.disabled = isLoading;
+      if (cvOptimizerSpinner) cvOptimizerSpinner.classList.toggle("show", isLoading);
+    }
+
+    function setScore(score) {
+      const safeScore = Math.max(0, Math.min(100, Number(score) || 0));
+      if (cvOptimizerScore) cvOptimizerScore.textContent = `${safeScore}%`;
+      if (cvOptimizerScoreMetric) cvOptimizerScoreMetric.textContent = String(safeScore);
+      if (cvScoreRing) cvScoreRing.style.setProperty("--score-angle", `${safeScore * 3.6}deg`);
+    }
+
+    function renderMissingSkills(skills) {
+      if (!cvOptimizerMissingSkills || !cvMissingCount) return;
+      cvOptimizerMissingSkills.innerHTML = "";
+      const missingSkills = Array.isArray(skills) ? skills : [];
+      cvMissingCount.textContent = String(missingSkills.length);
+
+      if (!missingSkills.length) {
+        const item = document.createElement("li");
+        item.textContent = "No major skill gaps detected";
+        cvOptimizerMissingSkills.appendChild(item);
+        return;
+      }
+
+      missingSkills.forEach((skill) => {
+        const item = document.createElement("li");
+        item.textContent = skill;
+        cvOptimizerMissingSkills.appendChild(item);
+      });
+    }
+
+    if (cvFileInput) {
+      cvFileInput.addEventListener("change", () => {
+        const file = cvFileInput.files && cvFileInput.files[0] ? cvFileInput.files[0] : null;
+        updateFileUI(file);
+      });
+    }
+
+    if (cvDropzone && cvFileInput) {
+      ["dragenter", "dragover"].forEach((eventName) => {
+        cvDropzone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          cvDropzone.classList.add("isDragOver");
+        });
+      });
+
+      ["dragleave", "dragend", "drop"].forEach((eventName) => {
+        cvDropzone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          cvDropzone.classList.remove("isDragOver");
+        });
+      });
+
+      cvDropzone.addEventListener("drop", (event) => {
+        const files = event.dataTransfer && event.dataTransfer.files ? event.dataTransfer.files : null;
+        if (!files || !files.length) return;
+        const file = files[0];
+        if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+          if (cvOptimizerStatus) cvOptimizerStatus.textContent = "Please upload a PDF file only.";
+          return;
+        }
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        cvFileInput.files = dt.files;
+        updateFileUI(file);
+      });
+    }
+
+    if (cvRemoveFileBtn && cvFileInput) {
+      cvRemoveFileBtn.addEventListener("click", () => {
+        cvFileInput.value = "";
+        updateFileUI(null);
+      });
+    }
+
+    if (cvOptimizerForm) {
+      cvOptimizerForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!cvOptimizerSubmit) return;
+
+        setLoadingState(true);
+        if (cvOptimizerStatus) cvOptimizerStatus.textContent = "Optimizing your CV...";
+        if (cvOptimizerPdfLink) {
+          cvOptimizerPdfLink.hidden = true;
+          cvOptimizerPdfLink.removeAttribute("href");
+        }
+
+        try {
+          const formData = new FormData(cvOptimizerForm);
+          const res = await fetch("/optimize-cv", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || "CV optimization failed.");
+          }
+
+          setScore(data.match_score);
+          renderMissingSkills(data.missing_skills);
+
+          if (cvOptimizerStatus) {
+            cvOptimizerStatus.textContent = "Optimized CV generated successfully.";
+          }
+
+          if (cvOptimizerPdfLink && data.pdf_url) {
+            cvOptimizerPdfLink.href = data.pdf_url;
+            cvOptimizerPdfLink.hidden = false;
+          }
+
+          if (cvOptimizerPreview && data.improved_cv_html) {
+            cvOptimizerPreview.srcdoc = data.improved_cv_html;
+            cvOptimizerPreview.hidden = false;
+          }
+
+          if (cvPreviewPlaceholder) {
+            cvPreviewPlaceholder.hidden = true;
+          }
+        } catch (error) {
+          if (cvOptimizerStatus) {
+            cvOptimizerStatus.textContent = error.message || "CV optimization failed.";
+          }
+        } finally {
+          setLoadingState(false);
+        }
+      });
+    }
+  </script>
+{% endblock %}

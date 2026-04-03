@@ -4,32 +4,307 @@
 {% block sync_full_endpoint %}insights{% endblock %}
 
 {% block content %}
+  {% set pending_count = followups|selectattr("follow_up_done", "equalto", False)|list|length %}
+  {% set done_count = followups|selectattr("follow_up_done", "equalto", True)|list|length %}
+
   <style>
-    .followupCallout {
-      margin: 10px 0 0;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-size: 16px;
+    .insightsPage {
+      display: grid;
+      gap: 18px;
+    }
+
+    .insightsHero {
+      position: relative;
+      overflow: hidden;
+      padding: 28px;
+      border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--line));
+      border-radius: 24px;
+      background:
+        radial-gradient(520px 220px at 0% 0%, rgba(20, 184, 166, 0.14), transparent 60%),
+        radial-gradient(620px 240px at 100% 0%, rgba(245, 158, 11, 0.14), transparent 62%),
+        linear-gradient(135deg, color-mix(in srgb, var(--card) 96%, #ecfeff), color-mix(in srgb, var(--card) 94%, #fff7ed));
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+    }
+
+    .insightsHeroBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--brand) 20%, var(--line));
+      background: rgba(255, 255, 255, 0.58);
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .insightsHeroTitle {
+      margin: 16px 0 10px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+    }
+
+    .insightsHeroText {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .insightsStats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .insightsStat {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .insightsStatLabel {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .insightsStatValue {
+      margin-top: 10px;
+      font-size: 34px;
       font-weight: 800;
-      line-height: 1.35;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.04em;
+    }
+
+    .insightsStatText {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .insightsPanel {
+      padding: 18px;
+      border-radius: 24px;
+    }
+
+    .insightsPanelHeader {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .insightsPanelHeader h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .insightsPanelHeader p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .insightsPill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 92%, var(--chip));
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .followupGrid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .followupCard {
+      position: relative;
+      overflow: hidden;
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
+    }
+
+    .followupCard.pending {
+      background:
+        radial-gradient(260px 120px at 100% 0%, rgba(251, 113, 133, 0.12), transparent 70%),
+        linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, #fff1f2), color-mix(in srgb, var(--card) 96%, #fff7ed));
+      border-color: color-mix(in srgb, var(--no-text) 22%, var(--line));
+    }
+
+    .followupCard.done {
+      background:
+        radial-gradient(260px 120px at 100% 0%, rgba(34, 197, 94, 0.12), transparent 70%),
+        linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, #ecfdf5), color-mix(in srgb, var(--card) 96%, #f0fdf4));
+      border-color: color-mix(in srgb, var(--ok-text) 22%, var(--line));
+    }
+
+    .followupCardTop {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .followupIdentity h3 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+    }
+
+    .followupIdentity p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .followupState {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.66);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .followupState.pending {
+      color: color-mix(in srgb, var(--no-text) 86%, var(--text));
+      border-color: color-mix(in srgb, var(--no-text) 26%, var(--line));
+    }
+
+    .followupState.done {
+      color: color-mix(in srgb, var(--ok-text) 86%, var(--text));
+      border-color: color-mix(in srgb, var(--ok-text) 24%, var(--line));
+    }
+
+    .followupCallout {
+      margin: 0 0 14px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.4;
+      letter-spacing: -0.02em;
       border: 1px solid transparent;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(8px);
     }
 
     .followupCallout.pending {
-      background: color-mix(in srgb, var(--no-bg) 72%, var(--card));
       color: color-mix(in srgb, var(--no-text) 84%, var(--text));
-      border-color: color-mix(in srgb, var(--no-text) 30%, var(--line));
+      border-color: color-mix(in srgb, var(--no-text) 20%, var(--line));
     }
 
     .followupCallout.done {
-      background: color-mix(in srgb, var(--ok-bg) 78%, var(--card));
       color: color-mix(in srgb, var(--ok-text) 84%, var(--text));
-      border-color: color-mix(in srgb, var(--ok-text) 30%, var(--line));
+      border-color: color-mix(in srgb, var(--ok-text) 20%, var(--line));
     }
 
-    .aiGenerateBtn {
-      background: linear-gradient(135deg, #f59e0b, #fb7185);
+    .followupMetaGrid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .followupMetaCard {
+      padding: 12px 14px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 92%, rgba(255,255,255,0.4));
+    }
+
+    .followupMetaLabel {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .followupMetaValue {
+      margin-top: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .followupActions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .followupPrimaryBtn {
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 16px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .followupAiBtn {
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #f59e0b, #fb7185 58%, #8b5cf6);
+      box-shadow: 0 16px 28px rgba(244, 114, 182, 0.18);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .followupAiBtn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 32px rgba(244, 114, 182, 0.24);
+    }
+
+    .iconSquare {
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      border-radius: 16px;
+      font-size: 18px;
+    }
+
+    .emptyInsights {
+      padding: 30px;
+      border-radius: 24px;
+      border: 1px dashed var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(248,250,252,0.86));
+      text-align: center;
+      color: var(--muted);
     }
 
     .modalOverlay {
@@ -38,8 +313,9 @@
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 16px;
-      background: rgba(15, 23, 42, 0.55);
+      padding: 18px;
+      background: rgba(15, 23, 42, 0.58);
+      backdrop-filter: blur(10px);
       z-index: 10000;
     }
 
@@ -48,120 +324,399 @@
     }
 
     .modalCard {
-      width: min(720px, 100%);
-      background: var(--card);
+      width: min(860px, 100%);
+      overflow: hidden;
+      background:
+        radial-gradient(340px 160px at 100% 0%, rgba(251, 113, 133, 0.12), transparent 70%),
+        linear-gradient(180deg, color-mix(in srgb, var(--card) 98%, #fff7ed), color-mix(in srgb, var(--card) 97%, #eff6ff));
       color: var(--text);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 18px;
+      border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--line));
+      border-radius: 28px;
+      box-shadow: 0 28px 80px rgba(15, 23, 42, 0.20);
     }
 
-    .modalHeader {
+    .draftHero {
+      padding: 22px 22px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.48);
+    }
+
+    .draftBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--line));
+      background: rgba(255,255,255,0.66);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .draftHeader {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 14px;
+      margin-top: 14px;
     }
 
-    .modalHeader h3 {
+    .draftHeader h3 {
       margin: 0;
-      font-size: 18px;
+      font-size: 28px;
+      letter-spacing: -0.04em;
     }
 
-    .modalHeader p {
-      margin: 6px 0 0;
+    .draftHeader p {
+      margin: 8px 0 0;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.6;
     }
 
     .iconBtn {
-      min-width: 40px;
-      min-height: 40px;
+      min-width: 44px;
+      min-height: 44px;
       padding: 0;
+      border-radius: 16px;
       font-size: 18px;
     }
 
-    .aiOutput {
-      min-height: 220px;
-      resize: vertical;
-      line-height: 1.5;
+    .draftBody {
+      padding: 18px 22px 22px;
+      display: grid;
+      gap: 16px;
     }
 
-    .aiStatus {
-      min-height: 20px;
-      margin: 10px 0 0;
+    .draftMetaBar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .draftMetaPill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 92%, var(--chip));
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .aiOutputShell {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(248,250,252,0.98));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .aiOutput {
+      min-height: 290px;
+      resize: vertical;
+      line-height: 1.65;
+      border: 0;
+      background: transparent;
+      padding: 18px 18px 20px;
+      font-size: 14px;
+    }
+
+    .aiOutput:focus {
+      box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.14);
+    }
+
+    .aiStatusRow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 24px;
       color: var(--muted);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
+    }
+
+    .aiSpinner {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(244, 114, 182, 0.16);
+      border-top-color: #f97316;
+      animation: aiSpin .75s linear infinite;
+      display: none;
+    }
+
+    .aiSpinner.show {
+      display: inline-block;
+    }
+
+    .draftActions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .draftCopyBtn {
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 16px;
+      font-weight: 800;
+    }
+
+    html.dark .insightsHero {
+      background:
+        radial-gradient(520px 220px at 0% 0%, rgba(45, 212, 191, 0.10), transparent 60%),
+        radial-gradient(620px 240px at 100% 0%, rgba(251, 191, 36, 0.10), transparent 62%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.98));
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+    }
+
+    html.dark .insightsHeroBadge,
+    html.dark .followupState,
+    html.dark .draftBadge,
+    html.dark .draftMetaPill {
+      background: rgba(15, 23, 42, 0.72);
+      border-color: color-mix(in srgb, var(--brand) 20%, var(--line));
+      color: var(--text);
+    }
+
+    html.dark .insightsStat,
+    html.dark .followupMetaCard,
+    html.dark .emptyInsights,
+    html.dark .modalCard,
+    html.dark .draftHero,
+    html.dark .aiOutputShell {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.98));
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+    }
+
+    html.dark .followupCard.pending {
+      background:
+        radial-gradient(260px 120px at 100% 0%, rgba(251, 113, 133, 0.10), transparent 70%),
+        linear-gradient(180deg, rgba(30, 27, 46, 0.96), rgba(17, 24, 39, 0.98));
+    }
+
+    html.dark .followupCard.done {
+      background:
+        radial-gradient(260px 120px at 100% 0%, rgba(34, 197, 94, 0.10), transparent 70%),
+        linear-gradient(180deg, rgba(17, 37, 34, 0.96), rgba(15, 23, 42, 0.98));
+    }
+
+    html.dark .followupCallout {
+      background: rgba(15, 23, 42, 0.72);
+    }
+
+    html.dark .followupCallout.pending,
+    html.dark .followupState.pending {
+      color: #fda4af;
+    }
+
+    html.dark .followupCallout.done,
+    html.dark .followupState.done {
+      color: #6ee7b7;
+    }
+
+    html.dark .insightsHeroText,
+    html.dark .insightsStatLabel,
+    html.dark .insightsStatText,
+    html.dark .insightsPanelHeader p,
+    html.dark .followupIdentity p,
+    html.dark .followupMetaLabel,
+    html.dark .draftHeader p,
+    html.dark .aiStatusRow,
+    html.dark .emptyInsights {
+      color: #b8c4d9;
+    }
+
+    html.dark .insightsStatValue,
+    html.dark .followupMetaValue,
+    html.dark .draftHeader h3,
+    html.dark .insightsPanelHeader h2,
+    html.dark .followupIdentity h3 {
+      color: #f8fafc;
+    }
+
+    html.dark .aiOutput {
+      color: #e5e7eb;
+      background: transparent;
+    }
+
+    @keyframes aiSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 1080px) {
+      .followupMetaGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .insightsStats {
+        grid-template-columns: 1fr;
+      }
+
+      .insightsPanelHeader,
+      .followupCardTop,
+      .draftHeader {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .followupMetaGrid {
+        grid-template-columns: 1fr;
+      }
+
+      .draftActions,
+      .followupActions {
+        width: 100%;
+      }
+
+      .draftActions > *,
+      .followupActions > * {
+        width: 100%;
+      }
     }
   </style>
 
-  {% if synced %}
-    <div class="notice">
-      <strong>Sync completed.</strong>
-      Processed: {{ processed }}, skipped: {{ skipped }}, added to review: {{ needs_review_added }}, reused manual corrections: {{ manual_corrections_used }}.
-    </div>
-  {% endif %}
+  <div class="insightsPage">
+    <section class="insightsHero">
+      <div class="insightsHeroBadge">Follow-up Intelligence</div>
+      <h2 class="insightsHeroTitle">Turn quiet applications into timely follow-ups</h2>
+      <p class="insightsHeroText">Work through your strongest follow-up opportunities, track which ones are already handled, and generate polished AI drafts without leaving the page.</p>
+    </section>
 
-  <div class="panel">
-    <h2 class="sectionTitle">Follow-up Suggestions</h2>
-    <div class="stack">
-      {% for row in followups %}
-        <div
-          class="card listCard"
-          style="{% if row.follow_up_done %}background: var(--ok-bg); border-color: color-mix(in srgb, var(--ok-text) 22%, var(--line));{% else %}background: var(--no-bg); border-color: color-mix(in srgb, var(--no-text) 22%, var(--line));{% endif %}"
-        >
-          <h3>{{ row.company }} - {{ row.job_title }}</h3>
-          <p class="followupCallout {% if row.follow_up_done %}done{% else %}pending{% endif %}">{{ row.followup_hint }}</p>
-          <div class="meta">
-            Viewed: {{ format_time_with_date(row.viewed_time) }}
-            | Waiting: {{ row.days_waiting }} days
-            | Threshold: {{ row.followup_threshold }} days
-            | Location: {{ row.location or '-' }}
-          </div>
-          <div class="actionsRow" style="margin-top: 10px;">
-            <button
-              type="button"
-              class="{% if row.follow_up_done %}secondaryBtn{% endif %}"
-              data-toggle-follow-up
-              data-row-id="{{ row.row_id|urlencode }}"
-            >{% if row.follow_up_done %}Follow-up Done{% else %}Follow-up?{% endif %}</button>
-            <button
-              type="button"
-              class="aiGenerateBtn"
-              data-generate-follow-up
-              data-job-title="{{ row.job_title }}"
-              data-company="{{ row.company }}"
-              data-days="{{ row.days_waiting }}"
-              data-status="{{ row.followup_status }}"
-            >Generate with AI</button>
-            {% if row.job_url %}
-              <a class="buttonLink secondaryBtn" href="{{ row.job_url }}" target="_blank" rel="noopener noreferrer">Open</a>
-              <button class="secondaryBtn" type="button" data-copy="{{ row.job_url }}">Copy Link</button>
-            {% endif %}
-          </div>
+    <section class="insightsStats">
+      <div class="insightsStat">
+        <div class="insightsStatLabel">Ready Now</div>
+        <div class="insightsStatValue">{{ pending_count }}</div>
+        <div class="insightsStatText">Roles that are waiting for a follow-up based on your current thresholds.</div>
+      </div>
+      <div class="insightsStat">
+        <div class="insightsStatLabel">Completed</div>
+        <div class="insightsStatValue">{{ done_count }}</div>
+        <div class="insightsStatText">Follow-ups already marked as done so you can keep momentum visible.</div>
+      </div>
+      <div class="insightsStat">
+        <div class="insightsStatLabel">Total Suggestions</div>
+        <div class="insightsStatValue">{{ followups|length }}</div>
+        <div class="insightsStatText">All currently surfaced opportunities ordered by waiting time and urgency.</div>
+      </div>
+    </section>
+
+    {% if synced %}
+      <div class="notice">
+        <strong>Sync completed.</strong>
+        Processed: {{ processed }}, skipped: {{ skipped }}, added to review: {{ needs_review_added }}, reused manual corrections: {{ manual_corrections_used }}.
+      </div>
+    {% endif %}
+
+    <section class="panel insightsPanel">
+      <div class="insightsPanelHeader">
+        <div>
+          <h2>Follow-up Suggestions</h2>
+          <p>Prioritized by waiting time so you can work the most time-sensitive conversations first.</p>
         </div>
-      {% else %}
-        <div class="emptyState">No follow-up candidates right now. Your recent applications are either fresh, already rejected, or not yet eligible.</div>
-      {% endfor %}
-    </div>
+        <div class="insightsPill">{{ followups|length }} open</div>
+      </div>
+
+      <div class="followupGrid">
+        {% for row in followups %}
+          <article class="followupCard {% if row.follow_up_done %}done{% else %}pending{% endif %}">
+            <div class="followupCardTop">
+              <div class="followupIdentity">
+                <h3>{{ row.company }}</h3>
+                <p>{{ row.job_title }}</p>
+              </div>
+              <div class="followupState {% if row.follow_up_done %}done{% else %}pending{% endif %}">
+                {% if row.follow_up_done %}Done{% else %}Needs Follow-up{% endif %}
+              </div>
+            </div>
+
+            <p class="followupCallout {% if row.follow_up_done %}done{% else %}pending{% endif %}">{{ row.followup_hint }}</p>
+
+            <div class="followupMetaGrid">
+              <div class="followupMetaCard">
+                <div class="followupMetaLabel">Viewed</div>
+                <div class="followupMetaValue">{{ format_time_with_date(row.viewed_time) }}</div>
+              </div>
+              <div class="followupMetaCard">
+                <div class="followupMetaLabel">Waiting</div>
+                <div class="followupMetaValue">{{ row.days_waiting }} days</div>
+              </div>
+              <div class="followupMetaCard">
+                <div class="followupMetaLabel">Threshold</div>
+                <div class="followupMetaValue">{{ row.followup_threshold }} days</div>
+              </div>
+              <div class="followupMetaCard">
+                <div class="followupMetaLabel">Location</div>
+                <div class="followupMetaValue">{{ row.location or '-' }}</div>
+              </div>
+            </div>
+
+            <div class="followupActions">
+              <button
+                type="button"
+                class="followupPrimaryBtn {% if row.follow_up_done %}secondaryBtn{% endif %}"
+                data-toggle-follow-up
+                data-row-id="{{ row.row_id|urlencode }}"
+              >{% if row.follow_up_done %}Follow-up Done{% else %}Mark Follow-up{% endif %}</button>
+              <button
+                type="button"
+                class="followupAiBtn"
+                data-generate-follow-up
+                data-job-title="{{ row.job_title }}"
+                data-company="{{ row.company }}"
+                data-days="{{ row.days_waiting }}"
+                data-status="{{ row.followup_status }}"
+              >AI Follow-up Draft</button>
+              {% if row.job_url %}
+                <a class="buttonLink secondaryBtn iconSquare" href="{{ row.job_url }}" target="_blank" rel="noopener noreferrer" title="Open role">↗</a>
+                <button class="secondaryBtn iconSquare" type="button" data-copy="{{ row.job_url }}" title="Copy role link">⧉</button>
+              {% endif %}
+            </div>
+          </article>
+        {% else %}
+          <div class="emptyInsights">No follow-up candidates right now. Your recent applications are either fresh, already rejected, or not yet eligible.</div>
+        {% endfor %}
+      </div>
+    </section>
   </div>
 
   <div class="modalOverlay" id="followupModal" aria-hidden="true">
     <div class="modalCard">
-      <div class="modalHeader">
-        <div>
-          <h3>AI Follow-up Draft</h3>
-          <p id="followupModalMeta">A short professional draft will appear here.</p>
+      <div class="draftHero">
+        <div class="draftBadge">AI Follow-up Draft</div>
+        <div class="draftHeader">
+          <div>
+            <h3>Polish your outreach before you send it</h3>
+            <p id="followupModalMeta">A concise professional draft will appear here and you can edit it freely before copying.</p>
+          </div>
+          <button type="button" class="secondaryBtn iconBtn" id="closeFollowupModal" aria-label="Close dialog">×</button>
         </div>
-        <button type="button" class="secondaryBtn iconBtn" id="closeFollowupModal" aria-label="Close dialog">x</button>
       </div>
-      <textarea id="followupOutput" class="aiOutput" placeholder="Generating..." spellcheck="true"></textarea>
-      <div class="aiStatus" id="followupStatus"></div>
-      <div class="actionsRow" style="margin-top: 12px;">
-        <button type="button" class="secondaryBtn" id="copyFollowupBtn">Copy</button>
+
+      <div class="draftBody">
+        <div class="draftMetaBar" id="draftMetaBar"></div>
+
+        <div class="aiOutputShell">
+          <textarea id="followupOutput" class="aiOutput" placeholder="Your generated follow-up draft will appear here." spellcheck="true"></textarea>
+        </div>
+
+        <div class="aiStatusRow">
+          <span id="followupSpinner" class="aiSpinner" aria-hidden="true"></span>
+          <span class="aiStatus" id="followupStatus">Ready to generate a draft.</span>
+        </div>
+
+        <div class="draftActions">
+          <button type="button" class="draftCopyBtn secondaryBtn" id="copyFollowupBtn">Copy Draft</button>
+        </div>
       </div>
     </div>
   </div>
@@ -175,6 +730,8 @@
     const followupStatus = document.getElementById("followupStatus");
     const followupModalMeta = document.getElementById("followupModalMeta");
     const copyFollowupBtn = document.getElementById("copyFollowupBtn");
+    const followupSpinner = document.getElementById("followupSpinner");
+    const draftMetaBar = document.getElementById("draftMetaBar");
 
     function openFollowupModal() {
       if (!followupModal) return;
@@ -186,6 +743,22 @@
       if (!followupModal) return;
       followupModal.classList.remove("show");
       followupModal.setAttribute("aria-hidden", "true");
+    }
+
+    function setDraftLoadingState(isLoading) {
+      if (followupSpinner) followupSpinner.classList.toggle("show", isLoading);
+      if (copyFollowupBtn) copyFollowupBtn.disabled = isLoading;
+    }
+
+    function renderDraftMeta(items) {
+      if (!draftMetaBar) return;
+      draftMetaBar.innerHTML = "";
+      items.forEach((item) => {
+        const pill = document.createElement("div");
+        pill.className = "draftMetaPill";
+        pill.textContent = item;
+        draftMetaBar.appendChild(pill);
+      });
     }
 
     document.addEventListener("click", async (e) => {
@@ -206,7 +779,7 @@
         if (!text) return;
         try {
           await navigator.clipboard.writeText(text);
-          if (followupStatus) followupStatus.textContent = "Copied.";
+          if (followupStatus) followupStatus.textContent = "Draft copied to clipboard.";
         } catch (err) {
           if (followupStatus) followupStatus.textContent = "Copy failed.";
         }
@@ -235,8 +808,10 @@
         generateBtn.textContent = "Generating...";
 
         if (followupOutput) followupOutput.value = "";
-        if (followupStatus) followupStatus.textContent = "Generating...";
-        if (followupModalMeta) followupModalMeta.textContent = `${company} | ${jobTitle} | ${days} days | ${status}`;
+        if (followupStatus) followupStatus.textContent = "Optimizing your follow-up draft...";
+        if (followupModalMeta) followupModalMeta.textContent = `A polished draft for ${company} and the ${jobTitle} role will appear below.`;
+        renderDraftMeta([company, jobTitle, `${days} days`, status]);
+        setDraftLoadingState(true);
         openFollowupModal();
 
         try {
@@ -255,11 +830,12 @@
             throw new Error(data.error || "Unable to generate follow-up.");
           }
           if (followupOutput) followupOutput.value = data.email;
-          if (followupStatus) followupStatus.textContent = "Generated.";
+          if (followupStatus) followupStatus.textContent = "Draft generated. Review and copy when ready.";
         } catch (err) {
           if (followupOutput) followupOutput.value = "";
           if (followupStatus) followupStatus.textContent = err.message || "Generation failed.";
         } finally {
+          setDraftLoadingState(false);
           generateBtn.disabled = false;
           generateBtn.textContent = originalLabel;
         }
