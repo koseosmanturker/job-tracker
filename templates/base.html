@@ -21,57 +21,63 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
       :root {
-        --bg: #f4f7fb;
-        --card: #ffffff;
-        --line: #e2e8f0;
-        --text: #0f172a;
-        --muted: #64748b;
-        --brand: #0f766e;
-        --brand2: #14b8a6;
-        --ok-bg: #ecfdf5;
-        --ok-text: #047857;
-        --no-bg: #fff1f2;
-        --no-text: #be123c;
-        --chip: #f1f5f9;
-        --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-        --tab-active-start: #f59e0b;
-        --tab-active-end: #facc15;
-        --tab-active-text: #111827;
+        --bg: #f4f7f2;
+        --card: rgba(255, 255, 255, 0.86);
+        --line: rgba(16, 32, 23, 0.10);
+        --text: #102017;
+        --muted: #617365;
+        --brand: #194f3a;
+        --brand2: #57a37c;
+        --ok-bg: #daf5e8;
+        --ok-text: #1b6c51;
+        --no-bg: #ffe8df;
+        --no-text: #9d5b40;
+        --chip: #edf3ea;
+        --shadow: 0 20px 50px rgba(18, 32, 25, 0.08);
+        --tab-active-start: #f0be68;
+        --tab-active-end: #ffd890;
+        --tab-active-text: #2f230d;
       }
 
       html.dark,
       body.dark {
-        --bg: #0b1220;
-        --card: #0f172a;
-        --line: #22304a;
-        --text: #e5e7eb;
-        --muted: #94a3b8;
-        --brand: #2dd4bf;
-        --brand2: #14b8a6;
-        --ok-bg: rgba(16, 185, 129, 0.2);
-        --ok-text: #6ee7b7;
-        --no-bg: rgba(244, 63, 94, 0.24);
-        --no-text: #fda4af;
-        --chip: #111c33;
-        --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-        --tab-active-start: #fbbf24;
-        --tab-active-end: #f59e0b;
-        --tab-active-text: #1f2937;
+        --bg: #0f1712;
+        --card: rgba(18, 32, 25, 0.92);
+        --line: rgba(191, 224, 205, 0.10);
+        --text: #edf5ef;
+        --muted: #a5b8ab;
+        --brand: #74c89b;
+        --brand2: #f0be68;
+        --ok-bg: rgba(87, 163, 124, 0.22);
+        --ok-text: #95deba;
+        --no-bg: rgba(196, 117, 85, 0.20);
+        --no-text: #f0b89c;
+        --chip: #17231c;
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+        --tab-active-start: #f0be68;
+        --tab-active-end: #ffd890;
+        --tab-active-text: #2f230d;
       }
 
       * { box-sizing: border-box; }
       body {
         margin: 0;
         color: var(--text);
-        font-family: Inter, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Plus Jakarta Sans", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         background:
-          radial-gradient(900px 500px at 95% 5%, rgba(20,184,166,.14), transparent 55%),
-          radial-gradient(700px 400px at 10% 0%, rgba(56,189,248,.10), transparent 55%),
-          var(--bg);
+          radial-gradient(900px 500px at 95% 5%, rgba(87,163,124,.16), transparent 55%),
+          radial-gradient(700px 400px at 10% 0%, rgba(240,190,104,.14), transparent 55%),
+          linear-gradient(180deg, #f8fbf6 0%, var(--bg) 100%);
+      }
+      html.dark body {
+        background:
+          radial-gradient(900px 500px at 95% 5%, rgba(116,200,155,.12), transparent 55%),
+          radial-gradient(700px 400px at 10% 0%, rgba(240,190,104,.10), transparent 55%),
+          linear-gradient(180deg, #111914 0%, #0f1712 42%, var(--bg) 100%);
       }
 
       .wrap {
@@ -101,6 +107,9 @@
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
+        color: var(--text);
+        font-family: "Manrope", "Plus Jakarta Sans", sans-serif;
+        font-weight: 800;
       }
       .titleLead {
         display: inline-flex;
@@ -110,7 +119,7 @@
         height: 38px;
         border-radius: 12px;
         font-size: 20px;
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(59, 130, 246, 0.2));
+        background: linear-gradient(135deg, rgba(240, 190, 104, 0.22), rgba(87, 163, 124, 0.18));
         box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
       }
       .titleText {
@@ -118,13 +127,33 @@
         align-items: baseline;
         gap: 0.3em;
         flex-wrap: wrap;
+        color: var(--text);
+        -webkit-text-fill-color: currentColor;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.10);
+      }
+      .titleSolid {
+        color: var(--text);
+        -webkit-text-fill-color: currentColor;
       }
       .titleGradient {
-        background: linear-gradient(90deg, #fbbf24, #3b82f6);
+        background: linear-gradient(90deg, #f0be68, #57a37c);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
         -webkit-text-fill-color: transparent;
+      }
+      html.dark .titleGradient {
+        background: linear-gradient(90deg, #ffd890, #95deba);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+      }
+      html.dark .titleText,
+      html.dark .titleSolid {
+        color: #edf5ef;
+        -webkit-text-fill-color: #edf5ef;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.18);
       }
       .sub { margin: 0; color: var(--muted); font-size: 13px; }
       .topTools {
@@ -138,10 +167,18 @@
         height: 36px;
         padding: 0;
         border-radius: 999px;
-        border: 1px solid var(--line);
-        background: color-mix(in srgb, var(--card) 88%, var(--chip));
-        box-shadow: var(--shadow);
-        transition: background .2s ease, border-color .2s ease;
+        border: 1px solid color-mix(in srgb, var(--brand) 22%, rgba(16, 32, 23, 0.18));
+        background: linear-gradient(135deg, rgba(255, 250, 240, 0.96), rgba(236, 243, 234, 0.94));
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.78),
+          0 12px 28px rgba(18, 32, 25, 0.14);
+        transition: background .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+      }
+      .themeToggle:hover {
+        transform: translateY(-1px);
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.92),
+          0 16px 30px rgba(18, 32, 25, 0.18);
       }
       .themeToggle::before {
         content: "";
@@ -151,7 +188,7 @@
         width: 28px;
         height: 28px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+        background: linear-gradient(135deg, #fffdf7, #dbe8df);
         box-shadow: 0 2px 8px rgba(15, 23, 42, 0.22);
         transition: transform .2s ease, background .2s ease;
       }
@@ -162,16 +199,17 @@
         right: 10px;
         transform: translateY(-50%);
         font-size: 13px;
-        color: #f59e0b;
+        color: #a8741d;
         transition: opacity .2s ease, color .2s ease;
       }
       .themeToggle[aria-checked="true"] {
-        background: linear-gradient(135deg, #0f172a, #1e293b);
+        background: linear-gradient(135deg, #163023, #244333);
         border-color: color-mix(in srgb, var(--brand) 35%, var(--line));
+        box-shadow: 0 0 0 1px rgba(116, 200, 155, 0.10), 0 14px 32px rgba(0, 0, 0, 0.22);
       }
       .themeToggle[aria-checked="true"]::before {
         transform: translateX(28px);
-        background: linear-gradient(135deg, #38bdf8, #0f172a);
+        background: linear-gradient(135deg, #74c89b, #163023);
       }
       .themeToggle[aria-checked="true"]::after {
         content: "☾";
@@ -184,11 +222,20 @@
         justify-content: center;
         align-self: center;
       }
+      html.dark .pageSwitch {
+        background: rgba(18, 32, 25, 0.88);
+        border-color: rgba(191, 224, 205, 0.08);
+      }
+      html.dark .top h1,
+      html.dark .sub,
+      html.dark .lastSync {
+        color: var(--text);
+      }
       .topActions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; justify-self: end; }
       .syncButtons { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; }
       .syncButtons form { display: block; margin: 0; }
       .lastSync { font-size: 12px; color: var(--muted); white-space: nowrap; }
-      .syncModeBtn { background: linear-gradient(135deg, #2563eb, #38bdf8); }
+      .syncModeBtn { background: linear-gradient(135deg, var(--brand), var(--brand2)); }
       .syncBtn { text-decoration: none; display: inline-flex; align-items: center; }
 
       .pageSwitch {
@@ -623,7 +670,7 @@
             <button id="themeToggle" type="button" class="themeToggle" role="switch" aria-checked="false" aria-label="Switch to dark theme" title="Switch to dark theme"></button>
           </div>
           <h1>
-            {% if current_path == '/' %}
+            {% if current_path == '/jobs' %}
               <span class="titleLead" aria-hidden="true">🚀</span>
             {% endif %}
             <span class="titleText">{{ page_title_html|safe }}</span>
@@ -632,10 +679,10 @@
         </div>
         <div class="topCenter">
           <div class="pageSwitch" role="tablist" aria-label="Page switcher">
-            <a class="navBtn {% if current_path == '/' %}active{% endif %}" href="/">Jobs</a>
+            <a class="navBtn {% if current_path == '/jobs' %}active{% endif %}" href="/jobs">Jobs</a>
             <a class="navBtn {% if current_path == '/favorites' %}active{% endif %}" href="/favorites">Favorites</a>
             <a class="navBtn {% if current_path == '/follow-up' %}active{% endif %}" href="/follow-up">Follow-up</a>
-            <a class="navBtn {% if current_path == '/cv-optimizer' %}active{% endif %}" href="/cv-optimizer">CV Optimizer</a>
+            <a class="navBtn {% if current_path == '/ai-cv-studio' %}active{% endif %}" href="/ai-cv-studio">AI CV Studio</a>
             <a class="navBtn {% if current_path == '/needs-review' %}active{% endif %}" href="/needs-review">Needs Review{% if needs_review_count %}<span class="pill">{{ needs_review_count }}</span>{% endif %}</a>
           </div>
         </div>

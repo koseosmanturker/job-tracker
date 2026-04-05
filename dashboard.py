@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from urllib import error as urllib_error
 from urllib import request as urllib_request
+from urllib.parse import urlencode
 
 from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, url_for
 
@@ -527,6 +528,19 @@ def build_base_context(*, current_path: str, page_title: str, page_subtitle: str
     }
 
 
+def build_sort_url(*, current_path: str, query_args, active_sort: str, active_order: str, target_sort: str, target_order: str) -> str:
+    params = query_args.to_dict(flat=True)
+    if active_sort == target_sort and active_order == target_order:
+        params.pop("sort", None)
+        params.pop("order", None)
+    else:
+        params["sort"] = target_sort
+        params["order"] = target_order
+
+    query = urlencode(params)
+    return f"{current_path}?{query}" if query else current_path
+
+
 def build_followup_items(rows: list[dict]) -> list[dict]:
     now = datetime.now()
     items = []
@@ -788,7 +802,7 @@ def generate_followup():
 def render_jobs_page(*, favorites_only: bool = False):
     jobs = to_rows(read_jobs_csv(str(CSV_PATH)))
     context = build_base_context(
-        current_path="/favorites" if favorites_only else "/",
+        current_path="/favorites" if favorites_only else "/jobs",
         page_title="Favorites" if favorites_only else "Career Intelligence Tool",
         page_subtitle=(
             "Starred roles that are still worth attention."
@@ -797,7 +811,7 @@ def render_jobs_page(*, favorites_only: bool = False):
         ),
     )
     if not favorites_only:
-        context["page_title_html"] = 'Career <span class="titleGradient">Intelligence</span> Tool'
+        context["page_title_html"] = '<span class="titleSolid">Career</span> <span class="titleGradient">Intelligence</span> <span class="titleSolid">Tool</span>'
 
     search = request.args.get("search", "").strip().lower()
     viewed_only = request.args.get("viewed") == "1"
@@ -870,6 +884,38 @@ def render_jobs_page(*, favorites_only: bool = False):
         rejected_only=rejected_only,
         sort=sort,
         order=order,
+        applied_time_asc_url=build_sort_url(
+            current_path=context["current_path"],
+            query_args=request.args,
+            active_sort=sort,
+            active_order=order,
+            target_sort="applied_time",
+            target_order="asc",
+        ),
+        applied_time_desc_url=build_sort_url(
+            current_path=context["current_path"],
+            query_args=request.args,
+            active_sort=sort,
+            active_order=order,
+            target_sort="applied_time",
+            target_order="desc",
+        ),
+        viewed_time_asc_url=build_sort_url(
+            current_path=context["current_path"],
+            query_args=request.args,
+            active_sort=sort,
+            active_order=order,
+            target_sort="viewed_time",
+            target_order="asc",
+        ),
+        viewed_time_desc_url=build_sort_url(
+            current_path=context["current_path"],
+            query_args=request.args,
+            active_sort=sort,
+            active_order=order,
+            target_sort="viewed_time",
+            target_order="desc",
+        ),
         favorites_only=favorites_only,
         synced=synced,
         processed=processed,
@@ -882,6 +928,11 @@ def render_jobs_page(*, favorites_only: bool = False):
 
 @web.get("/")
 def home():
+    return send_from_directory(BASE_DIR, "landing.html")
+
+
+@web.get("/jobs")
+def jobs():
     return render_jobs_page(favorites_only=False)
 
 
@@ -917,11 +968,11 @@ def follow_up():
     )
 
 
-@web.get("/cv-optimizer")
+@web.get("/ai-cv-studio")
 def cv_optimizer():
     context = build_base_context(
-        current_path="/cv-optimizer",
-        page_title="CV Optimizer",
+        current_path="/ai-cv-studio",
+        page_title="AI CV Studio",
         page_subtitle="Upload a CV, paste a target job description, and generate a tailored version for that role.",
     )
     return render_template(
@@ -930,7 +981,7 @@ def cv_optimizer():
     )
 
 
-@web.get("/ai-cv-studio")
+@web.get("/cv-optimizer")
 def cv_optimizer_legacy():
     return redirect(url_for("cv_optimizer"))
 
