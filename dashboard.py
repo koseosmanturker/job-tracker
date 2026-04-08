@@ -993,7 +993,7 @@ def needs_review():
     context = build_base_context(
         current_path="/needs-review",
         page_title="Needs Review",
-        page_subtitle="Parser misses and incomplete CSV rows land here so you can repair them quickly.",
+        page_subtitle="Parser misses and incomplete job records land here so you can repair them quickly.",
     )
     return render_template(
         "needs_review.html",
@@ -1071,8 +1071,8 @@ def review_detail(review_id: str):
     )
 
 
-@web.route("/needs-review/csv/<int:row_index>", methods=["GET", "POST"])
-def csv_review_detail(row_index: int):
+@web.route("/needs-review/job/<int:row_index>", methods=["GET", "POST"])
+def job_record_review_detail(row_index: int):
     item = get_job_row_by_index(str(CSV_PATH), row_index)
     if not item or not is_incomplete_job_row(item):
         return redirect(url_for("needs_review"))
@@ -1095,20 +1095,20 @@ def csv_review_detail(row_index: int):
         if not updated_row:
             abort(404)
         if is_incomplete_job_row(updated_row):
-            return redirect(url_for("csv_review_detail", row_index=row_index))
+            return redirect(url_for("job_record_review_detail", row_index=row_index))
         return redirect(url_for("needs_review"))
 
     context = build_base_context(
         current_path="/needs-review",
-        page_title="Edit CSV Row",
-        page_subtitle="Fill in the missing job details and the row will leave the review queue automatically.",
+        page_title="Edit Job Record",
+        page_subtitle="Fill in the missing job details and the record will leave the review queue automatically.",
     )
     return render_template(
         "review_detail.html",
         item={
             "reason": "missing_csv_fields",
             "event_time": item.get("applied_time") or item.get("viewed_time") or "",
-            "subject": "Incomplete CSV Row",
+            "subject": "Incomplete Job Record",
             "body_text": "",
             "body_preview": "",
             "source_kind": "csv",

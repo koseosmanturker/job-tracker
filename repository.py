@@ -1,7 +1,6 @@
-import csv
-import os
 from typing import Dict
 
+from database import list_job_rows, replace_job_rows
 from linkedin_parser import (
     normalize_text,
     str_to_bool,
@@ -52,23 +51,12 @@ def is_unloaded_job_row(row: dict) -> bool:
 
 
 def read_job_rows(csv_path: str) -> list[dict]:
-    if not os.path.exists(csv_path):
-        return []
-
-    rows: list[dict] = []
-    with open(csv_path, "r", encoding="utf-8-sig", newline="") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            rows.append(_normalize_csv_row(row))
-    return rows
+    return [_normalize_csv_row(row) for row in list_job_rows(csv_path=csv_path)]
 
 
 def write_job_rows(csv_path: str, rows: list[dict]):
     normalized_rows = [_normalize_csv_row(row) for row in rows]
-    with open(csv_path, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_HEADERS)
-        writer.writeheader()
-        writer.writerows(normalized_rows)
+    replace_job_rows(normalized_rows, csv_path=csv_path)
 
 
 def list_incomplete_job_rows(csv_path: str) -> list[dict]:

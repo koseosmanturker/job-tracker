@@ -1,7 +1,7 @@
-import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from database import load_sync_state_row, save_sync_state_row
 from gmail_client import (
     get_gmail_service,
     list_all_message_ids,
@@ -33,19 +33,12 @@ SYNC_STATE_FILE = ".sync_state.json"
 # Loads sync state metadata from disk and returns dict.
 # If state file does not exist or is invalid, returns empty state.
 def load_sync_state(state_path: str) -> dict:
-    p = Path(state_path)
-    if not p.exists():
-        return {}
-    try:
-        return json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
+    return load_sync_state_row(state_path=state_path)
 
 
 # Persists latest sync metadata to disk so next run can be incremental.
 def save_sync_state(state_path: str, state: dict):
-    p = Path(state_path)
-    p.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    save_sync_state_row(state, state_path=state_path)
 
 
 # Builds Gmail query according to sync history.

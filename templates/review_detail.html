@@ -6,16 +6,16 @@
 {% block content %}
   <div class="grid2">
     <div class="panel">
-      <h2 class="sectionTitle">{% if item.source_kind == "csv" %}CSV Row{% else %}Review Source{% endif %}</h2>
+      <h2 class="sectionTitle">{% if item.source_kind == "csv" %}Job Record{% else %}Review Source{% endif %}</h2>
       <p class="meta">
         Reason: {{ item.reason }}
         {% if item.event_time %} | Message time: {{ format_time_with_date(item.event_time) }}{% endif %}
-        {% if item.source_kind == "csv" %} | Row: {{ item.csv_row_index + 2 }}{% endif %}
+        {% if item.source_kind == "csv" %} | Record: {{ item.csv_row_index + 1 }}{% endif %}
       </p>
       <p><strong>{% if item.source_kind == "csv" %}Source{% else %}Subject{% endif %}</strong></p>
       <p>{{ item.subject or "-" }}</p>
-      <p><strong>{% if item.source_kind == "csv" %}Current Notes{% else %}Body Preview{% endif %}</strong></p>
-      <div class="mono">{{ item.body_text or item.body_preview or "This row is missing one or more required fields in jobs.csv." }}</div>
+      <p><strong>{% if item.source_kind == "csv" %}Current Details{% else %}Body Preview{% endif %}</strong></p>
+      <div class="mono">{{ item.body_text or item.body_preview or "This record is missing one or more required fields in the database." }}</div>
     </div>
 
     <div class="panel">
@@ -48,7 +48,7 @@
           </div>
         {% endif %}
         <div class="actionsRow">
-          <button type="submit" name="action" value="apply">{% if item.source_kind == "csv" %}Save CSV Row{% else %}Apply Correction{% endif %}</button>
+          <button type="submit" name="action" value="apply">{% if item.source_kind == "csv" %}Save Record{% else %}Apply Correction{% endif %}</button>
           {% if item.source_kind != "csv" %}
             <button type="submit" name="action" value="dismiss" class="secondaryBtn">Dismiss Item</button>
           {% endif %}
@@ -57,7 +57,7 @@
       </form>
       <div class="notice" style="margin-top: 12px;">
         {% if item.source_kind == "csv" %}
-          Saving updates this exact row in `jobs.csv`. If company, title, and location are all filled in, it leaves the review queue automatically.
+          Saving updates this exact job record in the database. If company, title, and location are all filled in, it leaves the review queue automatically.
         {% else %}
           Saving this form also stores a signature-based correction so the same parser miss can be auto-fixed on future syncs.
         {% endif %}

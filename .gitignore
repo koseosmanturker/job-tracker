@@ -6,3 +6,4 @@ credentials.json
 .sync_state.json
 generated/
 .cv_optimizer_cache/
+*.db

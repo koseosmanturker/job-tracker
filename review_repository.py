@@ -3,6 +3,14 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from database import (
+    find_manual_correction_row,
+    get_review_row,
+    list_review_rows,
+    resolve_review_row,
+    save_manual_correction_row,
+    upsert_review_row,
+)
 from linkedin_parser import body_to_lines, normalize_text
 
 NEEDS_REVIEW_FILE = ".needs_review.json"
@@ -64,52 +72,19 @@ def build_needs_review_item(*,
 
 
 def queue_needs_review(review_path: str, item: dict) -> bool:
-    rows = _load_json_list(review_path)
-    signature = item.get("signature", "")
-    for row in rows:
-        if row.get("signature") != signature:
-            continue
-        if row.get("status") == "resolved":
-            return False
-        row["updated_at"] = _utc_now_iso()
-        row["event_time"] = item.get("event_time", row.get("event_time", ""))
-        row["reason"] = item.get("reason", row.get("reason", ""))
-        row["body_preview"] = item.get("body_preview", row.get("body_preview", ""))
-        row["body_text"] = item.get("body_text", row.get("body_text", ""))
-        _save_json_list(review_path, rows)
-        return False
-
-    rows.append(item)
-    rows.sort(key=lambda row: row.get("updated_at", ""), reverse=True)
-    _save_json_list(review_path, rows)
-    return True
+    return upsert_review_row(item, review_path=review_path)
 
 
 def list_needs_review(review_path: str, *, status: str | None = None) -> list[dict]:
-    rows = _load_json_list(review_path)
-    if status:
-        rows = [row for row in rows if row.get("status") == status]
-    return sorted(rows, key=lambda row: row.get("updated_at", ""), reverse=True)
+    return list_review_rows(review_path=review_path, status=status)
 
 
 def get_review_item(review_path: str, review_id: str) -> dict | None:
-    for row in _load_json_list(review_path):
-        if row.get("review_id") == review_id:
-            return row
-    return None
+    return get_review_row(review_id, review_path=review_path)
 
 
 def resolve_review_item(review_path: str, review_id: str, resolution_note: str = "") -> bool:
-    rows = _load_json_list(review_path)
-    for row in rows:
-        if row.get("review_id") != review_id:
-            continue
-        row["status"] = "resolved"
-        row["resolution_note"] = (resolution_note or "").strip()
-        row["updated_at"] = _utc_now_iso()
-        _save_json_list(review_path, rows)
-        return True
-    return False
+    return resolve_review_row(review_id, resolution_note, review_path=review_path)
 
 
 def save_manual_correction(corrections_path: str,
@@ -117,27 +92,15 @@ def save_manual_correction(corrections_path: str,
                            subject: str,
                            body_text: str,
                            corrected_fields: dict):
-    rows = _load_json_list(corrections_path)
     signature = build_message_signature(subject, body_text)
-    record = {
-        "signature": signature,
-        "subject": subject.strip(),
-        "corrected_fields": corrected_fields,
-        "updated_at": _utc_now_iso(),
-    }
-    for idx, row in enumerate(rows):
-        if row.get("signature") == signature:
-            rows[idx] = record
-            _save_json_list(corrections_path, rows)
-            return
-    rows.append(record)
-    rows.sort(key=lambda row: row.get("updated_at", ""), reverse=True)
-    _save_json_list(corrections_path, rows)
+    save_manual_correction_row(
+        subject=subject,
+        signature=signature,
+        corrected_fields=corrected_fields,
+        corrections_path=corrections_path,
+    )
 
 
 def find_manual_correction(corrections_path: str, *, subject: str, body_text: str) -> dict | None:
     signature = build_message_signature(subject, body_text)
-    for row in _load_json_list(corrections_path):
-        if row.get("signature") == signature:
-            return row.get("corrected_fields") or None
-    return None
+    return find_manual_correction_row(signature, corrections_path=corrections_path)

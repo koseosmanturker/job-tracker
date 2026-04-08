@@ -5,7 +5,7 @@
 
 {% block content %}
   <div class="panel">
-    <h2 class="sectionTitle">Incomplete CSV Rows</h2>
+    <h2 class="sectionTitle">Incomplete Job Records</h2>
     <div class="stack" style="margin-bottom: 18px;">
       {% for row in csv_review_rows %}
         <div class="card listCard">
@@ -13,11 +13,11 @@
           <p class="meta">Reason: Missing company, job title, or location | Applied time: {{ format_time_with_date(row.applied_time or row.viewed_time) }}</p>
           <p>Location: {{ row.location or "-" }} | URL: {{ row.job_url or "-" }}</p>
           <div class="actionsRow">
-            <a class="buttonLink" href="/needs-review/csv/{{ row.csv_row_index }}">Edit CSV Row</a>
+            <a class="buttonLink" href="/needs-review/job/{{ row.csv_row_index }}">Edit Record</a>
           </div>
         </div>
       {% else %}
-        <div class="emptyState">No incomplete CSV rows right now.</div>
+        <div class="emptyState">No incomplete job records right now.</div>
       {% endfor %}
     </div>
 
