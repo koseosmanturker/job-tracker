@@ -232,6 +232,67 @@
         color: var(--text);
       }
       .topActions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; justify-self: end; }
+      .accountCard {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card) 90%, var(--chip));
+        box-shadow: var(--shadow);
+      }
+      .accountMeta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+      }
+      .accountName {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .accountEmail {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .packageChip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 28px;
+        padding: 0 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #2f230d;
+        background: linear-gradient(135deg, var(--tab-active-start), var(--tab-active-end));
+        border: 1px solid color-mix(in srgb, var(--tab-active-start) 45%, var(--line));
+      }
+      .logoutLink {
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--brand);
+      }
+      .demoPill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 28px;
+        padding: 0 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--text);
+        background: color-mix(in srgb, var(--card) 90%, var(--chip));
+        border: 1px solid var(--line);
+      }
       .syncButtons { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; }
       .syncButtons form { display: block; margin: 0; }
       .lastSync { font-size: 12px; color: var(--muted); white-space: nowrap; }
@@ -654,6 +715,8 @@
         .pageSwitch { display: flex; width: 100%; flex-wrap: wrap; }
         .navBtn { flex: 1 1 0; min-width: 0; }
         .topActions { width: 100%; align-items: stretch; }
+        .accountCard { justify-content: space-between; }
+        .accountMeta { align-items: flex-start; }
         .topTools { justify-content: flex-start; }
         .syncButtons { width: 100%; }
         .syncButtons form { width: 100%; }
@@ -679,14 +742,42 @@
         </div>
         <div class="topCenter">
           <div class="pageSwitch" role="tablist" aria-label="Page switcher">
-            <a class="navBtn {% if current_path == '/jobs' %}active{% endif %}" href="/jobs">Jobs</a>
-            <a class="navBtn {% if current_path == '/favorites' %}active{% endif %}" href="/favorites">Favorites</a>
-            <a class="navBtn {% if current_path == '/follow-up' %}active{% endif %}" href="/follow-up">Follow-up</a>
-            <a class="navBtn {% if current_path == '/ai-cv-studio' %}active{% endif %}" href="/ai-cv-studio">AI CV Studio</a>
-            <a class="navBtn {% if current_path == '/needs-review' %}active{% endif %}" href="/needs-review">Needs Review{% if needs_review_count %}<span class="pill">{{ needs_review_count }}</span>{% endif %}</a>
+            <a class="navBtn {% if current_path == '/jobs' %}active{% endif %}" href="{{ jobs_href }}">Jobs</a>
+            <a class="navBtn {% if current_path == '/favorites' %}active{% endif %}" href="{{ favorites_href }}">Favorites</a>
+            <a class="navBtn {% if current_path == '/follow-up' %}active{% endif %}" href="{{ follow_up_href }}">Follow-up{% if follow_up_count %}<span class="pill">{{ follow_up_count }}</span>{% endif %}</a>
+            <a class="navBtn {% if current_path == '/ai-cv-studio' %}active{% endif %}" href="{{ ai_cv_studio_href }}">AI CV Studio</a>
+            <a class="navBtn {% if current_path == '/needs-review' %}active{% endif %}" href="{{ needs_review_href }}">Needs Review{% if needs_review_count %}<span class="pill">{{ needs_review_count }}</span>{% endif %}</a>
           </div>
         </div>
         <div class="topActions">
+          {% if current_user_email %}
+          <div class="accountCard">
+            <div class="accountMeta">
+              <div class="accountName">{{ current_user_name or current_user_email }}</div>
+              <div class="accountEmail">{{ current_user_email }}</div>
+            </div>
+            {% if current_user_package_label %}
+            <span class="packageChip">{{ current_user_package_label }}</span>
+            {% endif %}
+            {% if demo_mode %}
+            <span class="demoPill">Demo</span>
+            <a class="logoutLink" href="{{ demo_exit_href }}">Exit Demo</a>
+            {% else %}
+            <a class="logoutLink" href="/logout">Logout</a>
+            {% endif %}
+          </div>
+          {% endif %}
+          {% if not current_user_email and demo_mode %}
+          <div class="accountCard">
+            <div class="accountMeta">
+              <div class="accountName">Interactive Demo</div>
+              <div class="accountEmail">Preview workspace</div>
+            </div>
+            <span class="demoPill">Demo</span>
+            <a class="logoutLink" href="{{ demo_exit_href }}">Exit Demo</a>
+          </div>
+          {% endif %}
+          {% if show_sync_controls %}
           <div class="syncButtons">
             <form id="syncForm" method="post" action="/sync">
               <input type="hidden" name="sync_mode" value="incremental">
@@ -701,6 +792,9 @@
             </form>
           </div>
           <div class="lastSync">Last Sync Time: {{ last_sync_time_fmt }}</div>
+          {% else %}
+          <div class="lastSync">Last Sync Time: {{ last_sync_time_fmt }}</div>
+          {% endif %}
         </div>
       </div>
 

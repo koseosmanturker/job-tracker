@@ -626,6 +626,13 @@
         <div class="insightsPill">{{ followups|length }} open</div>
       </div>
 
+      {% if demo_mode %}
+        <div class="notice">
+          <strong>Demo mode.</strong>
+          Follow-up priorities here are generated from sample viewed applications. Marking complete is disabled, but AI draft examples still work.
+        </div>
+      {% endif %}
+
       <div class="followupGrid">
         {% for row in followups %}
           <article class="followupCard {% if row.follow_up_done %}done{% else %}pending{% endif %}">
@@ -664,6 +671,7 @@
               <button
                 type="button"
                 class="followupPrimaryBtn {% if row.follow_up_done %}secondaryBtn{% endif %}"
+                {% if demo_mode %}disabled{% endif %}
                 data-toggle-follow-up
                 data-row-id="{{ row.row_id|urlencode }}"
               >{% if row.follow_up_done %}Follow-up Done{% else %}Mark Follow-up{% endif %}</button>
@@ -724,6 +732,7 @@
 
 {% block scripts %}
   <script>
+    const demoMode = {{ 'true' if demo_mode else 'false' }};
     const followupModal = document.getElementById("followupModal");
     const closeFollowupModal = document.getElementById("closeFollowupModal");
     const followupOutput = document.getElementById("followupOutput");
@@ -844,6 +853,7 @@
 
       const followBtn = e.target.closest("[data-toggle-follow-up]");
       if (!followBtn) return;
+      if (demoMode) return;
       const rowId = followBtn.getAttribute("data-row-id");
       if (!rowId) return;
 

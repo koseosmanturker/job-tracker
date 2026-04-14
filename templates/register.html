@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Your Account</title>
+  <style>
+    :root{--bg:#f4faf6;--bg2:#edf6ef;--panel:rgba(255,255,255,.92);--text:#102218;--muted:#5f7366;--line:rgba(16,34,24,.08);--green:#2e7d5b;--green2:#f0be68;--shadow:0 24px 70px rgba(18,39,26,.10);--radius:28px;--max:1160px}
+    *{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:
+      radial-gradient(circle at top left,rgba(88,180,134,.12),transparent 26%),
+      radial-gradient(circle at top right,rgba(240,190,104,.14),transparent 24%),
+      linear-gradient(180deg,var(--bg),var(--bg2))}
+    a{text-decoration:none;color:inherit}
+    .wrap{width:min(var(--max),calc(100% - 32px));margin:0 auto}
+    .top{padding:24px 0}
+    .brand{display:inline-flex;align-items:center;gap:12px;font-weight:800;letter-spacing:-.03em}
+    .brandMark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--green),#58b486);box-shadow:0 16px 34px rgba(46,125,91,.24)}
+    .hero{padding:18px 0 72px}
+    .grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:28px;align-items:start}
+    .intro,.panel{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow)}
+    .intro{padding:34px;background:
+      radial-gradient(220px 130px at 100% 0%,rgba(240,190,104,.20),transparent 72%),
+      linear-gradient(145deg,rgba(246,255,251,.98),rgba(228,244,235,.96) 60%,rgba(220,239,229,.98))}
+    .panel{padding:32px;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(248,252,249,.92))}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--green);background:rgba(255,255,255,.74);border:1px solid rgba(46,125,91,.12)}
+    .eyebrow i{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--green2),#58b486)}
+    h1{margin:18px 0 14px;font-size:clamp(36px,5vw,60px);line-height:1;letter-spacing:-.05em}
+    p{margin:0;color:var(--muted);line-height:1.75}
+    .featureList{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:14px}
+    .featureList li{display:flex;gap:12px;align-items:flex-start;color:var(--text);font-weight:600}
+    .featureList li:before{content:"";width:10px;height:10px;border-radius:50%;margin-top:9px;flex:0 0 auto;background:linear-gradient(135deg,var(--green),var(--green2));box-shadow:0 0 0 6px rgba(88,180,134,.12)}
+    .meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:26px}
+    .metaCard{padding:16px 18px;border-radius:20px;background:rgba(255,255,255,.66);border:1px solid rgba(16,34,24,.06)}
+    .metaCard strong{display:block;margin-bottom:8px;font-size:24px;letter-spacing:-.04em;color:var(--green)}
+    .panel h2{margin:0 0 8px;font-size:32px;letter-spacing:-.04em}
+    .panelIntro{margin-bottom:22px}
+    .planBadge{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;margin-bottom:14px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--green);background:rgba(223,245,231,.92);border:1px solid rgba(46,125,91,.12)}
+    .alert{margin-bottom:18px;padding:14px 16px;border-radius:18px;font-size:14px;line-height:1.6}
+    .alert.error{color:#8a2d2d;background:#fff2f2;border:1px solid rgba(220,38,38,.12)}
+    .alert.success{color:#115338;background:#e9f9ef;border:1px solid rgba(46,125,91,.12)}
+    .alert ul{margin:0;padding-left:18px}
+    form{display:grid;gap:18px}
+    .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .field{display:grid;gap:8px}
+    label{font-size:14px;font-weight:700}
+    input,select{width:100%;padding:14px 16px;border-radius:16px;border:1px solid rgba(16,34,24,.10);background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(248,252,249,.92));font:inherit;color:var(--text);outline:none;transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+    input:focus,select:focus{border-color:rgba(46,125,91,.34);box-shadow:0 0 0 4px rgba(88,180,134,.10)}
+    .hint{font-size:13px;color:var(--muted)}
+    .permission{padding:18px;border-radius:20px;border:1px solid rgba(46,125,91,.12);background:
+      radial-gradient(180px 100px at 100% 0%,rgba(240,190,104,.14),transparent 72%),
+      linear-gradient(180deg,rgba(244,251,247,.96),rgba(237,246,239,.94))}
+    .checkbox{display:flex;gap:12px;align-items:flex-start}
+    .checkbox input{width:18px;height:18px;margin-top:2px}
+    .actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 22px;border-radius:999px;font-weight:800;letter-spacing:-.02em;border:none;cursor:pointer}
+    .btn.primary{color:#fff;background:linear-gradient(135deg,var(--green),#58b486);box-shadow:0 18px 36px rgba(46,125,91,.22)}
+    .btn.secondary{color:var(--green);background:rgba(223,245,231,.92);border:1px solid rgba(46,125,91,.10)}
+    .fine{font-size:13px;color:var(--muted)}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}.meta{grid-template-columns:1fr 1fr}}
+    @media (max-width:680px){.row,.meta{grid-template-columns:1fr}.wrap{width:min(var(--max),calc(100% - 22px))}.hero{padding-bottom:44px}.intro,.panel{padding:24px}h1{font-size:40px}}
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="/">
+        <span class="brandMark">JT</span>
+        <span>Job Tracker</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="hero">
+    <div class="wrap grid">
+      <section class="intro">
+        <span class="eyebrow"><i></i>Early Access Setup</span>
+        <h1>Build your account before your next LinkedIn email lands.</h1>
+        <p>We use your Gmail and LinkedIn language preference to parse job emails correctly, surface follow-ups faster, and power the AI CV Studio flow from day one.</p>
+        <ul class="featureList">
+          <li>Your applications stay organized automatically.</li>
+          <li>LinkedIn language helps us interpret incoming job emails more accurately.</li>
+          <li>Gmail API permission lets the tracker read the job notifications sent to your personal inbox.</li>
+        </ul>
+        <div class="meta">
+          <article class="metaCard"><strong>30 sec</strong><span>to complete setup</span></article>
+          <article class="metaCard"><strong>AI-ready</strong><span>profile for CV Studio</span></article>
+          <article class="metaCard"><strong>Private</strong><span>password stored as a secure hash</span></article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panelIntro">
+          <div class="planBadge">Selected package: {{ package_label }}</div>
+          <h2>Create your account</h2>
+          <p>Fill in the basics, choose the language LinkedIn uses when emailing you, and approve Gmail API access.</p>
+        </div>
+
+        {% if errors %}
+        <div class="alert error">
+          <ul>
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if oauth_error == 'missing_credentials' %}
+        <div class="alert error">
+          Gmail connection could not start because <code>credentials.json</code> is missing in the project root.
+        </div>
+        {% endif %}
+
+        {% if oauth_error == 'missing_state' %}
+        <div class="alert error">
+          The Gmail connection session expired. Please submit the registration form again.
+        </div>
+        {% endif %}
+
+        {% if oauth_error == 'access_denied' %}
+        <div class="alert error">
+          Gmail permission was not granted. You can fill the form again and retry the connection.
+        </div>
+        {% endif %}
+
+        {% if oauth_error == 'oauth_failed' %}
+        <div class="alert error">
+          Gmail OAuth could not be completed. Please try again.
+          {% if oauth_error_detail %}
+          <div style="margin-top:8px;font-size:13px;word-break:break-word">{{ oauth_error_detail }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="alert success">
+          Registration saved successfully.
+        </div>
+        {% endif %}
+
+        <form method="post" action="/register">
+          <input type="hidden" name="package" value="{{ form_data.package }}">
+          <div class="row">
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" name="name" type="text" value="{{ form_data.name }}" required>
+            </div>
+            <div class="field">
+              <label for="surname">Surname</label>
+              <input id="surname" name="surname" type="text" value="{{ form_data.surname }}" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="age">Age</label>
+              <input id="age" name="age" type="number" min="16" max="100" value="{{ form_data.age }}" required>
+            </div>
+            <div class="field">
+              <label for="gmail">Gmail</label>
+              <input id="gmail" name="gmail" type="email" placeholder="name@gmail.com" value="{{ form_data.gmail }}" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="password">Set password</label>
+              <input id="password" name="password" type="password" minlength="8" required>
+            </div>
+            <div class="field">
+              <label for="password_repeat">Re-type password</label>
+              <input id="password_repeat" name="password_repeat" type="password" minlength="8" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="linkedin_language">LinkedIn language</label>
+            <select id="linkedin_language" name="linkedin_language" required>
+              <option value="" {% if not form_data.linkedin_language %}selected{% endif %}>Select the language LinkedIn uses in your emails</option>
+              <option value="English" {% if form_data.linkedin_language == 'English' %}selected{% endif %}>English</option>
+              <option value="Turkish" {% if form_data.linkedin_language == 'Turkish' %}selected{% endif %}>Turkish</option>
+              <option value="German" {% if form_data.linkedin_language == 'German' %}selected{% endif %}>German</option>
+              <option value="French" {% if form_data.linkedin_language == 'French' %}selected{% endif %}>French</option>
+              <option value="Spanish" {% if form_data.linkedin_language == 'Spanish' %}selected{% endif %}>Spanish</option>
+              <option value="Italian" {% if form_data.linkedin_language == 'Italian' %}selected{% endif %}>Italian</option>
+              <option value="Portuguese" {% if form_data.linkedin_language == 'Portuguese' %}selected{% endif %}>Portuguese</option>
+              <option value="Dutch" {% if form_data.linkedin_language == 'Dutch' %}selected{% endif %}>Dutch</option>
+            </select>
+            <div class="hint">This helps the parser understand the exact LinkedIn email wording arriving in your Gmail inbox.</div>
+          </div>
+
+          <div class="permission">
+            <div class="field" style="margin-bottom:12px">
+              <label>API permission</label>
+              <div class="hint">Job Tracker needs read-only Gmail API access so it can detect LinkedIn application, viewed, and follow-up emails in your personal Gmail account.</div>
+            </div>
+            <label class="checkbox" for="api_permission">
+              <input id="api_permission" name="api_permission" type="checkbox" value="yes" {% if form_data.api_permission == 'yes' %}checked{% endif %} required>
+              <span>I allow Job Tracker to request read-only Gmail API access for LinkedIn job email tracking.</span>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" type="submit">Create account</button>
+            <a class="btn secondary" href="/">Back to landing</a>
+          </div>
+          <div class="fine">After clicking create account, you will be redirected to Google's permission screen to connect the Gmail inbox where LinkedIn sends your job-related notifications.</div>
+        </form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

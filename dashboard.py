@@ -4,15 +4,18 @@ import io
 import hashlib
 import re
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib import error as urllib_error
 from urllib import request as urllib_request
 from urllib.parse import urlencode
 
-from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, url_for
+from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
+from google_auth_oauthlib.flow import Flow
 
 from linkedin_parser import normalize_text
+from gmail_client import SCOPES
 from repository import (
     get_job_row_by_index,
     is_incomplete_job_row,
@@ -42,8 +45,10 @@ NEEDS_REVIEW_PATH = BASE_DIR / NEEDS_REVIEW_FILE
 MANUAL_CORRECTIONS_PATH = BASE_DIR / MANUAL_CORRECTIONS_FILE
 GENERATED_DIR = BASE_DIR / "generated"
 CV_CACHE_DIR = BASE_DIR / ".cv_optimizer_cache"
+USER_REGISTRATIONS_PATH = BASE_DIR / "user_registrations.json"
 
 web = Flask(__name__)
+web.secret_key = os.environ.get("FLASK_SECRET_KEY", "job-tracker-dev-secret")
 GENERATED_DIR.mkdir(exist_ok=True)
 CV_CACHE_DIR.mkdir(exist_ok=True)
 
@@ -70,6 +75,7 @@ def load_dotenv_file(dotenv_path: Path) -> None:
 
 
 load_dotenv_file(BASE_DIR / ".env")
+os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
 
 
 @web.get("/pngs/<path:filename>")
@@ -151,6 +157,134 @@ def _dedupe_list(values: list[str]) -> list[str]:
         seen.add(normalized)
         result.append(value.strip())
     return result
+
+
+def load_user_registrations() -> list[dict]:
+    if not USER_REGISTRATIONS_PATH.exists():
+        return []
+    try:
+        data = json.loads(USER_REGISTRATIONS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    return data if isinstance(data, list) else []
+
+
+def save_user_registrations(rows: list[dict]) -> None:
+    USER_REGISTRATIONS_PATH.write_text(
+        json.dumps(rows, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def build_gmail_oauth_flow(redirect_uri: str, state: str | None = None) -> Flow:
+    flow = Flow.from_client_secrets_file(
+        str(BASE_DIR / "credentials.json"),
+        scopes=SCOPES,
+        state=state,
+    )
+    flow.redirect_uri = redirect_uri
+    return flow
+
+
+def build_local_oauth_redirect_uri() -> str:
+    return url_for("oauth2callback", _external=True)
+
+
+PLAN_LABELS = {
+    "starter": "Starter",
+    "serious": "Serious",
+    "advanced": "Advanced",
+}
+
+
+def normalize_plan(value: str | None) -> str:
+    plan = (value or "").strip().lower()
+    return plan if plan in PLAN_LABELS else "starter"
+
+
+def build_demo_jobs_store() -> dict[str, dict]:
+    companies = [
+        ("Notion Labs", "Senior Product Designer", "Remote, US"),
+        ("Northgrid", "Operations Analyst", "Berlin, Germany"),
+        ("RemoteWave", "Growth Marketing Lead", "London, UK"),
+        ("Atlas AI", "Product Marketing Manager", "New York, US"),
+        ("Bloomstack", "Customer Success Strategist", "Amsterdam, NL"),
+        ("Nova Ledger", "Business Analyst", "Remote, EU"),
+        ("Brightpath", "UX Researcher", "Austin, US"),
+        ("Crest Labs", "Revenue Operations Manager", "Dublin, IE"),
+        ("Orbit Scale", "Lifecycle Marketing Manager", "Remote, US"),
+        ("Luma Health", "Strategy Associate", "Toronto, CA"),
+        ("Peakline", "Program Manager", "Remote, UK"),
+        ("Verve Tech", "Content Marketing Lead", "Barcelona, ES"),
+        ("Harbor AI", "Founders Associate", "Istanbul, TR"),
+        ("Metric Hive", "Partnerships Manager", "Paris, FR"),
+        ("Sparklane", "Business Development Analyst", "Remote, US"),
+        ("Northstar Bio", "Operations Specialist", "Boston, US"),
+        ("Astra Cloud", "Customer Marketing Manager", "Remote, CA"),
+        ("Fieldstone", "Employer Branding Lead", "Munich, DE"),
+        ("Craftflow", "Product Operations Analyst", "Remote, EU"),
+        ("Echo Mobility", "Growth Operations Manager", "Stockholm, SE"),
+        ("Signal Forge", "User Acquisition Lead", "Remote, UK"),
+        ("Kindred Pay", "CRM Manager", "Lisbon, PT"),
+        ("PulseGrid", "Community Manager", "Remote, US"),
+        ("Northbeam", "Commercial Analyst", "Zurich, CH"),
+        ("Clearmint", "Brand Strategist", "Milan, IT"),
+        ("Open Harbor", "Program Operations Associate", "Remote, TR"),
+        ("Helio Works", "Marketplace Manager", "Warsaw, PL"),
+        ("Sunline AI", "Growth Designer", "Prague, CZ"),
+        ("Skyfoundry", "Sales Enablement Specialist", "Remote, US"),
+        ("Brighter Day", "Marketing Analyst", "Copenhagen, DK"),
+    ]
+    favorite_indexes = {1, 6, 11, 18, 24}
+    rejected_indexes = {8, 16, 27}
+    follow_up_done_indexes = {0, 2, 5, 9, 13, 17, 21}
+    now = datetime.utcnow().replace(microsecond=0)
+    jobs: dict[str, dict] = {}
+    for index, (company, title, location) in enumerate(companies):
+        viewed_at = now - timedelta(days=index + 2, hours=(index % 5) * 3)
+        applied_at = viewed_at - timedelta(days=(index % 4) + 1, hours=2)
+        jobs[f"demo-{index+1:02d}"] = {
+            "company": company,
+            "job_title": title,
+            "location": location,
+            "job_url": f"https://www.linkedin.com/jobs/view/{770000000 + index}",
+            "applied": True,
+            "applied_time": applied_at.isoformat(),
+            "viewed": True,
+            "viewed_time": viewed_at.isoformat(),
+            "downloaded": index < 20,
+            "rejected": index in rejected_indexes,
+            "favorite": index in favorite_indexes,
+            "follow_up_done": index in follow_up_done_indexes,
+        }
+    return jobs
+
+
+def build_demo_context(*, current_path: str, page_title: str, page_subtitle: str, jobs_rows: list[dict]) -> dict:
+    pending_followups = [
+        row for row in build_followup_items(jobs_rows) if not row.get("follow_up_done", False)
+    ]
+    return {
+        "current_path": current_path,
+        "page_title": page_title,
+        "page_title_html": page_title,
+        "page_subtitle": page_subtitle,
+        "last_sync_time_fmt": "Demo snapshot",
+        "follow_up_count": len(pending_followups),
+        "needs_review_count": 0,
+        "current_user_name": session.get("user_name", "Demo User"),
+        "current_user_email": session.get("user_email", "demo@jobtracker.app"),
+        "current_user_package": session.get("user_package", "advanced"),
+        "current_user_package_label": PLAN_LABELS.get(session.get("user_package", "advanced"), "Advanced"),
+        "jobs_href": "/demo/jobs",
+        "favorites_href": "/demo/favorites",
+        "follow_up_href": "/demo/follow-up",
+        "ai_cv_studio_href": "/demo/ai-cv-studio",
+        "needs_review_href": "/demo/jobs",
+        "show_sync_controls": False,
+        "demo_mode": True,
+        "demo_exit_href": "/",
+    }
 
 
 def _extract_pdf_text(pdf_bytes: bytes) -> str:
@@ -518,13 +652,30 @@ def build_base_context(*, current_path: str, page_title: str, page_subtitle: str
     sync_state = load_sync_state(state_path)
     pending_reviews = list_needs_review(str(NEEDS_REVIEW_PATH), status="pending")
     incomplete_csv_reviews = list_incomplete_job_rows(str(CSV_PATH))
+    jobs = to_rows(read_jobs_csv(str(CSV_PATH)))
+    pending_followups = [
+        row for row in build_followup_items(jobs) if not row.get("follow_up_done", False)
+    ]
     return {
         "current_path": current_path,
         "page_title": page_title,
         "page_title_html": page_title,
         "page_subtitle": page_subtitle,
         "last_sync_time_fmt": format_time(sync_state.get("last_synced_at")),
+        "follow_up_count": len(pending_followups),
         "needs_review_count": len(pending_reviews) + len(incomplete_csv_reviews),
+        "current_user_name": session.get("user_name", ""),
+        "current_user_email": session.get("user_email", ""),
+        "current_user_package": session.get("user_package", ""),
+        "current_user_package_label": PLAN_LABELS.get(session.get("user_package", ""), ""),
+        "jobs_href": "/jobs",
+        "favorites_href": "/favorites",
+        "follow_up_href": "/follow-up",
+        "ai_cv_studio_href": "/ai-cv-studio",
+        "needs_review_href": "/needs-review",
+        "show_sync_controls": True,
+        "demo_mode": False,
+        "demo_exit_href": "/",
     }
 
 
@@ -799,9 +950,9 @@ def generate_followup():
     return jsonify({"email": email})
 
 
-def render_jobs_page(*, favorites_only: bool = False):
-    jobs = to_rows(read_jobs_csv(str(CSV_PATH)))
-    context = build_base_context(
+def render_jobs_page(*, favorites_only: bool = False, rows_override: list[dict] | None = None, context_override: dict | None = None):
+    jobs = [dict(row) for row in rows_override] if rows_override is not None else to_rows(read_jobs_csv(str(CSV_PATH)))
+    context = context_override or build_base_context(
         current_path="/favorites" if favorites_only else "/jobs",
         page_title="Favorites" if favorites_only else "Career Intelligence Tool",
         page_subtitle=(
@@ -929,6 +1080,270 @@ def render_jobs_page(*, favorites_only: bool = False):
 @web.get("/")
 def home():
     return send_from_directory(BASE_DIR, "landing.html")
+
+
+@web.get("/demo")
+def demo_home():
+    return redirect("/demo/jobs")
+
+
+@web.get("/demo/jobs")
+def demo_jobs():
+    rows = to_rows(build_demo_jobs_store())
+    context = build_demo_context(
+        current_path="/jobs",
+        page_title="Career Intelligence Demo",
+        page_subtitle="A guided demo dataset with 30 viewed roles, 20 downloaded CVs, and 5 saved favorites.",
+        jobs_rows=rows,
+    )
+    context["page_title_html"] = '<span class="titleSolid">Career</span> <span class="titleGradient">Intelligence</span> <span class="titleSolid">Demo</span>'
+    return render_jobs_page(favorites_only=False, rows_override=rows, context_override=context)
+
+
+@web.get("/demo/favorites")
+def demo_favorites():
+    rows = to_rows(build_demo_jobs_store())
+    context = build_demo_context(
+        current_path="/favorites",
+        page_title="Favorites Demo",
+        page_subtitle="Five highlighted roles are pre-saved so users can see how a focused shortlist feels in the product.",
+        jobs_rows=rows,
+    )
+    return render_jobs_page(favorites_only=True, rows_override=rows, context_override=context)
+
+
+@web.get("/demo/follow-up")
+def demo_follow_up():
+    rows = to_rows(build_demo_jobs_store())
+    followups = build_followup_items(rows)
+    context = build_demo_context(
+        current_path="/follow-up",
+        page_title="Follow-up Demo",
+        page_subtitle="See how the app prioritizes viewed jobs and suggests the next outreach window automatically.",
+        jobs_rows=rows,
+    )
+    return render_template(
+        "insights.html",
+        followups=followups,
+        synced=False,
+        processed=0,
+        skipped=0,
+        needs_review_added=0,
+        manual_corrections_used=0,
+        format_time_with_date=format_time_with_date,
+        **context,
+    )
+
+
+@web.get("/demo/ai-cv-studio")
+def demo_cv_optimizer():
+    rows = to_rows(build_demo_jobs_store())
+    context = build_demo_context(
+        current_path="/ai-cv-studio",
+        page_title="AI CV Studio Demo",
+        page_subtitle="A preview of the CV tailoring workflow users unlock inside the product.",
+        jobs_rows=rows,
+    )
+    return render_template("cv_optimizer.html", **context)
+
+
+@web.route("/login", methods=["GET", "POST"])
+def login():
+    form_data = {
+        "gmail": "",
+    }
+    errors: list[str] = []
+
+    if request.method == "POST":
+        form_data["gmail"] = (request.form.get("gmail") or "").strip().lower()
+        password = request.form.get("password") or ""
+
+        if not form_data["gmail"]:
+            errors.append("Gmail address is required.")
+        if not password:
+            errors.append("Password is required.")
+
+        if not errors:
+            registrations = load_user_registrations()
+            user = next(
+                (row for row in registrations if (row.get("gmail") or "").lower() == form_data["gmail"]),
+                None,
+            )
+            if not user or not check_password_hash(user.get("password_hash", ""), password):
+                errors.append("Invalid Gmail or password.")
+            else:
+                session["user_email"] = user.get("gmail", "")
+                session["user_name"] = user.get("name", "")
+                session["user_package"] = normalize_plan(user.get("package"))
+                return redirect(url_for("jobs"))
+
+    return render_template(
+        "login.html",
+        form_data=form_data,
+        errors=errors,
+    )
+
+
+@web.get("/logout")
+def logout():
+    session.pop("user_email", None)
+    session.pop("user_name", None)
+    session.pop("user_package", None)
+    return redirect(url_for("home"))
+
+
+@web.route("/register", methods=["GET", "POST"])
+def register():
+    pending_registration = session.get("pending_registration") or {}
+    selected_plan = normalize_plan(request.args.get("plan") or pending_registration.get("package"))
+    form_data = {
+        "name": pending_registration.get("name", ""),
+        "surname": pending_registration.get("surname", ""),
+        "age": str(pending_registration.get("age", "")) if pending_registration.get("age", "") != "" else "",
+        "gmail": pending_registration.get("gmail", ""),
+        "linkedin_language": pending_registration.get("linkedin_language", ""),
+        "api_permission": "yes" if pending_registration.get("api_permission_granted") else "",
+        "package": selected_plan,
+    }
+    errors: list[str] = []
+    success = False
+    oauth_error = (request.args.get("oauth_error") or "").strip()
+    oauth_error_detail = session.pop("oauth_last_error", "")
+
+    if request.method == "POST":
+        form_data = {
+            "name": (request.form.get("name") or "").strip(),
+            "surname": (request.form.get("surname") or "").strip(),
+            "age": (request.form.get("age") or "").strip(),
+            "gmail": (request.form.get("gmail") or "").strip().lower(),
+            "linkedin_language": (request.form.get("linkedin_language") or "").strip(),
+            "api_permission": (request.form.get("api_permission") or "").strip(),
+            "package": normalize_plan(request.form.get("package")),
+        }
+        password = request.form.get("password") or ""
+        password_repeat = request.form.get("password_repeat") or ""
+
+        if not form_data["name"]:
+            errors.append("Name is required.")
+        if not form_data["surname"]:
+            errors.append("Surname is required.")
+
+        try:
+            age_value = int(form_data["age"])
+            if age_value < 16 or age_value > 100:
+                errors.append("Age must be between 16 and 100.")
+        except ValueError:
+            errors.append("Age must be a valid number.")
+
+        gmail_value = form_data["gmail"]
+        if not gmail_value:
+            errors.append("Gmail address is required.")
+        elif not re.fullmatch(r"[A-Za-z0-9._%+-]+@gmail\.com", gmail_value):
+            errors.append("Please enter a valid Gmail address.")
+
+        if not password:
+            errors.append("Password is required.")
+        elif len(password) < 8:
+            errors.append("Password must be at least 8 characters.")
+
+        if password != password_repeat:
+            errors.append("Password and re-type password must match.")
+
+        if not form_data["linkedin_language"]:
+            errors.append("LinkedIn language is required.")
+
+        if form_data["api_permission"] != "yes":
+            errors.append("You need to allow Gmail API access to continue.")
+
+        existing = load_user_registrations()
+        if any((row.get("gmail") or "").lower() == gmail_value for row in existing):
+            errors.append("This Gmail address is already registered.")
+
+        if not errors:
+            session["pending_registration"] = {
+                "name": form_data["name"],
+                "surname": form_data["surname"],
+                "age": age_value,
+                "gmail": gmail_value,
+                "password_hash": generate_password_hash(password),
+                "linkedin_language": form_data["linkedin_language"],
+                "api_permission_granted": True,
+                "package": form_data["package"],
+            }
+            return redirect(url_for("connect_gmail"))
+
+    return render_template(
+        "register.html",
+        form_data=form_data,
+        errors=errors,
+        success=success,
+        oauth_error=oauth_error,
+        oauth_error_detail=oauth_error_detail,
+        package_label=PLAN_LABELS.get(form_data["package"], "Starter"),
+    )
+
+
+@web.get("/connect-gmail")
+def connect_gmail():
+    pending_registration = session.get("pending_registration")
+    if not pending_registration:
+        return redirect(url_for("register"))
+
+    credentials_path = BASE_DIR / "credentials.json"
+    if not credentials_path.exists():
+        return redirect(url_for("register", oauth_error="missing_credentials"))
+
+    flow = build_gmail_oauth_flow(build_local_oauth_redirect_uri())
+    authorization_url, state = flow.authorization_url(
+        access_type="offline",
+        include_granted_scopes="true",
+        prompt="consent",
+    )
+    session["oauth_state"] = state
+    session["oauth_code_verifier"] = getattr(flow, "code_verifier", None)
+    return redirect(authorization_url)
+
+
+@web.get("/oauth2callback")
+def oauth2callback():
+    pending_registration = session.get("pending_registration")
+    oauth_state = session.get("oauth_state")
+    oauth_code_verifier = session.get("oauth_code_verifier")
+    if not pending_registration or not oauth_state:
+        return redirect(url_for("register", oauth_error="missing_state"))
+
+    if request.args.get("error"):
+        return redirect(url_for("register", oauth_error="access_denied"))
+
+    try:
+        flow = build_gmail_oauth_flow(build_local_oauth_redirect_uri(), state=oauth_state)
+        if oauth_code_verifier:
+            flow.code_verifier = oauth_code_verifier
+        flow.fetch_token(authorization_response=request.url)
+    except Exception as exc:
+        session["oauth_last_error"] = str(exc)
+        return redirect(url_for("register", oauth_error="oauth_failed"))
+
+    token_path = BASE_DIR / "token.json"
+    token_path.write_text(flow.credentials.to_json(), encoding="utf-8")
+    existing = load_user_registrations()
+    gmail_value = (pending_registration.get("gmail") or "").lower()
+    if not any((row.get("gmail") or "").lower() == gmail_value for row in existing):
+        existing.append(
+            {
+                **pending_registration,
+                "created_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+            }
+        )
+        save_user_registrations(existing)
+    session["user_email"] = pending_registration.get("gmail", "")
+    session["user_name"] = pending_registration.get("name", "")
+    session["user_package"] = normalize_plan(pending_registration.get("package"))
+    session.pop("oauth_state", None)
+    session.pop("oauth_code_verifier", None)
+    session.pop("pending_registration", None)
+    session.pop("oauth_last_error", None)
+    return redirect(url_for("jobs"))
 
 
 @web.get("/jobs")

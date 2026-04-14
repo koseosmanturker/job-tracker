@@ -216,6 +216,13 @@
       </div>
     </section>
 
+    {% if demo_mode %}
+      <div class="notice">
+        <strong>Demo mode.</strong>
+        This preview uses a sample dataset with 30 viewed jobs, 20 downloaded CVs, and 5 favorites. Actions are view-only here.
+      </div>
+    {% endif %}
+
     {% if synced %}
       <div class="notice">
         <strong>Sync completed.</strong>
@@ -273,6 +280,7 @@
                   <button
                     type="button"
                     class="secondaryBtn jobsFavoriteBtn favoriteToggle {% if r.favorite %}on{% endif %}"
+                    {% if demo_mode %}disabled{% endif %}
                     data-toggle-favorite
                     data-row-id="{{ r.row_id }}"
                     data-favorite="{{ '1' if r.favorite else '0' }}"
@@ -301,6 +309,7 @@
                   <button
                     type="button"
                     class="secondaryBtn downloadToggle {% if r.downloaded %}on{% endif %}"
+                    {% if demo_mode %}disabled{% endif %}
                     data-toggle-downloaded
                     data-row-id="{{ r.row_id }}"
                     data-downloaded="{{ '1' if r.downloaded else '0' }}"
@@ -322,6 +331,7 @@
 
 {% block scripts %}
   <script>
+    const demoMode = {{ 'true' if demo_mode else 'false' }};
     const filterForm = document.getElementById("filterForm");
     const liveSearchInput = document.querySelector("[data-live-search]");
     const liveFilterInputs = document.querySelectorAll("[data-live-filter]");
@@ -362,6 +372,7 @@
 
       const downloadBtn = e.target.closest("[data-toggle-downloaded]");
       if (downloadBtn) {
+        if (demoMode) return;
         const rowId = downloadBtn.getAttribute("data-row-id");
         if (!rowId) return;
         downloadBtn.disabled = true;
@@ -379,6 +390,7 @@
 
       const favoriteBtn = e.target.closest("[data-toggle-favorite]");
       if (!favoriteBtn) return;
+      if (demoMode) return;
       const rowId = favoriteBtn.getAttribute("data-row-id");
       if (!rowId) return;
       favoriteBtn.disabled = true;

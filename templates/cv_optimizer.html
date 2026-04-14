@@ -633,6 +633,13 @@
       <p class="cvHeroText">Upload your CV and match it perfectly to any job description with AI</p>
     </section>
 
+    {% if demo_mode %}
+      <div class="notice">
+        <strong>Demo mode.</strong>
+        This page previews the AI CV Studio workflow and layout before a user uploads a real CV and job description.
+      </div>
+    {% endif %}
+
     <div class="cvGrid">
       <section class="cvCard cvFormCard">
         <h3 class="cvSectionTitle">Tell the optimizer what you're targeting</h3>
