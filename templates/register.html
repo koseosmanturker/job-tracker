@@ -14,7 +14,8 @@
     .wrap{width:min(var(--max),calc(100% - 32px));margin:0 auto}
     .top{padding:24px 0}
     .brand{display:inline-flex;align-items:center;gap:12px;font-weight:800;letter-spacing:-.03em}
-    .brandMark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--green),#58b486);box-shadow:0 16px 34px rgba(46,125,91,.24)}
+    .brandMark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;box-shadow:0 16px 34px rgba(46,125,91,.24);overflow:hidden}
+    .brandMark img{width:100%;height:100%;display:block;object-fit:cover}
     .hero{padding:18px 0 72px}
     .grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:28px;align-items:start}
     .intro,.panel{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow)}
@@ -64,8 +65,8 @@
   <header class="top">
     <div class="wrap">
       <a class="brand" href="/">
-        <span class="brandMark">JT</span>
-        <span>Job Tracker</span>
+        <span class="brandMark"><img src="/tracksy-logo.svg" alt=""></span>
+        <span>Tracksy</span>
       </a>
     </div>
   </header>
@@ -176,15 +177,15 @@
           <div class="field">
             <label for="linkedin_language">LinkedIn language</label>
             <select id="linkedin_language" name="linkedin_language" required>
-              <option value="" {% if not form_data.linkedin_language %}selected{% endif %}>Select the language LinkedIn uses in your emails</option>
-              <option value="English" {% if form_data.linkedin_language == 'English' %}selected{% endif %}>English</option>
+              <option value="" disabled {% if not form_data.linkedin_language %}selected{% endif %}>Select the language LinkedIn uses in your emails</option>
+              <option value="English" disabled {% if form_data.linkedin_language == 'English' %}selected{% endif %}>English (coming soon)</option>
               <option value="Turkish" {% if form_data.linkedin_language == 'Turkish' %}selected{% endif %}>Turkish</option>
-              <option value="German" {% if form_data.linkedin_language == 'German' %}selected{% endif %}>German</option>
-              <option value="French" {% if form_data.linkedin_language == 'French' %}selected{% endif %}>French</option>
-              <option value="Spanish" {% if form_data.linkedin_language == 'Spanish' %}selected{% endif %}>Spanish</option>
-              <option value="Italian" {% if form_data.linkedin_language == 'Italian' %}selected{% endif %}>Italian</option>
-              <option value="Portuguese" {% if form_data.linkedin_language == 'Portuguese' %}selected{% endif %}>Portuguese</option>
-              <option value="Dutch" {% if form_data.linkedin_language == 'Dutch' %}selected{% endif %}>Dutch</option>
+              <option value="German" disabled {% if form_data.linkedin_language == 'German' %}selected{% endif %}>German (coming soon)</option>
+              <option value="French" disabled {% if form_data.linkedin_language == 'French' %}selected{% endif %}>French (coming soon)</option>
+              <option value="Spanish" disabled {% if form_data.linkedin_language == 'Spanish' %}selected{% endif %}>Spanish (coming soon)</option>
+              <option value="Italian" disabled {% if form_data.linkedin_language == 'Italian' %}selected{% endif %}>Italian (coming soon)</option>
+              <option value="Portuguese" disabled {% if form_data.linkedin_language == 'Portuguese' %}selected{% endif %}>Portuguese (coming soon)</option>
+              <option value="Dutch" disabled {% if form_data.linkedin_language == 'Dutch' %}selected{% endif %}>Dutch (coming soon)</option>
             </select>
             <div class="hint">This helps the parser understand the exact LinkedIn email wording arriving in your Gmail inbox.</div>
           </div>
@@ -192,11 +193,11 @@
           <div class="permission">
             <div class="field" style="margin-bottom:12px">
               <label>API permission</label>
-              <div class="hint">Job Tracker needs read-only Gmail API access so it can detect LinkedIn application, viewed, and follow-up emails in your personal Gmail account.</div>
+              <div class="hint">Tracksy needs read-only Gmail API access so it can detect LinkedIn application, viewed, and follow-up emails in your personal Gmail account.</div>
             </div>
             <label class="checkbox" for="api_permission">
               <input id="api_permission" name="api_permission" type="checkbox" value="yes" {% if form_data.api_permission == 'yes' %}checked{% endif %} required>
-              <span>I allow Job Tracker to request read-only Gmail API access for LinkedIn job email tracking.</span>
+              <span>I allow Tracksy to request read-only Gmail API access for LinkedIn job email tracking.</span>
             </label>
           </div>
 

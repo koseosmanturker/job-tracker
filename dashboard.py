@@ -83,6 +83,11 @@ def png_asset(filename: str):
     return send_from_directory(BASE_DIR / "pngs", filename)
 
 
+@web.get("/tracksy-logo.svg")
+def tracksy_logo():
+    return send_from_directory(BASE_DIR, "tracksy-logo.svg", mimetype="image/svg+xml")
+
+
 @web.get("/favicon.png")
 def favicon_png():
     return send_from_directory(BASE_DIR / "pngs", "favicon.png", mimetype="image/png")
@@ -90,7 +95,7 @@ def favicon_png():
 
 @web.get("/favicon.ico")
 def favicon_ico():
-    return redirect(url_for("favicon_png"))
+    return redirect(url_for("tracksy_logo"))
 
 
 def _parse_dt(value: str | None) -> datetime | None:
@@ -954,7 +959,7 @@ def render_jobs_page(*, favorites_only: bool = False, rows_override: list[dict] 
     jobs = [dict(row) for row in rows_override] if rows_override is not None else to_rows(read_jobs_csv(str(CSV_PATH)))
     context = context_override or build_base_context(
         current_path="/favorites" if favorites_only else "/jobs",
-        page_title="Favorites" if favorites_only else "Career Intelligence Tool",
+        page_title="Favorites" if favorites_only else "Tracksy",
         page_subtitle=(
             "Starred roles that are still worth attention."
             if favorites_only
@@ -962,7 +967,7 @@ def render_jobs_page(*, favorites_only: bool = False, rows_override: list[dict] 
         ),
     )
     if not favorites_only:
-        context["page_title_html"] = '<span class="titleSolid">Career</span> <span class="titleGradient">Intelligence</span> <span class="titleSolid">Tool</span>'
+        context["page_title_html"] = '<span class="titleGradient">Tracksy</span>'
 
     search = request.args.get("search", "").strip().lower()
     viewed_only = request.args.get("viewed") == "1"
@@ -1092,11 +1097,11 @@ def demo_jobs():
     rows = to_rows(build_demo_jobs_store())
     context = build_demo_context(
         current_path="/jobs",
-        page_title="Career Intelligence Demo",
+        page_title="Tracksy Demo",
         page_subtitle="A guided demo dataset with 30 viewed roles, 20 downloaded CVs, and 5 saved favorites.",
         jobs_rows=rows,
     )
-    context["page_title_html"] = '<span class="titleSolid">Career</span> <span class="titleGradient">Intelligence</span> <span class="titleSolid">Demo</span>'
+    context["page_title_html"] = '<span class="titleGradient">Tracksy</span> <span class="titleSolid">Demo</span>'
     return render_jobs_page(favorites_only=False, rows_override=rows, context_override=context)
 
 
@@ -1192,6 +1197,110 @@ def logout():
     return redirect(url_for("home"))
 
 
+@web.route("/profile", methods=["GET", "POST"])
+def profile():
+    user_email = session.get("user_email", "")
+    if not user_email:
+        return redirect(url_for("login"))
+
+    registrations = load_user_registrations()
+    user_index = -1
+    user: dict | None = None
+    for index, row in enumerate(registrations):
+        if (row.get("gmail") or "").strip().lower() == user_email.strip().lower():
+            user_index = index
+            user = row
+            break
+
+    if user is None:
+        session.pop("user_email", None)
+        session.pop("user_name", None)
+        session.pop("user_package", None)
+        return redirect(url_for("login"))
+
+    form_data = {
+        "name": user.get("name", ""),
+        "surname": user.get("surname", ""),
+        "age": str(user.get("age", "")) if user.get("age", "") != "" else "",
+        "gmail": user.get("gmail", ""),
+        "linkedin_language": user.get("linkedin_language", ""),
+        "package": normalize_plan(user.get("package")),
+        "created_at": user.get("created_at", ""),
+        "api_permission_granted": bool(user.get("api_permission_granted")),
+    }
+    errors: list[str] = []
+    success = False
+
+    if request.method == "POST":
+        form_data.update(
+            {
+                "name": (request.form.get("name") or "").strip(),
+                "surname": (request.form.get("surname") or "").strip(),
+                "age": (request.form.get("age") or "").strip(),
+                "linkedin_language": (request.form.get("linkedin_language") or "").strip(),
+                "package": normalize_plan(request.form.get("package")),
+            }
+        )
+        password = request.form.get("password") or ""
+        password_repeat = request.form.get("password_repeat") or ""
+
+        if not form_data["name"]:
+            errors.append("Name is required.")
+        if not form_data["surname"]:
+            errors.append("Surname is required.")
+
+        try:
+            age_value = int(form_data["age"])
+            if age_value < 16 or age_value > 100:
+                errors.append("Age must be between 16 and 100.")
+        except ValueError:
+            errors.append("Age must be a valid number.")
+            age_value = user.get("age", "")
+
+        if not form_data["linkedin_language"]:
+            errors.append("LinkedIn language is required.")
+
+        if password or password_repeat:
+            if len(password) < 8:
+                errors.append("Password must be at least 8 characters.")
+            if password != password_repeat:
+                errors.append("Password and re-type password must match.")
+
+        if not errors:
+            updated_user = {
+                **user,
+                "name": form_data["name"],
+                "surname": form_data["surname"],
+                "age": age_value,
+                "linkedin_language": form_data["linkedin_language"],
+                "package": form_data["package"],
+                "updated_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+            }
+            if password:
+                updated_user["password_hash"] = generate_password_hash(password)
+            registrations[user_index] = updated_user
+            save_user_registrations(registrations)
+            session["user_name"] = updated_user.get("name", "")
+            session["user_package"] = normalize_plan(updated_user.get("package"))
+            user = updated_user
+            form_data["age"] = str(updated_user.get("age", ""))
+            success = True
+
+    context = build_base_context(
+        current_path="/profile",
+        page_title="Profile",
+        page_subtitle="View and update the account details connected to your job tracking workspace.",
+    )
+    return render_template(
+        "profile.html",
+        **context,
+        form_data=form_data,
+        errors=errors,
+        success=success,
+        plan_labels=PLAN_LABELS,
+    )
+
+
 @web.route("/register", methods=["GET", "POST"])
 def register():
     pending_registration = session.get("pending_registration") or {}
@@ -1201,7 +1310,7 @@ def register():
         "surname": pending_registration.get("surname", ""),
         "age": str(pending_registration.get("age", "")) if pending_registration.get("age", "") != "" else "",
         "gmail": pending_registration.get("gmail", ""),
-        "linkedin_language": pending_registration.get("linkedin_language", ""),
+        "linkedin_language": pending_registration.get("linkedin_language", "Turkish") or "Turkish",
         "api_permission": "yes" if pending_registration.get("api_permission_granted") else "",
         "package": selected_plan,
     }
@@ -1249,8 +1358,8 @@ def register():
         if password != password_repeat:
             errors.append("Password and re-type password must match.")
 
-        if not form_data["linkedin_language"]:
-            errors.append("LinkedIn language is required.")
+        if form_data["linkedin_language"] != "Turkish":
+            errors.append("Only Turkish LinkedIn emails are supported right now.")
 
         if form_data["api_permission"] != "yes":
             errors.append("You need to allow Gmail API access to continue.")

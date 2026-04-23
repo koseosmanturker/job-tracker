@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block sync_endpoint %}profile{% endblock %}
+{% block sync_full_endpoint %}profile{% endblock %}
+
+{% block content %}
+  <style>
+    .profilePage {
+      display: grid;
+      gap: 18px;
+    }
+
+    .profileShell {
+      display: grid;
+      grid-template-columns: minmax(240px, 0.78fr) minmax(0, 1.22fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .profileSummary,
+    .profileFormPanel {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .profileAvatar {
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      border-radius: 20px;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      box-shadow: 0 18px 34px color-mix(in srgb, var(--brand) 22%, transparent);
+    }
+
+    .profileSummary h2,
+    .profileFormPanel h2 {
+      margin: 16px 0 8px;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .profileSummary p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+
+    .profileFacts {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .profileFact {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--card) 88%, var(--chip));
+    }
+
+    .profileFact span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .profileFact strong {
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .profileAlert {
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .profileAlert ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .profileAlert.error {
+      color: var(--no-text);
+      background: var(--no-bg);
+    }
+
+    .profileAlert.success {
+      color: var(--ok-text);
+      background: var(--ok-bg);
+    }
+
+    .profileForm {
+      display: grid;
+      gap: 16px;
+    }
+
+    .profileForm .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .profileForm .passwordField {
+      grid-template-rows: auto auto minmax(18px, auto);
+      align-content: start;
+    }
+
+    .profileForm label {
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .profileForm input,
+    .profileForm select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--card) 96%, white);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    html.dark .profileForm input,
+    html.dark .profileForm select {
+      background: color-mix(in srgb, var(--card) 92%, #0f1712);
+    }
+
+    .profileForm input:focus,
+    .profileForm select:focus {
+      border-color: color-mix(in srgb, var(--brand) 50%, var(--line));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 12%, transparent);
+    }
+
+    .profileForm input[readonly] {
+      color: var(--muted);
+      background: color-mix(in srgb, var(--card) 70%, var(--chip));
+    }
+
+    .profileHint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .profileActions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .profileShell {
+        grid-template-columns: 1fr;
+      }
+      .profileFact {
+        flex-direction: column;
+      }
+      .profileFact strong {
+        text-align: left;
+      }
+    }
+  </style>
+
+  <div class="profilePage">
+    <div class="profileShell">
+      <section class="profileSummary">
+        <div class="profileAvatar" aria-hidden="true">
+          {{ (form_data.name[:1] or form_data.gmail[:1] or "U")|upper }}{{ (form_data.surname[:1] or "")|upper }}
+        </div>
+        <h2>{{ form_data.name }} {{ form_data.surname }}</h2>
+        <p>{{ form_data.gmail }}</p>
+
+        <div class="profileFacts">
+          <div class="profileFact">
+            <span>Package</span>
+            <strong>{{ plan_labels.get(form_data.package, "Starter") }}</strong>
+          </div>
+          <div class="profileFact">
+            <span>LinkedIn email language</span>
+            <strong>{{ form_data.linkedin_language or "Not set" }}</strong>
+          </div>
+          <div class="profileFact">
+            <span>Gmail access</span>
+            <strong>{% if form_data.api_permission_granted %}Allowed{% else %}Not allowed{% endif %}</strong>
+          </div>
+          {% if form_data.created_at %}
+          <div class="profileFact">
+            <span>Created</span>
+            <strong>{{ form_data.created_at }}</strong>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="profileFormPanel">
+        <h2>Profile details</h2>
+
+        {% if success %}
+        <div class="profileAlert success">Profile updated successfully.</div>
+        {% endif %}
+
+        {% if errors %}
+        <div class="profileAlert error">
+          <ul>
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <form class="profileForm" method="post" action="/profile">
+          <div class="grid2">
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" name="name" type="text" value="{{ form_data.name }}" required>
+            </div>
+            <div class="field">
+              <label for="surname">Surname</label>
+              <input id="surname" name="surname" type="text" value="{{ form_data.surname }}" required>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field">
+              <label for="age">Age</label>
+              <input id="age" name="age" type="number" min="16" max="100" value="{{ form_data.age }}" required>
+            </div>
+            <div class="field">
+              <label for="gmail">Gmail</label>
+              <input id="gmail" name="gmail" type="email" value="{{ form_data.gmail }}" readonly>
+              <div class="profileHint">Gmail is used as the account identity for sync and login.</div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field">
+              <label for="linkedin_language">LinkedIn language</label>
+              <select id="linkedin_language" name="linkedin_language" required>
+                <option value="" {% if not form_data.linkedin_language %}selected{% endif %}>Select language</option>
+                <option value="English" {% if form_data.linkedin_language == 'English' %}selected{% endif %}>English</option>
+                <option value="Turkish" {% if form_data.linkedin_language == 'Turkish' %}selected{% endif %}>Turkish</option>
+                <option value="German" {% if form_data.linkedin_language == 'German' %}selected{% endif %}>German</option>
+                <option value="French" {% if form_data.linkedin_language == 'French' %}selected{% endif %}>French</option>
+                <option value="Spanish" {% if form_data.linkedin_language == 'Spanish' %}selected{% endif %}>Spanish</option>
+                <option value="Italian" {% if form_data.linkedin_language == 'Italian' %}selected{% endif %}>Italian</option>
+                <option value="Portuguese" {% if form_data.linkedin_language == 'Portuguese' %}selected{% endif %}>Portuguese</option>
+                <option value="Dutch" {% if form_data.linkedin_language == 'Dutch' %}selected{% endif %}>Dutch</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="package">Package</label>
+              <select id="package" name="package" required>
+                {% for value, label in plan_labels.items() %}
+                <option value="{{ value }}" {% if form_data.package == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field passwordField">
+              <label for="password">New password</label>
+              <input id="password" name="password" type="password" minlength="8" autocomplete="new-password">
+              <div class="profileHint">Leave blank to keep your current password.</div>
+            </div>
+            <div class="field passwordField">
+              <label for="password_repeat">Re-type new password</label>
+              <input id="password_repeat" name="password_repeat" type="password" minlength="8" autocomplete="new-password">
+              <div class="profileHint" aria-hidden="true">&nbsp;</div>
+            </div>
+          </div>
+
+          <div class="profileActions">
+            <button type="submit">Save changes</button>
+            <a class="buttonLink secondaryBtn" href="{{ jobs_href }}">Back to jobs</a>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+{% endblock %}

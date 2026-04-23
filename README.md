@@ -1,6 +1,6 @@
-# Job Tracker
+# Tracksy
 
-Job Tracker is a lightweight Flask-based dashboard that pulls LinkedIn job application emails from Gmail, parses them into structured records, and helps you track your application pipeline from one place.
+Tracksy is a lightweight Flask-based dashboard that pulls LinkedIn job application emails from Gmail, parses them into structured records, and helps you track your application pipeline from one place.
 
 It is built for a simple workflow:
 
