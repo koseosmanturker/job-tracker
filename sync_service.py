@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
-from pathlib import Path
 
-from database import load_sync_state_row, save_sync_state_row
+from database import get_current_user_id, get_gmail_token, load_sync_state_row, save_gmail_token, save_sync_state_row
 from gmail_client import (
     get_gmail_service,
     list_all_message_ids,
@@ -17,32 +16,24 @@ from linkedin_parser import (
     extract_company_display_name,
     extract_rejected_event,
 )
-from repository import read_jobs_csv, upsert_job_csv, write_jobs_csv, show_viewed_jobs, mark_rejected_by_company_title
+from repository import read_jobs, upsert_job, write_jobs, mark_rejected_by_company_title
 from review_repository import (
-    NEEDS_REVIEW_FILE,
-    MANUAL_CORRECTIONS_FILE,
     build_needs_review_item,
     find_manual_correction,
     queue_needs_review,
 )
 
 DEFAULT_QUERY = "from:(jobs-noreply@linkedin.com) newer_than:365d"
-SYNC_STATE_FILE = ".sync_state.json"
 
 
-# Loads sync state metadata from disk and returns dict.
-# If state file does not exist or is invalid, returns empty state.
-def load_sync_state(state_path: str) -> dict:
-    return load_sync_state_row(state_path=state_path)
+def load_sync_state() -> dict:
+    return load_sync_state_row()
 
 
-# Persists latest sync metadata to disk so next run can be incremental.
-def save_sync_state(state_path: str, state: dict):
-    save_sync_state_row(state, state_path=state_path)
+def save_sync_state(state: dict):
+    save_sync_state_row(state)
 
 
-# Builds Gmail query according to sync history.
-# First sync uses 365-day window; subsequent syncs use "after:<unix_ts>".
 def build_incremental_query(state: dict) -> str:
     if not (state or {}).get("initialized"):
         return DEFAULT_QUERY
@@ -65,30 +56,23 @@ def build_full_window_query(days: int) -> str:
     return f"from:(jobs-noreply@linkedin.com) newer_than:{safe_days}d"
 
 
-# Runs end-to-end synchronization from Gmail into local jobs CSV.
-# The function fetches candidate LinkedIn mails, parses events, merges each
-# record into repository, writes CSV, and returns a summary dict.
-def run_sync(csv_path: str = "jobs.csv",
-            #mail_limit: int = 200,
-            query: str | None = None,
-            force_full: bool = False):
-    
-    service = get_gmail_service()
-    jobs = read_jobs_csv(csv_path)
-    state_path = str(Path(csv_path).with_name(SYNC_STATE_FILE))
-    review_path = str(Path(csv_path).with_name(NEEDS_REVIEW_FILE))
-    corrections_path = str(Path(csv_path).with_name(MANUAL_CORRECTIONS_FILE))
-    sync_state = load_sync_state(state_path)
+def run_sync(query: str | None = None, force_full: bool = False):
+    user_id = get_current_user_id()
+    token_json = get_gmail_token(user_id)
+    service = get_gmail_service(
+        token_json=token_json or None,
+        on_token_saved=lambda tj: save_gmail_token(tj, user_id),
+    )
+    jobs = read_jobs()
+    sync_state = load_sync_state()
     if force_full:
         query_to_use = query or DEFAULT_QUERY
     else:
         query_to_use = query or build_incremental_query(sync_state)
     pending_rejections: list[tuple[str, str]] = []
 
-    ids = list_all_message_ids(service, query_to_use,
-                                #limit=mail_limit
-                                )
-    
+    ids = list_all_message_ids(service, query_to_use)
+
     print(f"Found: {len(ids)} query={query_to_use}")
 
     processed = 0
@@ -108,7 +92,7 @@ def run_sync(csv_path: str = "jobs.csv",
         body = extract_body_text(msg["payload"])
         event_time = get_message_time_iso(msg)
 
-        manual_correction = find_manual_correction(corrections_path, subject=subject, body_text=body)
+        manual_correction = find_manual_correction(subject=subject, body_text=body)
         if manual_correction:
             incoming = {
                 "company": manual_correction.get("company", ""),
@@ -123,14 +107,13 @@ def run_sync(csv_path: str = "jobs.csv",
                 "rejected": bool(manual_correction.get("rejected", False)),
                 "favorite": False,
             }
-            upsert_job_csv(jobs, incoming)
+            upsert_job(jobs, incoming)
             processed += 1
             manual_corrections_used += 1
             continue
 
         rejected_company, rejected_title = extract_rejected_event(subject)
         if rejected_company and rejected_title:
-            # Process rejections after all normal upserts to avoid ordering issues.
             pending_rejections.append((rejected_company, rejected_title))
             continue
 
@@ -144,7 +127,6 @@ def run_sync(csv_path: str = "jobs.csv",
 
         if not company or not job_title:
             added = queue_needs_review(
-                review_path,
                 build_needs_review_item(
                     message_id=mid,
                     subject=subject,
@@ -170,7 +152,7 @@ def run_sync(csv_path: str = "jobs.csv",
             "rejected": False,
         }
 
-        upsert_job_csv(jobs, incoming)
+        upsert_job(jobs, incoming)
         processed += 1
         print(f"processed={processed-1} -> company={company} | job_title={job_title} | location={location} | applied={applied_evt} | viewed={viewed_evt}")
 
@@ -185,15 +167,13 @@ def run_sync(csv_path: str = "jobs.csv",
             rejected_not_found += 1
             print(f"REJECTED_NOT_FOUND -> company={rejected_company} | job_title={rejected_title}")
 
-    write_jobs_csv(csv_path, jobs)
+    write_jobs(jobs)
 
-    # Mark state initialized so first-ever sync starts with DEFAULT_QUERY.
     sync_state["initialized"] = True
     if ids:
         sync_state["last_synced_at"] = datetime.now(timezone.utc).isoformat()
     sync_state["last_query"] = query_to_use
-    save_sync_state(state_path, sync_state)
-    # show_viewed_jobs(jobs)
+    save_sync_state(sync_state)
 
     summary = {
         "processed": processed,
@@ -204,19 +184,16 @@ def run_sync(csv_path: str = "jobs.csv",
         "manual_corrections_used": manual_corrections_used,
         "query": query_to_use,
         "last_synced_at": sync_state.get("last_synced_at", ""),
-        "csv_path": csv_path,
     }
     print(
         "DONE "
         f"processed={processed} skipped={skipped} "
         f"needs_review_added={needs_review_added} manual_corrections_used={manual_corrections_used} "
-        f"rejected_marked={rejected_marked} rejected_not_found={rejected_not_found} "
-        f"csv={csv_path}"
+        f"rejected_marked={rejected_marked} rejected_not_found={rejected_not_found}"
     )
     return summary
 
 
-# Provides command-line entrypoint for quick manual sync runs.
 def main():
     run_sync()
 

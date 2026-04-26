@@ -1,42 +1,33 @@
 <svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
 
-  <defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1a2e1a"/>
-      <stop offset="100%" stop-color="#0f1f0f"/>
-    </linearGradient>
-  </defs>
+  <!-- Arka plan: orta gri -->
+  <rect x="0" y="0" width="400" height="400" rx="88" fill="#c8c8c4"/>
 
-  <!-- Arka plan kare -->
-  <rect x="50" y="50" width="300" height="300" rx="60" fill="url(#bgGrad)"/>
+  <!-- Dış halka -->
+  <circle cx="200" cy="200" r="140" fill="none" stroke="#a8a8a4" stroke-width="1.5"/>
+  <circle cx="200" cy="200" r="100" fill="none" stroke="#a8a8a4" stroke-width="1.5"/>
+  <circle cx="200" cy="200" r="60" fill="none" stroke="#a8a8a4" stroke-width="1.5"/>
 
-  <!-- Tracking çizgisi -->
-  <polyline
-    points="95,260 155,185 195,215 265,120"
-    fill="none"
-    stroke="#4ade80"
-    stroke-width="7"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+  <!-- Koordinat çizgileri -->
+  <line x1="200" y1="60" x2="200" y2="340" stroke="#a8a8a4" stroke-width="1.5"/>
+  <line x1="60" y1="200" x2="340" y2="200" stroke="#a8a8a4" stroke-width="1.5"/>
 
-  <!-- Nokta: sol alt -->
-  <circle cx="95" cy="260" r="7" fill="#4ade80"/>
-  <!-- Nokta: orta sol -->
-  <circle cx="155" cy="185" r="7" fill="#4ade80"/>
-  <!-- Nokta: orta sağ -->
-  <circle cx="195" cy="215" r="7" fill="#4ade80"/>
-  <!-- Nokta: sağ üst (büyük, vurgu) -->
-  <circle cx="265" cy="120" r="10" fill="#4ade80"/>
+  <!-- Radar dilimi -->
+  <path d="M200,200 L200,60 A140,140 0 0,1 323,130 Z" fill="#111111" fill-opacity="0.06"/>
 
-  <!-- Ok başı (sağ üst köşe) -->
-  <polyline
-    points="265,120 265,98 243,98"
-    fill="none"
-    stroke="#4ade80"
-    stroke-width="6"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+  <!-- Sinyal noktaları -->
+  <circle cx="155" cy="145" r="5" fill="#111111" fill-opacity="0.25"/>
+  <circle cx="245" cy="170" r="4" fill="#111111" fill-opacity="0.25"/>
+  <circle cx="190" cy="230" r="4" fill="#111111" fill-opacity="0.2"/>
+
+  <!-- Merkez -->
+  <circle cx="200" cy="200" r="5" fill="#111111"/>
+
+  <!-- Kesik çizgi -->
+  <line x1="200" y1="200" x2="270" y2="135" stroke="#111111" stroke-width="1.5" stroke-opacity="0.45" stroke-dasharray="4 4"/>
+
+  <!-- Ana hedef -->
+  <circle cx="270" cy="135" r="16" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <circle cx="270" cy="135" r="5" fill="#111111"/>
 
 </svg>

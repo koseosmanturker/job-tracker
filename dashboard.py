@@ -5,77 +5,89 @@ import hashlib
 import re
 from collections import Counter
 from datetime import datetime, timedelta
+from functools import wraps
 from pathlib import Path
 from urllib import error as urllib_error
 from urllib import request as urllib_request
 from urllib.parse import urlencode
 
+from env_utils import load_env
 from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 from google_auth_oauthlib.flow import Flow
 
+from database import (
+    list_user_registrations as db_list_user_registrations,
+    make_user_id,
+    save_gmail_token,
+    save_user_registrations as db_save_user_registrations,
+    set_current_user_id,
+    toggle_job_downloaded,
+    toggle_job_favorite,
+    toggle_job_follow_up_done,
+)
 from linkedin_parser import normalize_text
 from gmail_client import SCOPES
 from repository import (
     get_job_row_by_index,
     is_incomplete_job_row,
     list_incomplete_job_rows,
-    read_jobs_csv,
-    toggle_downloaded_by_row_id,
-    toggle_favorite_by_row_id,
-    toggle_follow_up_done_by_row_id,
+    read_jobs,
     update_job_row_by_index,
-    upsert_job_csv,
-    write_jobs_csv,
+    upsert_job,
+    write_jobs,
 )
 from review_repository import (
-    MANUAL_CORRECTIONS_FILE,
-    NEEDS_REVIEW_FILE,
     get_review_item,
     list_needs_review,
     resolve_review_item,
     save_manual_correction,
 )
-from sync_service import SYNC_STATE_FILE, build_full_window_query, load_sync_state, run_sync
+from sync_service import build_full_window_query, load_sync_state, run_sync
 
 
 BASE_DIR = Path(__file__).resolve().parent
-CSV_PATH = BASE_DIR / "jobs.csv"
-NEEDS_REVIEW_PATH = BASE_DIR / NEEDS_REVIEW_FILE
-MANUAL_CORRECTIONS_PATH = BASE_DIR / MANUAL_CORRECTIONS_FILE
 GENERATED_DIR = BASE_DIR / "generated"
 CV_CACHE_DIR = BASE_DIR / ".cv_optimizer_cache"
-USER_REGISTRATIONS_PATH = BASE_DIR / "user_registrations.json"
 
+load_env(BASE_DIR / ".env")
 web = Flask(__name__)
 web.secret_key = os.environ.get("FLASK_SECRET_KEY", "job-tracker-dev-secret")
 GENERATED_DIR.mkdir(exist_ok=True)
 CV_CACHE_DIR.mkdir(exist_ok=True)
-
-
-def load_dotenv_file(dotenv_path: Path) -> None:
-    if not dotenv_path.exists():
-        return
-
-    try:
-        lines = dotenv_path.read_text(encoding="utf-8").splitlines()
-    except Exception:
-        return
-
-    for raw_line in lines:
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        env_key = key.strip()
-        if not env_key or env_key in os.environ:
-            continue
-        env_value = value.strip().strip('"').strip("'")
-        os.environ[env_key] = env_value
-
-
-load_dotenv_file(BASE_DIR / ".env")
 os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
+
+
+@web.before_request
+def bind_database_user_context():
+    user_id = session.get("user_id", "")
+    if user_id:
+        set_current_user_id(user_id)
+        return
+
+    user_email = (session.get("user_email") or "").strip().lower()
+    if user_email:
+        user = next(
+            (row for row in load_user_registrations() if (row.get("gmail") or row.get("email") or "").lower() == user_email),
+            None,
+        )
+        if user and user.get("id"):
+            session["user_id"] = user["id"]
+            set_current_user_id(user["id"])
+            return
+
+    set_current_user_id(None)
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("user_id"):
+            if request.is_json or request.path.startswith("/toggle") or request.path.startswith("/optimize") or request.path.startswith("/generate"):
+                return jsonify({"error": "authentication_required"}), 401
+            return redirect(url_for("login", next=request.path))
+        return f(*args, **kwargs)
+    return decorated
 
 
 @web.get("/pngs/<path:filename>")
@@ -165,25 +177,29 @@ def _dedupe_list(values: list[str]) -> list[str]:
 
 
 def load_user_registrations() -> list[dict]:
-    if not USER_REGISTRATIONS_PATH.exists():
-        return []
-    try:
-        data = json.loads(USER_REGISTRATIONS_PATH.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-    return data if isinstance(data, list) else []
+    return db_list_user_registrations()
 
 
 def save_user_registrations(rows: list[dict]) -> None:
-    USER_REGISTRATIONS_PATH.write_text(
-        json.dumps(rows, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    db_save_user_registrations(rows)
+
+
+def _load_google_credentials() -> dict:
+    raw = os.environ.get("GOOGLE_CREDENTIALS_JSON", "").strip()
+    if raw:
+        try:
+            return json.loads(raw)
+        except Exception as exc:
+            raise RuntimeError("GOOGLE_CREDENTIALS_JSON env var is not valid JSON.") from exc
+    path = BASE_DIR / "credentials.json"
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    raise RuntimeError("Google credentials not found. Set GOOGLE_CREDENTIALS_JSON env var or provide credentials.json.")
 
 
 def build_gmail_oauth_flow(redirect_uri: str, state: str | None = None) -> Flow:
-    flow = Flow.from_client_secrets_file(
-        str(BASE_DIR / "credentials.json"),
+    flow = Flow.from_client_config(
+        _load_google_credentials(),
         scopes=SCOPES,
         state=state,
     )
@@ -653,11 +669,10 @@ def to_rows(jobs_dict: dict) -> list[dict]:
 
 
 def build_base_context(*, current_path: str, page_title: str, page_subtitle: str) -> dict:
-    state_path = str(CSV_PATH.with_name(SYNC_STATE_FILE))
-    sync_state = load_sync_state(state_path)
-    pending_reviews = list_needs_review(str(NEEDS_REVIEW_PATH), status="pending")
-    incomplete_csv_reviews = list_incomplete_job_rows(str(CSV_PATH))
-    jobs = to_rows(read_jobs_csv(str(CSV_PATH)))
+    sync_state = load_sync_state()
+    pending_reviews = list_needs_review(status="pending")
+    incomplete_csv_reviews = list_incomplete_job_rows()
+    jobs = to_rows(read_jobs())
     pending_followups = [
         row for row in build_followup_items(jobs) if not row.get("follow_up_done", False)
     ]
@@ -735,6 +750,7 @@ def build_followup_items(rows: list[dict]) -> list[dict]:
 
 
 @web.post("/sync")
+@login_required
 def sync_mails():
     sync_mode = (request.form.get("sync_mode") or "incremental").strip().lower()
     force_full = sync_mode == "full"
@@ -745,7 +761,7 @@ def sync_mails():
         except ValueError:
             full_sync_days = 365
         query = build_full_window_query(full_sync_days)
-    summary = run_sync(csv_path=str(CSV_PATH), force_full=force_full, query=query)
+    summary = run_sync(force_full=force_full, query=query)
     redirect_endpoint = (request.form.get("next_endpoint") or "home").strip() or "home"
     return redirect(
         url_for(
@@ -762,33 +778,30 @@ def sync_mails():
 
 
 @web.post("/toggle-downloaded/<path:row_id>")
+@login_required
 def toggle_downloaded(row_id: str):
-    jobs = read_jobs_csv(str(CSV_PATH))
-    success, downloaded = toggle_downloaded_by_row_id(jobs, row_id)
-    if not success:
+    new_value = toggle_job_downloaded(row_id)
+    if new_value is None:
         return jsonify({"success": False, "error": "record_not_found"}), 404
-    write_jobs_csv(str(CSV_PATH), jobs)
-    return jsonify({"success": True, "downloaded": downloaded})
+    return jsonify({"success": True, "downloaded": new_value})
 
 
 @web.post("/toggle-favorite/<path:row_id>")
+@login_required
 def toggle_favorite(row_id: str):
-    jobs = read_jobs_csv(str(CSV_PATH))
-    success, favorite = toggle_favorite_by_row_id(jobs, row_id)
-    if not success:
+    new_value = toggle_job_favorite(row_id)
+    if new_value is None:
         return jsonify({"success": False, "error": "record_not_found"}), 404
-    write_jobs_csv(str(CSV_PATH), jobs)
-    return jsonify({"success": True, "favorite": favorite})
+    return jsonify({"success": True, "favorite": new_value})
 
 
 @web.post("/toggle-follow-up/<path:row_id>")
+@login_required
 def toggle_follow_up(row_id: str):
-    jobs = read_jobs_csv(str(CSV_PATH))
-    success, follow_up_done = toggle_follow_up_done_by_row_id(jobs, row_id)
-    if not success:
+    new_value = toggle_job_follow_up_done(row_id)
+    if new_value is None:
         return jsonify({"success": False, "error": "record_not_found"}), 404
-    write_jobs_csv(str(CSV_PATH), jobs)
-    return jsonify({"success": True, "follow_up_done": follow_up_done})
+    return jsonify({"success": True, "follow_up_done": new_value})
 
 
 def generate_followup_email(*, job_title: str, company: str, days: int, status: str = "viewed, no response") -> str:
@@ -867,7 +880,10 @@ def generated_file(filename: str):
 
 
 @web.post("/optimize-cv")
+@login_required
 def optimize_cv():
+    if session.get("user_package") == "starter":
+        return jsonify({"error": "plan_upgrade_required"}), 403
     job_description = _clean_text(request.form.get("job_description") or "")
     cv_file = request.files.get("cv_file")
 
@@ -932,7 +948,10 @@ def optimize_cv():
 
 
 @web.post("/generate-followup")
+@login_required
 def generate_followup():
+    if session.get("user_package") == "starter":
+        return jsonify({"error": "plan_upgrade_required"}), 403
     payload = request.get_json(silent=True) or {}
     job_title = (payload.get("job_title") or "").strip()
     company = (payload.get("company") or "").strip()
@@ -956,7 +975,7 @@ def generate_followup():
 
 
 def render_jobs_page(*, favorites_only: bool = False, rows_override: list[dict] | None = None, context_override: dict | None = None):
-    jobs = [dict(row) for row in rows_override] if rows_override is not None else to_rows(read_jobs_csv(str(CSV_PATH)))
+    jobs = [dict(row) for row in rows_override] if rows_override is not None else to_rows(read_jobs())
     context = context_override or build_base_context(
         current_path="/favorites" if favorites_only else "/jobs",
         page_title="Favorites" if favorites_only else "Tracksy",
@@ -1177,10 +1196,14 @@ def login():
             if not user or not check_password_hash(user.get("password_hash", ""), password):
                 errors.append("Invalid Gmail or password.")
             else:
+                session["user_id"] = user.get("id") or make_user_id(user.get("gmail", ""))
                 session["user_email"] = user.get("gmail", "")
                 session["user_name"] = user.get("name", "")
                 session["user_package"] = normalize_plan(user.get("package"))
-                return redirect(url_for("jobs"))
+                set_current_user_id(session["user_id"])
+                next_url = request.args.get("next") or ""
+                safe_next = next_url if next_url.startswith("/") and not next_url.startswith("//") else ""
+                return redirect(safe_next or url_for("jobs"))
 
     return render_template(
         "login.html",
@@ -1191,6 +1214,7 @@ def login():
 
 @web.get("/logout")
 def logout():
+    session.pop("user_id", None)
     session.pop("user_email", None)
     session.pop("user_name", None)
     session.pop("user_package", None)
@@ -1198,10 +1222,9 @@ def logout():
 
 
 @web.route("/profile", methods=["GET", "POST"])
+@login_required
 def profile():
     user_email = session.get("user_email", "")
-    if not user_email:
-        return redirect(url_for("login"))
 
     registrations = load_user_registrations()
     user_index = -1
@@ -1214,6 +1237,7 @@ def profile():
 
     if user is None:
         session.pop("user_email", None)
+        session.pop("user_id", None)
         session.pop("user_name", None)
         session.pop("user_package", None)
         return redirect(url_for("login"))
@@ -1358,8 +1382,8 @@ def register():
         if password != password_repeat:
             errors.append("Password and re-type password must match.")
 
-        if form_data["linkedin_language"] != "Turkish":
-            errors.append("Only Turkish LinkedIn emails are supported right now.")
+        if form_data["linkedin_language"] not in {"Turkish", "English"}:
+            errors.append("Please select your LinkedIn language.")
 
         if form_data["api_permission"] != "yes":
             errors.append("You need to allow Gmail API access to continue.")
@@ -1398,8 +1422,8 @@ def connect_gmail():
     if not pending_registration:
         return redirect(url_for("register"))
 
-    credentials_path = BASE_DIR / "credentials.json"
-    if not credentials_path.exists():
+    has_credentials = bool(os.environ.get("GOOGLE_CREDENTIALS_JSON", "").strip()) or (BASE_DIR / "credentials.json").exists()
+    if not has_credentials:
         return redirect(url_for("register", oauth_error="missing_credentials"))
 
     flow = build_gmail_oauth_flow(build_local_oauth_redirect_uri())
@@ -1433,21 +1457,27 @@ def oauth2callback():
         session["oauth_last_error"] = str(exc)
         return redirect(url_for("register", oauth_error="oauth_failed"))
 
+    token_json_str = flow.credentials.to_json()
     token_path = BASE_DIR / "token.json"
-    token_path.write_text(flow.credentials.to_json(), encoding="utf-8")
+    token_path.write_text(token_json_str, encoding="utf-8")
     existing = load_user_registrations()
     gmail_value = (pending_registration.get("gmail") or "").lower()
+    user_id = make_user_id(gmail_value)
     if not any((row.get("gmail") or "").lower() == gmail_value for row in existing):
         existing.append(
             {
                 **pending_registration,
+                "id": user_id,
                 "created_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
             }
         )
         save_user_registrations(existing)
+    save_gmail_token(token_json_str, user_id)
+    session["user_id"] = user_id
     session["user_email"] = pending_registration.get("gmail", "")
     session["user_name"] = pending_registration.get("name", "")
     session["user_package"] = normalize_plan(pending_registration.get("package"))
+    set_current_user_id(session["user_id"])
     session.pop("oauth_state", None)
     session.pop("oauth_code_verifier", None)
     session.pop("pending_registration", None)
@@ -1456,23 +1486,29 @@ def oauth2callback():
 
 
 @web.get("/jobs")
+@login_required
 def jobs():
     return render_jobs_page(favorites_only=False)
 
 
 @web.get("/favorites")
+@login_required
 def favorites():
     return render_jobs_page(favorites_only=True)
 
 
 @web.get("/insights")
+@login_required
 def insights_legacy():
     return redirect(url_for("follow_up"))
 
 
 @web.get("/follow-up")
+@login_required
 def follow_up():
-    jobs = to_rows(read_jobs_csv(str(CSV_PATH)))
+    if session.get("user_package") == "starter":
+        return redirect(url_for("jobs"))
+    jobs = to_rows(read_jobs())
     followups = build_followup_items(jobs)
     context = build_base_context(
         current_path="/follow-up",
@@ -1493,7 +1529,10 @@ def follow_up():
 
 
 @web.get("/ai-cv-studio")
+@login_required
 def cv_optimizer():
+    if session.get("user_package") == "starter":
+        return redirect(url_for("jobs"))
     context = build_base_context(
         current_path="/ai-cv-studio",
         page_title="AI CV Studio",
@@ -1506,14 +1545,16 @@ def cv_optimizer():
 
 
 @web.get("/cv-optimizer")
+@login_required
 def cv_optimizer_legacy():
     return redirect(url_for("cv_optimizer"))
 
 
 @web.get("/needs-review")
+@login_required
 def needs_review():
-    pending_parser_reviews = list_needs_review(str(NEEDS_REVIEW_PATH), status="pending")
-    incomplete_csv_reviews = list_incomplete_job_rows(str(CSV_PATH))
+    pending_parser_reviews = list_needs_review(status="pending")
+    incomplete_csv_reviews = list_incomplete_job_rows()
     context = build_base_context(
         current_path="/needs-review",
         page_title="Needs Review",
@@ -1529,15 +1570,16 @@ def needs_review():
 
 
 @web.route("/needs-review/<review_id>", methods=["GET", "POST"])
+@login_required
 def review_detail(review_id: str):
-    item = get_review_item(str(NEEDS_REVIEW_PATH), review_id)
+    item = get_review_item(review_id)
     if not item:
         abort(404)
 
     if request.method == "POST":
         action = (request.form.get("action") or "apply").strip().lower()
         if action == "dismiss":
-            resolve_review_item(str(NEEDS_REVIEW_PATH), review_id, "Dismissed manually.")
+            resolve_review_item(review_id, "Dismissed manually.")
             return redirect(url_for("needs_review"))
 
         company = (request.form.get("company") or "").strip()
@@ -1547,7 +1589,7 @@ def review_detail(review_id: str):
         event_type = (request.form.get("event_type") or "applied").strip().lower()
 
         if company and job_title:
-            jobs = read_jobs_csv(str(CSV_PATH))
+            jobs = read_jobs()
             incoming = {
                 "company": company,
                 "job_title": job_title,
@@ -1562,10 +1604,9 @@ def review_detail(review_id: str):
                 "favorite": False,
                 "follow_up_done": False,
             }
-            upsert_job_csv(jobs, incoming)
-            write_jobs_csv(str(CSV_PATH), jobs)
+            upsert_job(jobs, incoming)
+            write_jobs(jobs)
             save_manual_correction(
-                str(MANUAL_CORRECTIONS_PATH),
                 subject=item.get("subject", ""),
                 body_text=item.get("body_text", ""),
                 corrected_fields={
@@ -1578,7 +1619,7 @@ def review_detail(review_id: str):
                     "rejected": incoming["rejected"],
                 },
             )
-            resolve_review_item(str(NEEDS_REVIEW_PATH), review_id, f"Corrected as {event_type}.")
+            resolve_review_item(review_id, f"Corrected as {event_type}.")
             return redirect(url_for("needs_review"))
 
     context = build_base_context(
@@ -1596,8 +1637,9 @@ def review_detail(review_id: str):
 
 
 @web.route("/needs-review/job/<int:row_index>", methods=["GET", "POST"])
+@login_required
 def job_record_review_detail(row_index: int):
-    item = get_job_row_by_index(str(CSV_PATH), row_index)
+    item = get_job_row_by_index(row_index)
     if not item or not is_incomplete_job_row(item):
         return redirect(url_for("needs_review"))
 
@@ -1607,7 +1649,6 @@ def job_record_review_detail(row_index: int):
             return redirect(url_for("needs_review"))
 
         updated_row = update_job_row_by_index(
-            str(CSV_PATH),
             row_index,
             {
                 "company": request.form.get("company"),

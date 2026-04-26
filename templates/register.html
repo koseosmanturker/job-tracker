@@ -178,7 +178,7 @@
             <label for="linkedin_language">LinkedIn language</label>
             <select id="linkedin_language" name="linkedin_language" required>
               <option value="" disabled {% if not form_data.linkedin_language %}selected{% endif %}>Select the language LinkedIn uses in your emails</option>
-              <option value="English" disabled {% if form_data.linkedin_language == 'English' %}selected{% endif %}>English (coming soon)</option>
+              <option value="English" {% if form_data.linkedin_language == 'English' %}selected{% endif %}>English</option>
               <option value="Turkish" {% if form_data.linkedin_language == 'Turkish' %}selected{% endif %}>Turkish</option>
               <option value="German" disabled {% if form_data.linkedin_language == 'German' %}selected{% endif %}>German (coming soon)</option>
               <option value="French" disabled {% if form_data.linkedin_language == 'French' %}selected{% endif %}>French (coming soon)</option>

@@ -345,6 +345,13 @@
         border-color: color-mix(in srgb, var(--tab-active-start) 45%, var(--line));
       }
 
+      .navBtn.locked {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+        user-select: none;
+      }
+
       .navBtn .pill {
         display: inline-flex;
         align-items: center;
@@ -760,8 +767,13 @@
           <div class="pageSwitch" role="tablist" aria-label="Page switcher">
             <a class="navBtn {% if current_path == '/jobs' %}active{% endif %}" href="{{ jobs_href }}">Jobs</a>
             <a class="navBtn {% if current_path == '/favorites' %}active{% endif %}" href="{{ favorites_href }}">Favorites</a>
+            {% if current_user_package == 'starter' %}
+            <span class="navBtn locked" title="Upgrade to Serious or Advanced to unlock">Follow-up 🔒</span>
+            <span class="navBtn locked" title="Upgrade to Serious or Advanced to unlock">AI CV Studio 🔒</span>
+            {% else %}
             <a class="navBtn {% if current_path == '/follow-up' %}active{% endif %}" href="{{ follow_up_href }}">Follow-up{% if follow_up_count %}<span class="pill">{{ follow_up_count }}</span>{% endif %}</a>
             <a class="navBtn {% if current_path == '/ai-cv-studio' %}active{% endif %}" href="{{ ai_cv_studio_href }}">AI CV Studio</a>
+            {% endif %}
             <a class="navBtn {% if current_path == '/needs-review' %}active{% endif %}" href="{{ needs_review_href }}">Needs Review{% if needs_review_count %}<span class="pill">{{ needs_review_count }}</span>{% endif %}</a>
           </div>
         </div>

@@ -1,7 +1,5 @@
 import hashlib
-import json
 from datetime import datetime, timezone
-from pathlib import Path
 
 from database import (
     find_manual_correction_row,
@@ -13,27 +11,9 @@ from database import (
 )
 from linkedin_parser import body_to_lines, normalize_text
 
-NEEDS_REVIEW_FILE = ".needs_review.json"
-MANUAL_CORRECTIONS_FILE = ".manual_corrections.json"
-
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
-
-
-def _load_json_list(path: str) -> list[dict]:
-    p = Path(path)
-    if not p.exists():
-        return []
-    try:
-        data = json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-    return data if isinstance(data, list) else []
-
-
-def _save_json_list(path: str, rows: list[dict]):
-    Path(path).write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def build_message_signature(subject: str, body_text: str) -> str:
@@ -71,24 +51,23 @@ def build_needs_review_item(*,
     }
 
 
-def queue_needs_review(review_path: str, item: dict) -> bool:
-    return upsert_review_row(item, review_path=review_path)
+def queue_needs_review(item: dict) -> bool:
+    return upsert_review_row(item)
 
 
-def list_needs_review(review_path: str, *, status: str | None = None) -> list[dict]:
-    return list_review_rows(review_path=review_path, status=status)
+def list_needs_review(*, status: str | None = None) -> list[dict]:
+    return list_review_rows(status=status)
 
 
-def get_review_item(review_path: str, review_id: str) -> dict | None:
-    return get_review_row(review_id, review_path=review_path)
+def get_review_item(review_id: str) -> dict | None:
+    return get_review_row(review_id)
 
 
-def resolve_review_item(review_path: str, review_id: str, resolution_note: str = "") -> bool:
-    return resolve_review_row(review_id, resolution_note, review_path=review_path)
+def resolve_review_item(review_id: str, resolution_note: str = "") -> bool:
+    return resolve_review_row(review_id, resolution_note)
 
 
-def save_manual_correction(corrections_path: str,
-                           *,
+def save_manual_correction(*,
                            subject: str,
                            body_text: str,
                            corrected_fields: dict):
@@ -97,10 +76,9 @@ def save_manual_correction(corrections_path: str,
         subject=subject,
         signature=signature,
         corrected_fields=corrected_fields,
-        corrections_path=corrections_path,
     )
 
 
-def find_manual_correction(corrections_path: str, *, subject: str, body_text: str) -> dict | None:
+def find_manual_correction(*, subject: str, body_text: str) -> dict | None:
     signature = build_message_signature(subject, body_text)
-    return find_manual_correction_row(signature, corrections_path=corrections_path)
+    return find_manual_correction_row(signature)

@@ -4,9 +4,20 @@ import unicodedata
 from typing import Optional, List, Tuple
 
 URL_RE = re.compile(r"https?://\S+")
+
+# Turkish patterns (run on normalize_text output)
 APPLIED_RE = re.compile(r"basvurunuz\s+(?P<company>.+?)\s+sirketine\s+gonderildi", re.IGNORECASE)
 VIEWED_RE = re.compile(r"basvurunuz\s+(?P<company>.+?)\s+tarafindan\s+goruntulendi", re.IGNORECASE)
 REJECTED_SUBJECT_RE = re.compile(r"(?P<company>.+?)\s+sirketindeki\s+(?P<title>.+?)\s+basvurunuz\b", re.IGNORECASE)
+
+# English patterns (run on normalize_text of subject only)
+APPLIED_RE_EN = re.compile(r"your\s+application\s+was\s+sent\s+to\s+(?P<company>.+)", re.IGNORECASE)
+VIEWED_RE_EN = re.compile(r"your\s+application\s+was\s+viewed\s+by\s+(?P<company>.+)", re.IGNORECASE)
+REJECTED_SUBJECT_RE_EN = re.compile(
+    r"your\s+application\s+to\s+(?P<title>.+?)\s+at\s+(?P<company>.+)",
+    re.IGNORECASE,
+)
+
 NOISE_PHRASES = (
     "basvuru tarihi",
     "sizin icin onerilen benzer is ilanlarini kesfedin",
@@ -23,6 +34,24 @@ NOISE_PHRASES = (
     "linkedin bildirim e-postalari aliyorsunuz",
     "aboneligi iptal",
     "gelen kutusu",
+)
+
+NOISE_PHRASES_EN = (
+    "explore similar jobs",
+    "show all similar jobs",
+    "view job posting",
+    "job poster",
+    "you're receiving linkedin",
+    "youre receiving linkedin",
+    "find out why we included",
+    "similar jobs you may be interested",
+    "apply with resume",
+    "apply with your resume",
+    "strengthen your profile",
+    "update your profile",
+    "take these steps",
+    "this email was sent",
+    "unsubscribe",
 )
 
 
@@ -47,34 +76,46 @@ def normalize_text(value: str) -> str:
 
 
 # Converts human-entered truthy values into bool.
-# Supports common CLI/CSV values from both English and Turkish usage.
 def str_to_bool(value: str) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "evet"}
 
 
 # Cleans trailing punctuation from extracted company names.
-# This stabilizes key generation and deduplication across emails.
 def normalize_company(name: str) -> str:
     return re.sub(r"[.,;:!]+$", "", (name or "").strip())
 
 
 # Classifies whether an email represents applied and/or viewed event.
-# Also extracts the company candidate from known LinkedIn subject/body patterns.
+# Tries Turkish patterns on merged text, English patterns on subject only.
 def classify_email(subject: str, body_text: str) -> Tuple[Optional[str], bool, bool]:
-    text = normalize_text(f"{subject}\n{body_text}")
+    merged = normalize_text(f"{subject}\n{body_text}")
+    subject_n = normalize_text(subject)
     applied = False
     viewed = False
     company = None
 
-    m_applied = APPLIED_RE.search(text)
+    # Turkish patterns on merged normalized text
+    m_applied = APPLIED_RE.search(merged)
     if m_applied:
         applied = True
         company = m_applied.group("company")
 
-    m_viewed = VIEWED_RE.search(text)
+    m_viewed = VIEWED_RE.search(merged)
     if m_viewed:
         viewed = True
         company = company or m_viewed.group("company")
+
+    # English patterns on normalized subject only (company ends the subject line)
+    if not company:
+        m_applied_en = APPLIED_RE_EN.search(subject_n)
+        if m_applied_en:
+            applied = True
+            company = m_applied_en.group("company").strip()
+
+        m_viewed_en = VIEWED_RE_EN.search(subject_n)
+        if m_viewed_en:
+            viewed = True
+            company = company or m_viewed_en.group("company").strip()
 
     if company:
         company = normalize_company(company)
@@ -83,8 +124,6 @@ def classify_email(subject: str, body_text: str) -> Tuple[Optional[str], bool, b
 
 
 # Converts raw HTML/plain body into normalized line list.
-# The parser strips tags, removes noisy separator rows, and returns meaningful
-# single-line text blocks for downstream title/location extraction.
 def body_to_lines(body_text: str) -> List[str]:
     if not body_text:
         return []
@@ -108,7 +147,12 @@ def body_to_lines(body_text: str) -> List[str]:
 # Detects "applied date" lines so they are not mistaken as job title.
 def looks_like_applied_date_line(text: str) -> bool:
     t = normalize_text(text)
-    return bool(re.search(r"\b\d{1,2}\s+\w+\s+tarihinde\s+basvuruldu\b", t))
+    if re.search(r"\b\d{1,2}\s+\w+\s+tarihinde\s+basvuruldu\b", t):
+        return True
+    # English: "Applied on Jan 15" or "Applied on 15 January"
+    if re.search(r"\bapplied\s+on\b", t):
+        return True
+    return False
 
 
 # Filters known footer/marketing/system lines that should not affect parsing.
@@ -117,6 +161,8 @@ def is_noise_line(text: str) -> bool:
     if not t:
         return True
     if any(p in t for p in NOISE_PHRASES):
+        return True
+    if any(p in t for p in NOISE_PHRASES_EN):
         return True
     if "benzer" in t and "ilan" in t:
         return True
@@ -136,8 +182,6 @@ def is_noise_line(text: str) -> bool:
 
 
 # Tests whether a line can be accepted as location in current parsing context.
-# This version avoids keyword-based geo detection and accepts the first
-# meaningful non-noise candidate.
 def is_probable_location_line(text: str, company: str) -> bool:
     if not text:
         return False
@@ -146,9 +190,15 @@ def is_probable_location_line(text: str, company: str) -> bool:
     t = normalize_text(text)
     if "http://" in text or "https://" in text or "@" in text:
         return False
+    # Turkish negative signals
     if "sirketindeki" in t or "basvurunuz" in t:
         return False
     if "is ilanini goruntuleyin" in t:
+        return False
+    # English negative signals
+    if "your application" in t or "was viewed by" in t or "was sent to" in t:
+        return False
+    if "view job posting" in t or "hiring team" in t:
         return False
     if normalize_text(company) == t:
         return False
@@ -156,19 +206,18 @@ def is_probable_location_line(text: str, company: str) -> bool:
 
 
 # Rejects title candidates that are too noisy, too short/long, or semantically wrong.
-# This guards against false positives from event lines and email chrome text.
 def is_bad_title(text: str, company: str) -> bool:
     t = normalize_text(text)
     company_n = normalize_text(company)
     blacklist = (
-        "linkedin",
-        "basvurunuz",
-        "goruntulendi",
-        "gonderildi",
-        "ise alim takimi",
-        "tarihinde basvuruldu",
-        "gelen kutusu",
-        "aboneligi iptal",
+        # Turkish
+        "linkedin", "basvurunuz", "goruntulendi", "gonderildi",
+        "ise alim takimi", "tarihinde basvuruldu", "gelen kutusu", "aboneligi iptal",
+        # English
+        "your application", "was sent to", "was viewed by",
+        "view job posting", "hiring team", "applied on",
+        "explore similar jobs", "similar jobs",
+        "youre receiving", "unsubscribe",
         "open",
     )
     if any(k in t for k in blacklist):
@@ -187,12 +236,16 @@ def is_bad_title(text: str, company: str) -> bool:
 
 
 # Extracts the best job title and location pair from subject/body.
-# Location selection is simplified: once title context is known, the parser
-# takes the first valid line as location without keyword-based checks.
 def extract_job_title_and_location(subject: str, body_text: str, company: str) -> Tuple[str, str]:
     lines = body_to_lines(body_text)
+
+    # Trim at section-break markers (both languages)
     for stop_idx, line in enumerate(lines):
-        if "sizin icin onerilen benzer is ilanlarini kesfedin" in normalize_text(line):
+        ln_n = normalize_text(line)
+        if "sizin icin onerilen benzer is ilanlarini kesfedin" in ln_n:
+            lines = lines[:stop_idx]
+            break
+        if "explore similar jobs" in ln_n or "similar jobs you may" in ln_n:
             lines = lines[:stop_idx]
             break
 
@@ -200,16 +253,11 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
     title = ""
     location = ""
 
-    # Removes repeated company/separator noise from extracted location candidate
-    # and trims trailing punctuation for cleaner CSV output.
     def clean_location(value: str) -> str:
         loc = (value or "").strip()
         loc = re.sub(rf"^\s*{re.escape(company)}\s*[^A-Za-z0-9]+\s*", "", loc, flags=re.IGNORECASE)
         return loc.strip(" -|:;,.")
 
-    # Picks best location candidate in a line window.
-    # If multiple candidates exist, prefer lines containing a comma
-    # (e.g. "Istanbul, Turkiye") over short brand/team labels.
     def first_location_in_range(start_idx: int, end_idx: int) -> str:
         company_cmp = normalize_company(normalize_text(company))
         title_cmp = normalize_company(normalize_text(title))
@@ -231,6 +279,8 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
         return candidates[0]
 
     subject_n = normalize_text(subject)
+
+    # ── Turkish applied path ──────────────────────────────────────────────────
     if "sirketine gonderildi" in subject_n:
         event_idx = 0
         for i, ln in enumerate(lines):
@@ -263,15 +313,88 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
                     break
             if t_idx >= 0:
                 location = first_location_in_range(t_idx + 1, applied_end_idx)
-            # Fallback: if location is still empty, rescan the full applied block.
             if not location:
                 location = first_location_in_range(event_idx + 1, applied_end_idx)
 
         if title:
             return title, location
 
+    # ── English applied path ──────────────────────────────────────────────────
+    if "your application was sent to" in subject_n and not title:
+        event_idx = 0
+        for i, ln in enumerate(lines):
+            ln_n = normalize_text(ln)
+            if "application was sent to" in ln_n:
+                event_idx = i
+                break
+
+        applied_end_idx = min(event_idx + 20, len(lines))
+        for i, ln in enumerate(lines[event_idx + 1:applied_end_idx], start=event_idx + 1):
+            if looks_like_applied_date_line(ln):
+                applied_end_idx = i
+                break
+
+        for j in range(event_idx + 1, applied_end_idx):
+            cand = lines[j].strip()
+            if is_bad_title(cand, company):
+                continue
+            if normalize_text(cand) == company_n:
+                continue
+            title = cand
+            break
+
+        if title:
+            title_n = normalize_text(title)
+            t_idx = -1
+            for i, ln in enumerate(lines[event_idx + 1:applied_end_idx], start=event_idx + 1):
+                if normalize_text(ln) == title_n:
+                    t_idx = i
+                    break
+            if t_idx >= 0:
+                location = first_location_in_range(t_idx + 1, applied_end_idx)
+            if not location:
+                location = first_location_in_range(event_idx + 1, applied_end_idx)
+
+        if title:
+            return title, location
+
+    # ── English viewed path ───────────────────────────────────────────────────
+    if "your application was viewed by" in subject_n and not title:
+        # Body typically: [event line] → [title] → [company] → [location]
+        event_idx = 0
+        for i, ln in enumerate(lines):
+            ln_n = normalize_text(ln)
+            if "application was viewed by" in ln_n or "viewed your application" in ln_n:
+                event_idx = i
+                break
+
+        search_end = min(event_idx + 15, len(lines))
+        for j in range(event_idx + 1, search_end):
+            cand = lines[j].strip()
+            if is_bad_title(cand, company):
+                continue
+            if normalize_text(cand) == company_n:
+                continue
+            title = cand
+            break
+
+        if title:
+            title_n = normalize_text(title)
+            t_idx = -1
+            for i, ln in enumerate(lines[:search_end]):
+                if normalize_text(ln) == title_n:
+                    t_idx = i
+                    break
+            if t_idx >= 0:
+                location = first_location_in_range(t_idx + 1, t_idx + 5)
+
+        if title:
+            return title, location
+
+    # ── Hiring-team pattern (Turkish & English) ───────────────────────────────
     for i, line in enumerate(lines):
-        if "ise alim takimi" in normalize_text(line):
+        ln_n = normalize_text(line)
+        if "ise alim takimi" in ln_n or "hiring team" in ln_n:
             title_idx = -1
             for j in range(i + 1, min(i + 4, len(lines))):
                 cand = lines[j].strip()
@@ -284,13 +407,14 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
                 location = first_location_in_range(title_idx + 1, i + 7)
                 break
 
+    # ── Bullet-separator pattern: "Company · Location" ────────────────────────
     for idx, line in enumerate(lines):
         if title and location:
             break
         left = ""
         right = ""
 
-        parts = re.split(r"\s*[Ã‚Â·Ã¢â‚¬Â¢]\s*", line, maxsplit=1)
+        parts = re.split(r"\s*[·•]\s*", line, maxsplit=1)
         if len(parts) == 2:
             left, right = parts
         else:
@@ -313,11 +437,13 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
         if title:
             break
 
+    # ── Turkish fallback: "şirketindeki" in subject ───────────────────────────
     if not title:
         m = re.search(r"sirketindeki\s+(?P<title>.+?)\s+basvurunuz", subject_n)
         if m:
             title = m.group("title").strip()
 
+    # ── Company-mention scan ──────────────────────────────────────────────────
     if not title:
         for i, line in enumerate(lines):
             if normalize_text(company) not in normalize_text(line):
@@ -331,6 +457,7 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
             if title:
                 break
 
+    # ── Turkish date-proximity fallback ──────────────────────────────────────
     if not title:
         for i, line in enumerate(lines):
             if "basvuru" in normalize_text(line) and "tarih" in normalize_text(line):
@@ -343,6 +470,7 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
                 if title:
                     break
 
+    # ── Location from title position ──────────────────────────────────────────
     if title and not location:
         title_n = normalize_text(title)
         title_idx = -1
@@ -362,7 +490,6 @@ def extract_job_title_and_location(subject: str, body_text: str, company: str) -
 
 
 # Converts noisy LinkedIn URLs into canonical stable form.
-# It removes tracking query params and fixes special HTML encoding artifacts.
 def normalize_job_url(url: Optional[str]) -> Optional[str]:
     if not url:
         return None
@@ -374,8 +501,6 @@ def normalize_job_url(url: Optional[str]) -> Optional[str]:
 
 
 # Extracts best candidate job URL from body text.
-# Preference order is strict LinkedIn job page link, then any /jobs/view/ link,
-# then fallback to first URL.
 def extract_job_url(body_text: str) -> Optional[str]:
     if not body_text:
         return None
@@ -393,15 +518,12 @@ def extract_job_url(body_text: str) -> Optional[str]:
 
 
 # Parses LinkedIn job ID from URL when available.
-# Returns empty string if URL is missing or pattern not found.
 def extract_job_id(job_url: str) -> str:
     m = re.search(r"linkedin\.com/(?:comm/)?jobs/view/(\d+)", job_url or "")
     return m.group(1) if m else ""
 
 
 # Chooses a human-friendly company display name from raw subject/body.
-# Matching is done via normalized comparison so dedup logic stays unchanged,
-# while UI can show original casing such as "Alyo Bilisim A.S.".
 def extract_company_display_name(subject: str, body_text: str, company_normalized: str) -> str:
     target = normalize_company(normalize_text(company_normalized))
     if not target:
@@ -409,6 +531,7 @@ def extract_company_display_name(subject: str, body_text: str, company_normalize
 
     candidates: List[str] = []
 
+    # Turkish subject patterns
     m_subject_applied = re.search(
         r"başvurunuz\s+(?P<company>.+?)\s+şirketine\s+gönderildi",
         subject,
@@ -425,12 +548,32 @@ def extract_company_display_name(subject: str, body_text: str, company_normalize
     if m_subject_viewed:
         candidates.append(m_subject_viewed.group("company").strip())
 
+    # English subject patterns
+    m_subject_applied_en = re.search(
+        r"your\s+application\s+was\s+sent\s+to\s+(?P<company>.+)",
+        subject,
+        flags=re.IGNORECASE,
+    )
+    if m_subject_applied_en:
+        raw = normalize_company(m_subject_applied_en.group("company").strip())
+        if normalize_company(normalize_text(raw)) == target:
+            candidates.append(raw)
+
+    m_subject_viewed_en = re.search(
+        r"your\s+application\s+was\s+viewed\s+by\s+(?P<company>.+)",
+        subject,
+        flags=re.IGNORECASE,
+    )
+    if m_subject_viewed_en:
+        raw = normalize_company(m_subject_viewed_en.group("company").strip())
+        if normalize_company(normalize_text(raw)) == target:
+            candidates.append(raw)
+
     for ln in body_to_lines(body_text):
         cand = ln.strip()
         if normalize_company(normalize_text(cand)) == target:
             candidates.append(cand)
 
-    # Picks candidate that best preserves intended style (uppercase + punctuation).
     def score(name: str) -> tuple[int, int, int]:
         has_upper = 1 if any(ch.isupper() for ch in name) else 0
         has_punct = 1 if any(ch in ".-&" for ch in name) else 0
@@ -442,14 +585,23 @@ def extract_company_display_name(subject: str, body_text: str, company_normalize
     return company_normalized or ""
 
 
-# Extracts rejection event payload from subject using the expected pattern:
-# "<company> şirketindeki <job_title> başvurunuz". Matching is done on
-# normalized text to survive encoding/diacritic differences.
+# Extracts rejection event payload from subject.
+# Handles both Turkish and English LinkedIn rejection subjects.
 def extract_rejected_event(subject: str) -> Tuple[Optional[str], Optional[str]]:
     subject_n = normalize_text(subject)
+
+    # Turkish: "<company> şirketindeki <title> başvurunuz"
     m = REJECTED_SUBJECT_RE.search(subject_n)
-    if not m:
-        return None, None
-    company = normalize_company(m.group("company"))
-    title = (m.group("title") or "").strip()
-    return company or None, title or None
+    if m:
+        company = normalize_company(m.group("company"))
+        title = (m.group("title") or "").strip()
+        return company or None, title or None
+
+    # English: "Your application to <title> at <company>"
+    m_en = REJECTED_SUBJECT_RE_EN.search(subject)
+    if m_en:
+        company = normalize_company(m_en.group("company").strip())
+        title = (m_en.group("title") or "").strip()
+        return company or None, title or None
+
+    return None, None

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -10,9 +10,7 @@
     (() => {
       try {
         const savedTheme = localStorage.getItem("theme");
-        const preferredTheme = savedTheme === "dark" || savedTheme === "light"
-          ? savedTheme
-          : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        const preferredTheme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : "dark";
         if (preferredTheme === "dark") {
           document.documentElement.classList.add("dark");
         }
@@ -79,8 +77,7 @@
     .note{margin-top:18px;padding:16px 18px;border-radius:18px;background:linear-gradient(135deg,rgba(223,245,231,.98),rgba(255,249,235,.9));color:var(--green);font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.78)}.table{overflow:hidden;border-radius:24px;border:1px solid var(--line);background:rgba(255,255,255,.88);box-shadow:inset 0 1px 0 rgba(255,255,255,.72)} .tableHead,.tableRow{display:grid;grid-template-columns:1.3fr .7fr .8fr;gap:12px}.tableHead{padding:16px 18px;border-bottom:1px solid var(--line);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(248,251,249,.88))} .tableRow{margin:12px}
     .follow{grid-template-columns:1fr 1fr;align-items:center}.badge{margin-bottom:16px;padding:9px 14px;background:rgba(223,245,231,.95);color:var(--green)} .list{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:14px}.list li{display:flex;gap:12px;align-items:flex-start}.list li:before{content:"";width:10px;height:10px;margin-top:9px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green2));box-shadow:0 0 0 6px rgba(88,180,134,.12);flex:0 0 auto}
     .followBox{padding:24px;border-radius:var(--r);border:1px solid rgba(46,125,91,.1);background:radial-gradient(260px 120px at 100% 0%,rgba(240,190,104,.12),transparent 70%),linear-gradient(180deg,rgba(255,255,255,.94),rgba(246,251,247,.94));box-shadow:var(--shadow3)} .msg{display:grid;gap:8px;margin-top:16px}
-    /* .plans{grid-template-columns:repeat(3,minmax(0,1fr))}.plan{position:relative;display:flex;flex-direction:column;gap:18px;backdrop-filter:blur(8px)}.plan ul{list-style:none;padding:0;margin:0;display:grid;gap:12px;color:var(--muted)} .plan li:before{content:"+";margin-right:10px;color:var(--green);font-weight:700} */
-    .plans {display: grid;grid-template-columns: repeat(3, minmax(0, 1fr));gap: 24px;}.plan {position: relative;display: flex;flex-direction: column;gap: 18px;height: 100%;backdrop-filter: blur(8px);}.plan ul {}.plan li::before {content: "+";margin-right: 10px;color: var(--green);font-weight: 700;}.plan .btn {margin-top: auto;}
+    .plans {display: grid;grid-template-columns: repeat(3, minmax(0, 1fr));gap: 24px;}.plan {position: relative;display: flex;flex-direction: column;gap: 18px;height: 100%;backdrop-filter: blur(8px);}.plan ul {list-style:none;padding:0;margin:0;display:grid;gap:10px;color:var(--muted)}.plan .btn {margin-top: auto;}
     .price{font-size:42px;font-weight:800;letter-spacing:-.05em}.price span{font-size:15px;font-weight:600;color:var(--muted);letter-spacing:0}.popular{position:absolute;top:20px;right:20px;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;background:linear-gradient(135deg,rgba(223,245,231,.98),rgba(255,249,235,.92));color:var(--green);box-shadow:inset 0 1px 0 rgba(255,255,255,.7)} .featured{background:radial-gradient(220px 120px at 100% 0%,rgba(240,190,104,.12),transparent 70%),linear-gradient(180deg,rgba(255,255,255,.98),rgba(240,251,244,.96));box-shadow:var(--shadow3);border-color:rgba(46,125,91,.16)}
     .final{padding:42px;background:radial-gradient(260px 140px at 100% 0%,rgba(240,190,104,.18),transparent 70%),linear-gradient(135deg,#163c2b,#25533d 52%,#4ea879);color:#f5fbf7;box-shadow:0 30px 80px rgba(18,39,26,.18),inset 0 1px 0 rgba(255,255,255,.08)} .final p{color:rgba(245,251,247,.8);max-width:52ch}.final .pri{color:#123021;background:linear-gradient(135deg,#d9f3e2,#fff);box-shadow:inset 0 1px 0 rgba(255,255,255,.78)}
     .foot{padding:30px 0 42px;justify-content:space-between;gap:20px;border-top:1px solid rgba(16,34,24,.06)} .footlinks{display:flex;gap:22px;flex-wrap:wrap;color:var(--muted);font-weight:600}
@@ -91,7 +88,7 @@
     .themeToggle[aria-checked="true"]{background:linear-gradient(135deg,#163023,#244333);border-color:color-mix(in srgb,var(--green) 35%,var(--line));box-shadow:0 0 0 1px rgba(116,200,155,.10),0 14px 32px rgba(0,0,0,.22)}
     .themeToggle[aria-checked="true"]:before{transform:translateX(28px);background:linear-gradient(135deg,#74c89b,#163023)}
     .themeToggle[aria-checked="true"]:after{content:"☾";right:auto;left:11px;color:#cbd5e1}
-    .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}.reveal.visible{opacity:1;transform:none}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}.reveal.visible{opacity:1;transform:none}
     html.dark{--bg:#0f1712;--bg2:#132019;--card:rgba(18,32,25,.9);--text:#edf5ef;--muted:#a5b8ab;--line:rgba(191,224,205,.1);--green:#74c89b;--green2:#f0be68;--green3:rgba(116,200,155,.16);--shadow:0 24px 60px rgba(0,0,0,.24);--shadow2:0 28px 80px rgba(0,0,0,.28);--shadow3:0 34px 100px rgba(0,0,0,.34)}
     html.dark body{background:radial-gradient(circle at top left,rgba(116,200,155,.12),transparent 28%),radial-gradient(circle at top right,rgba(240,190,104,.10),transparent 24%),radial-gradient(circle at 50% 0%,rgba(240,190,104,.08),transparent 28%),linear-gradient(180deg,var(--bg),var(--bg2))}
     html.dark .top{background:rgba(15,23,18,.72);border-bottom-color:rgba(191,224,205,.08);box-shadow:0 10px 30px rgba(0,0,0,.18)}
@@ -130,7 +127,7 @@
     html.dark .featuredCard.accentBlue .icon{color:#9cdbf8;background:linear-gradient(135deg,rgba(24,47,57,.94),rgba(18,32,37,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 14px 30px rgba(0,0,0,.24)}
     html.dark .popular{box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
     html.dark .final{box-shadow:0 30px 80px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.06)}
-    @media (max-width:1100px){.heroGrid,.preview,.follow{grid-template-columns:1fr}.cards3,.plans{grid-template-columns:repeat(2,minmax(0,1fr))}.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1100px){.heroGrid,.preview,.follow{grid-template-columns:1fr}.cards3,.plans{grid-template-columns:repeat(2,minmax(0,1fr))}.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media (max-width:760px){.wrap{width:min(var(--w),calc(100% - 24px))}.nav{flex-wrap:wrap;justify-content:center;padding:14px 0}.navlinks{order:3;width:100%;justify-content:center;flex-wrap:wrap;gap:16px}.actions,.cta{width:100%;flex-direction:column}.btn{width:100%}.sec{padding:76px 0}.hero{padding-top:44px}.cards3,.steps,.plans{grid-template-columns:1fr}.stats{flex-direction:column}.tableHead,.tableRow{grid-template-columns:1fr}.foot{flex-direction:column;align-items:flex-start}}
   </style>
 </head>
@@ -138,8 +135,17 @@
   <header class="top">
     <div class="wrap nav">
       <a class="brand" href="/"><span class="logo"><img src="/tracksy-logo.svg" alt=""></span><span>Tracksy</span></a>
-      <nav class="navlinks" aria-label="Main navigation"><a href="#solution">Features</a><a href="#pricing">Pricing</a><a href="#privacy">Privacy</a></nav>
-      <div class="actions"><button class="themeToggle" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Toggle theme"></button><a class="btn secbtn" href="/login">Log in</a><a class="btn secbtn" href="/demo/jobs">Watch demo</a><a class="btn pri" href="/register?plan=starter">Start free</a></div>
+      <nav class="navlinks" aria-label="Main navigation">
+        <a href="#solution" data-i18n="nav.features">Features</a>
+        <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
+        <a href="#privacy" data-i18n="nav.privacy">Privacy</a>
+      </nav>
+      <div class="actions">
+        <button class="themeToggle" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Toggle theme"></button>
+        <a class="btn secbtn" href="/login" data-i18n="btn.login">Log in</a>
+        <a class="btn secbtn" href="/demo/jobs" data-i18n="btn.demo">Watch demo</a>
+        <a class="btn pri" href="/register?plan=starter" data-i18n="btn.start">Start free</a>
+      </div>
     </div>
   </header>
 
@@ -147,25 +153,59 @@
     <section class="hero">
       <div class="wrap heroGrid">
         <div class="reveal visible">
-          <span class="eyebrow">Built for focused job hunters</span>
-          <h1>Get more interviews without tracking anything manually</h1>
-          <p class="lead">Automatically track your job applications from LinkedIn emails and never miss a follow-up again.</p>
-          <div class="cta"><a class="btn pri" href="/register?plan=starter">Start free</a><a class="btn secbtn" href="/login">Log in</a><a class="btn secbtn" href="/demo/jobs">Watch demo</a></div>
-          <div class="proof"><i>+</i><span>We only read LinkedIn job emails. No spam. Disconnect anytime.</span></div>
+          <span class="eyebrow" data-i18n="hero.eyebrow">Built for focused job hunters</span>
+          <h1 data-i18n="hero.h1">Get more interviews without tracking anything manually</h1>
+          <p class="lead" data-i18n="hero.lead">Automatically track your job applications from LinkedIn emails and never miss a follow-up again.</p>
+          <div class="cta">
+            <a class="btn pri" href="/register?plan=starter" data-i18n="hero.cta.start">Start free</a>
+            <a class="btn secbtn" href="/login" data-i18n="hero.cta.login">Log in</a>
+            <a class="btn secbtn" href="/demo/jobs" data-i18n="hero.cta.demo">Watch demo</a>
+          </div>
+          <div class="proof"><i>+</i><span data-i18n="hero.proof">We only read LinkedIn job emails. No spam. Disconnect anytime.</span></div>
         </div>
         <div class="panel reveal" id="preview">
-          <div class="rowTop"><div><strong>Job Pipeline</strong><div class="mini">Your inbox turned into a live dashboard</div></div><div class="pill">Live sync</div></div>
+          <div class="rowTop">
+            <div>
+              <strong data-i18n="panel.title">Job Pipeline</strong>
+              <div class="mini" data-i18n="panel.subtitle">Your inbox turned into a live dashboard</div>
+            </div>
+            <div class="pill" data-i18n="panel.pill">Live sync</div>
+          </div>
           <div class="stack">
-            <div class="row"><div><strong>Senior Product Designer</strong><small>Applied 2 days ago</small></div><span class="tag view">Viewed</span></div>
-            <div class="row"><div><strong>Growth Marketing Lead</strong><small>Follow-up today</small></div><span class="tag followTag">Follow-up</span></div>
-            <div class="row"><div><strong>Operations Analyst</strong><small>Waiting for update</small></div><span class="tag applied">Applied</span></div>
+            <div class="row">
+              <div>
+                <strong data-i18n="panel.job1.title">Senior Product Designer</strong>
+                <small data-i18n="panel.job1.sub">Applied 2 days ago</small>
+              </div>
+              <span class="tag view" data-i18n="panel.job1.status">Viewed</span>
+            </div>
+            <div class="row">
+              <div>
+                <strong data-i18n="panel.job2.title">Growth Marketing Lead</strong>
+                <small data-i18n="panel.job2.sub">Follow-up today</small>
+              </div>
+              <span class="tag followTag" data-i18n="panel.job2.status">Follow-up</span>
+            </div>
+            <div class="row">
+              <div>
+                <strong data-i18n="panel.job3.title">Operations Analyst</strong>
+                <small data-i18n="panel.job3.sub">Waiting for update</small>
+              </div>
+              <span class="tag applied" data-i18n="panel.job3.status">Applied</span>
+            </div>
           </div>
           <div class="followCard">
-            <div class="statusRow"><div><strong>Follow-up alert</strong><p>Best timing: today, 11:00 AM</p></div><div class="pill">AI ready</div></div>
+            <div class="statusRow">
+              <div>
+                <strong data-i18n="panel.followup.title">Follow-up alert</strong>
+                <p data-i18n="panel.followup.sub">Best timing: today, 11:00 AM</p>
+              </div>
+              <div class="pill" data-i18n="panel.followup.pill">AI ready</div>
+            </div>
             <div class="bars">
-              <div>Pipeline coverage<div class="bar"><i style="width:84%"></i></div></div>
-              <div>Follow-up readiness<div class="bar"><i style="width:72%"></i></div></div>
-              <div>CV match quality<div class="bar"><i style="width:89%"></i></div></div>
+              <div><span data-i18n="panel.bar1">Pipeline coverage</span><div class="bar"><i style="width:84%"></i></div></div>
+              <div><span data-i18n="panel.bar2">Follow-up readiness</span><div class="bar"><i style="width:72%"></i></div></div>
+              <div><span data-i18n="panel.bar3">CV match quality</span><div class="bar"><i style="width:89%"></i></div></div>
             </div>
           </div>
         </div>
@@ -174,52 +214,79 @@
 
     <section class="sec" id="problem">
       <div class="wrap">
-        <div class="head reveal"><span class="eyebrow">Problem</span><h2>You’re not losing jobs. You’re losing follow-ups.</h2></div>
+        <div class="head reveal">
+          <span class="eyebrow" data-i18n="problem.eyebrow">Problem</span>
+          <h2 data-i18n="problem.h2">You're not losing jobs. You're losing follow-ups.</h2>
+        </div>
         <div class="cards3">
-          <article class="card reveal"><div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 8V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 16.5V16.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M10.29 3.86L2.82 16.36C2.09 17.57 2.96 19.1 4.36 19.1H19.28C20.68 19.1 21.55 17.57 20.82 16.36L13.35 3.86C12.65 2.69 10.99 2.69 10.29 3.86Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div><h3>You lose track of applications</h3><p>Everything is scattered across tabs, emails, and your memory.</p></article>
-          <article class="card reveal"><div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 6V12L16 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/></svg></div><h3>You miss the right timing</h3><p>Recruiters move on because you follow up too late.</p></article>
-          <article class="card reveal"><div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 19L10 13L14 17L20 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 9H20V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>You don’t know what works</h3><p>You can’t tell which applications are actually moving forward.</p></article>
+          <article class="card reveal">
+            <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 8V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 16.5V16.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M10.29 3.86L2.82 16.36C2.09 17.57 2.96 19.1 4.36 19.1H19.28C20.68 19.1 21.55 17.57 20.82 16.36L13.35 3.86C12.65 2.69 10.99 2.69 10.29 3.86Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+            <h3 data-i18n="problem.card1.h3">You lose track of applications</h3>
+            <p data-i18n="problem.card1.p">Everything is scattered across tabs, emails, and your memory.</p>
+          </article>
+          <article class="card reveal">
+            <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 6V12L16 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/></svg></div>
+            <h3 data-i18n="problem.card2.h3">You miss the right timing</h3>
+            <p data-i18n="problem.card2.p">Recruiters move on because you follow up too late.</p>
+          </article>
+          <article class="card reveal">
+            <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 19L10 13L14 17L20 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 9H20V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3 data-i18n="problem.card3.h3">You don't know what works</h3>
+            <p data-i18n="problem.card3.p">You can't tell which applications are actually moving forward.</p>
+          </article>
         </div>
       </div>
     </section>
 
     <section class="sec" id="solution">
       <div class="wrap">
-        <div class="head reveal"><span class="eyebrow">Solution</span><h2>Turn your job search into a system</h2></div>
+        <div class="head reveal">
+          <span class="eyebrow" data-i18n="solution.eyebrow">Solution</span>
+          <h2 data-i18n="solution.h2">Turn your job search into a system</h2>
+        </div>
         <div class="cards3">
           <article class="card featuredCard accentBlue reveal">
-            <div class="featuredLabel"><i></i>Smart Pipeline</div>
+            <div class="featuredLabel"><i></i><span data-i18n="solution.card1.label">Smart Pipeline</span></div>
             <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 6.5H17M7 11.5H17M7 16.5H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="4" y="4" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.8"/></svg></div>
-            <h3><span>Never lose an application again</span><span class="featuredMetric"><b>24/7</b> auto-tracked</span></h3>
-            <p>Your job emails are automatically turned into a clean pipeline so every application stays visible and organized.</p>
+            <h3>
+              <span data-i18n="solution.card1.h3">Never lose an application again</span>
+              <span class="featuredMetric" data-i18n="solution.card1.metric"><b>24/7</b> auto-tracked</span>
+            </h3>
+            <p data-i18n="solution.card1.p">Your job emails are automatically turned into a clean pipeline so every application stays visible and organized.</p>
           </article>
           <article class="card featuredCard accentGold reveal">
-            <div class="featuredLabel"><i></i>Follow-up AI</div>
+            <div class="featuredLabel"><i></i><span data-i18n="solution.card2.label">Follow-up AI</span></div>
             <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4V12L17 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/></svg></div>
-            <h3><span>Follow up at the perfect time</span><span class="featuredMetric"><b>2x</b> better timing</span></h3>
-            <p>We tell you exactly when recruiters are most likely to reply, so your follow-up lands when attention is still warm.</p>
-          </article>          
+            <h3>
+              <span data-i18n="solution.card2.h3">Follow up at the perfect time</span>
+              <span class="featuredMetric" data-i18n="solution.card2.metric"><b>2x</b> better timing</span>
+            </h3>
+            <p data-i18n="solution.card2.p">We tell you exactly when recruiters are most likely to reply, so your follow-up lands when attention is still warm.</p>
+          </article>
           <article class="card featuredCard reveal">
-            <div class="featuredLabel"><i></i>AI CV Studio</div>
+            <div class="featuredLabel"><i></i><span data-i18n="solution.card3.label">AI CV Studio</span></div>
             <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 17L10 13L13 16L18 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 10H18V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="5" width="16" height="14" rx="4" stroke="currentColor" stroke-width="1.8"/></svg></div>
-            <h3><span>Increase your chances every time</span><span class="featuredMetric"><b>+32%</b> stronger match</span></h3>
-            <p>Optimize your CV for each job automatically with AI and make your application look tailored from the first glance.</p>
+            <h3>
+              <span data-i18n="solution.card3.h3">Increase your chances every time</span>
+              <span class="featuredMetric" data-i18n="solution.card3.metric"><b>+32%</b> stronger match</span>
+            </h3>
+            <p data-i18n="solution.card3.p">Optimize your CV for each job automatically with AI and make your application look tailored from the first glance.</p>
           </article>
         </div>
       </div>
     </section>
 
-  
-
-
     <section class="sec" id="how">
       <div class="wrap">
-        <div class="head reveal"><span class="eyebrow">How it works</span><h2>Takes 30 seconds. Saves you weeks.</h2></div>
+        <div class="head reveal">
+          <span class="eyebrow" data-i18n="how.eyebrow">How it works</span>
+          <h2 data-i18n="how.h2">Takes 30 seconds. Saves you weeks.</h2>
+        </div>
         <div class="steps">
-          <article class="step reveal"><div class="num">1</div><h3>Connect your email</h3><p>Set it up once in under 30 seconds.</p></article>
-          <article class="step reveal"><div class="num">2</div><h3>We build your pipeline</h3><p>Your job emails are automatically organized into one dashboard.</p></article>
-          <article class="step reveal"><div class="num">3</div><h3>We tell you what to do next</h3><p>Get clear follow-up suggestions at the right time.</p></article>
-          <article class="step reveal"><div class="num">4</div><h3>You get more replies</h3><p>Better timing = higher response rate.</p></article>
+          <article class="step reveal"><div class="num">1</div><h3 data-i18n="how.step1.h3">Connect your email</h3><p data-i18n="how.step1.p">Set it up once in under 30 seconds.</p></article>
+          <article class="step reveal"><div class="num">2</div><h3 data-i18n="how.step2.h3">We build your pipeline</h3><p data-i18n="how.step2.p">Your job emails are automatically organized into one dashboard.</p></article>
+          <article class="step reveal"><div class="num">3</div><h3 data-i18n="how.step3.h3">We tell you what to do next</h3><p data-i18n="how.step3.p">Get clear follow-up suggestions at the right time.</p></article>
+          <article class="step reveal"><div class="num">4</div><h3 data-i18n="how.step4.h3">You get more replies</h3><p data-i18n="how.step4.p">Better timing = higher response rate.</p></article>
         </div>
       </div>
     </section>
@@ -227,23 +294,45 @@
     <section class="sec">
       <div class="wrap preview">
         <div class="reveal">
-          <span class="eyebrow">Product preview</span>
-          <h2>See your entire pipeline at a glance</h2>
-          <p>Know what needs action today. Not tomorrow.</p>
+          <span class="eyebrow" data-i18n="preview.eyebrow">Product preview</span>
+          <h2 data-i18n="preview.h2">See your entire pipeline at a glance</h2>
+          <p data-i18n="preview.p">Know what needs action today. Not tomorrow.</p>
           <div class="stats">
-            <article class="stat"><b>148</b><span class="sub">Applications</span></article>
-            <article class="stat"><b>41%</b><span class="sub">Viewed</span></article>
-            <article class="stat"><b>18%</b><span class="sub">Rejected</span></article>
+            <article class="stat"><b>148</b><span class="sub" data-i18n="preview.stat1">Applications</span></article>
+            <article class="stat"><b>41%</b><span class="sub" data-i18n="preview.stat2">Viewed</span></article>
+            <article class="stat"><b>18%</b><span class="sub" data-i18n="preview.stat3">Rejected</span></article>
           </div>
-          <div class="note">The right next action is always visible.</div>
+          <div class="note" data-i18n="preview.note">The right next action is always visible.</div>
         </div>
         <div class="panel reveal">
-          <div class="rowTop"><div><strong>Pipeline table</strong><div class="mini">Status, timing, and follow-up in one view</div></div><div class="pill">Today</div></div>
+          <div class="rowTop">
+            <div>
+              <strong data-i18n="preview.panel.title">Pipeline table</strong>
+              <div class="mini" data-i18n="preview.panel.subtitle">Status, timing, and follow-up in one view</div>
+            </div>
+            <div class="pill" data-i18n="preview.panel.pill">Today</div>
+          </div>
           <div class="table">
-            <div class="tableHead"><span>Role</span><span>Status</span><span>Next action</span></div>
-            <div class="tableRow"><div><strong>Product Designer</strong><small>Notion Labs</small></div><div><span class="tag view">Viewed</span></div><div><small>Follow up Friday</small></div></div>
-            <div class="tableRow"><div><strong>Growth Lead</strong><small>RemoteWave</small></div><div><span class="tag followTag">Follow-up</span></div><div><small>Send today</small></div></div>
-            <div class="tableRow"><div><strong>Strategy Analyst</strong><small>Northgrid</small></div><div><span class="tag applied">Applied</span></div><div><small>Waiting</small></div></div>
+            <div class="tableHead">
+              <span data-i18n="preview.table.col1">Role</span>
+              <span data-i18n="preview.table.col2">Status</span>
+              <span data-i18n="preview.table.col3">Next action</span>
+            </div>
+            <div class="tableRow">
+              <div><strong data-i18n="preview.row1.title">Product Designer</strong><small data-i18n="preview.row1.co">Notion Labs</small></div>
+              <div><span class="tag view" data-i18n="preview.row1.status">Viewed</span></div>
+              <div><small data-i18n="preview.row1.action">Follow up Friday</small></div>
+            </div>
+            <div class="tableRow">
+              <div><strong data-i18n="preview.row2.title">Growth Lead</strong><small data-i18n="preview.row2.co">RemoteWave</small></div>
+              <div><span class="tag followTag" data-i18n="preview.row2.status">Follow-up</span></div>
+              <div><small data-i18n="preview.row2.action">Send today</small></div>
+            </div>
+            <div class="tableRow">
+              <div><strong data-i18n="preview.row3.title">Strategy Analyst</strong><small data-i18n="preview.row3.co">Northgrid</small></div>
+              <div><span class="tag applied" data-i18n="preview.row3.status">Applied</span></div>
+              <div><small data-i18n="preview.row3.action">Waiting</small></div>
+            </div>
           </div>
         </div>
       </div>
@@ -252,61 +341,129 @@
     <section class="sec">
       <div class="wrap follow">
         <div class="reveal">
-          <span class="badge">+30% higher response rate</span>
-          <h2>Most candidates never follow up. You will.</h2>
+          <span class="badge" data-i18n="follow.badge">+30% higher response rate</span>
+          <h2 data-i18n="follow.h2">Most candidates never follow up. You will.</h2>
           <ul class="list">
-            <li>Get notified at the perfect timing</li>
-            <li>AI-generated follow-up messages</li>
-            <li>Increase reply rate</li>
+            <li data-i18n="follow.li1">Get notified at the perfect timing</li>
+            <li data-i18n="follow.li2">AI-generated follow-up messages</li>
+            <li data-i18n="follow.li3">Increase reply rate</li>
           </ul>
         </div>
         <div class="followBox reveal">
-          <div class="rowTop"><div><small class="mini">Follow-up recommendation</small><h4>Send now</h4></div><div class="pill">Reply window open</div></div>
-          <div class="msg"><strong>Suggested message</strong><small>Hi Sarah, I wanted to follow up on my application for Growth Marketing Lead. I am still very interested and would love to hear about next steps.</small></div>
-          <div class="msg"><strong>Why now</strong><small>The application was viewed 4 days ago. This is the highest-likelihood timing for a polite follow-up.</small></div>
+          <div class="rowTop">
+            <div>
+              <small class="mini" data-i18n="follow.box.small">Follow-up recommendation</small>
+              <h4 data-i18n="follow.box.h4">Send now</h4>
+            </div>
+            <div class="pill" data-i18n="follow.box.pill">Reply window open</div>
+          </div>
+          <div class="msg">
+            <strong data-i18n="follow.msg1.title">Suggested message</strong>
+            <small data-i18n="follow.msg1.text">Hi Sarah, I wanted to follow up on my application for Growth Marketing Lead. I am still very interested and would love to hear about next steps.</small>
+          </div>
+          <div class="msg">
+            <strong data-i18n="follow.msg2.title">Why now</strong>
+            <small data-i18n="follow.msg2.text">The application was viewed 4 days ago. This is the highest-likelihood timing for a polite follow-up.</small>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="sec">
       <div class="wrap">
-        <div class="head reveal"><span class="eyebrow">Social proof</span><h2>Built for people who actually want results</h2></div>
+        <div class="head reveal">
+          <span class="eyebrow" data-i18n="social.eyebrow">Social proof</span>
+          <h2 data-i18n="social.h2">Built for people who actually want results</h2>
+        </div>
         <div class="cards3">
-          <article class="social reveal"><strong>All in one</strong><p>Track all your applications in one place</p></article>
-          <article class="social reveal"><strong>On time</strong><p>Never miss a follow-up again</p></article>
-          <article class="social reveal"><strong>Consistent</strong><p>Stay consistent without effort</p></article>
+          <article class="social reveal"><strong data-i18n="social.card1.title">All in one</strong><p data-i18n="social.card1.p">Track all your applications in one place</p></article>
+          <article class="social reveal"><strong data-i18n="social.card2.title">On time</strong><p data-i18n="social.card2.p">Never miss a follow-up again</p></article>
+          <article class="social reveal"><strong data-i18n="social.card3.title">Consistent</strong><p data-i18n="social.card3.p">Stay consistent without effort</p></article>
         </div>
       </div>
     </section>
 
     <section class="sec" id="pricing">
       <div class="wrap">
-        <div class="head reveal"><span class="eyebrow">Pricing</span><h2>Start free. Upgrade when you need more control.</h2></div>
+        <div class="head reveal">
+          <span class="eyebrow" data-i18n="pricing.eyebrow">Pricing</span>
+          <h2 data-i18n="pricing.h2">Start free. Upgrade when you need more control.</h2>
+        </div>
         <div class="plans">
-          <article class="plan reveal"><h3>Starter</h3><div class="price">$0 <span>/ month</span></div><p>Start simple and stay organized.</p><ul><li>Limited tracking</li><li>Manual sync</li><li>Basic dashboard</li></ul><a class="btn pri" href="/register?plan=starter">Try free</a></article>
-          <article class="plan featured reveal"><div class="popular">Most popular</div><h3>Serious</h3><div class="price">$9 <span>/ month</span></div><p>For people who want every follow-up advantage.</p><ul><li>Unlimited tracking</li><li>Auto email sync</li><li>Follow-up suggestions</li><li>AI follow-up generator</li></ul><a class="btn pri" href="/register?plan=serious">Go Serious</a></article>
-          <article class="plan reveal"><h3>Advanced</h3><div class="price">$19 <span>/ month</span></div><p>For candidates optimizing every application.</p><ul><li>Everything in Pro</li><li>AI CV Studio</li><li>Match scoring</li><li>Advanced insights</li></ul><a class="btn pri" href="/register?plan=advanced">Unlock Advanced</a></article>
+          <article class="plan reveal">
+            <h3 data-i18n="pricing.plan1.h3">Starter</h3>
+            <div class="price">$0 <span>/ month</span></div>
+            <p data-i18n="pricing.plan1.p">Start simple and stay organized.</p>
+            <ul>
+              <li data-i18n="pricing.plan1.li1">30 applications tracked</li>
+              <li data-i18n="pricing.plan1.li2">Basic dashboard</li>
+            </ul>
+            <a class="btn pri" href="/register?plan=starter" data-i18n="pricing.plan1.btn">Try free</a>
+          </article>
+          <article class="plan featured reveal">
+            <div class="popular" data-i18n="pricing.plan2.popular">Most popular</div>
+            <h3 data-i18n="pricing.plan2.h3">Serious</h3>
+            <div class="price">$9 <span>/ month</span></div>
+            <p data-i18n="pricing.plan2.p">For people who want every follow-up advantage.</p>
+            <ul>
+              <li data-i18n="pricing.plan2.li1">Unlimited tracking</li>
+              <li data-i18n="pricing.plan2.li2">Auto email sync</li>
+              <li data-i18n="pricing.plan2.li3">Follow-up suggestions</li>
+              <li data-i18n="pricing.plan2.li4">AI follow-up generator</li>
+            </ul>
+            <a class="btn pri" href="/register?plan=serious" data-i18n="pricing.plan2.btn">Go Serious</a>
+          </article>
+          <article class="plan reveal">
+            <h3 data-i18n="pricing.plan3.h3">Advanced</h3>
+            <div class="price">$19 <span>/ month</span></div>
+            <p data-i18n="pricing.plan3.p">For candidates optimizing every application.</p>
+            <ul>
+              <li data-i18n="pricing.plan3.li1">Everything in Pro</li>
+              <li data-i18n="pricing.plan3.li2">AI CV Studio</li>
+              <li data-i18n="pricing.plan3.li3">Match scoring</li>
+              <li data-i18n="pricing.plan3.li4">Advanced insights</li>
+            </ul>
+            <a class="btn pri" href="/register?plan=advanced" data-i18n="pricing.plan3.btn">Unlock Advanced</a>
+          </article>
         </div>
       </div>
     </section>
 
     <section class="sec" id="cta">
       <div class="wrap">
-        <div class="final reveal"><span class="eyebrow" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.14);color:#fff">Final CTA</span><h2>Stop guessing. Start getting interviews.</h2><p>Set it up in 30 seconds. Let it run for you.</p><div class="cta" style="margin-top:24px"><a class="btn pri" href="/register?plan=starter">Start free</a><a class="btn secbtn" href="/login">Log in</a></div></div>
+        <div class="final reveal">
+          <span class="eyebrow" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.14);color:#fff" data-i18n="cta.eyebrow">Final CTA</span>
+          <h2 data-i18n="cta.h2">Stop guessing. Start getting interviews.</h2>
+          <p data-i18n="cta.p">Set it up in 30 seconds. Let it run for you.</p>
+          <div class="cta" style="margin-top:24px">
+            <a class="btn pri" href="/register?plan=starter" data-i18n="cta.btn.start">Start free</a>
+            <a class="btn secbtn" href="/login" data-i18n="cta.btn.login">Log in</a>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
   <footer class="wrap foot" id="privacy">
     <div class="brand"><span class="logo"><img src="/tracksy-logo.svg" alt=""></span><span>Tracksy</span></div>
-    <div><div class="footlinks"><a href="#solution">Features</a><a href="#pricing">Pricing</a><a href="#privacy">Privacy</a></div><small>We only process LinkedIn job emails.</small></div>
+    <div>
+      <div class="footlinks">
+        <a href="#solution" data-i18n="footer.features">Features</a>
+        <a href="#pricing" data-i18n="footer.pricing">Pricing</a>
+        <a href="#privacy" data-i18n="footer.privacy">Privacy</a>
+      </div>
+      <small data-i18n="footer.small">We only process LinkedIn job emails.</small>
+    </div>
   </footer>
 
   <script>
+    // Theme
     const themeToggle=document.getElementById("themeToggle");
     const applyTheme=(theme)=>{const isDark=theme==="dark";document.documentElement.classList.toggle("dark",isDark);if(themeToggle)themeToggle.setAttribute("aria-checked",isDark?"true":"false");};
-    try{const savedTheme=localStorage.getItem("theme");const preferredTheme=savedTheme==="dark"||savedTheme==="light"?savedTheme:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");applyTheme(preferredTheme);}catch(error){applyTheme("light");}
+    try{const savedTheme=localStorage.getItem("theme");const preferredTheme=savedTheme==="dark"||savedTheme==="light"?savedTheme:"dark";applyTheme(preferredTheme);}catch(error){applyTheme("dark");}
     themeToggle?.addEventListener("click",()=>{const nextTheme=document.documentElement.classList.contains("dark")?"light":"dark";applyTheme(nextTheme);try{localStorage.setItem("theme",nextTheme);}catch(error){}});
+
+    // Scroll reveal
     const observer=new IntersectionObserver((entries)=>{entries.forEach((entry)=>{if(entry.isIntersecting){entry.target.classList.add("visible");observer.unobserve(entry.target);}})},{threshold:.16});
     document.querySelectorAll(".reveal:not(.visible)").forEach((el)=>observer.observe(el));
   </script>

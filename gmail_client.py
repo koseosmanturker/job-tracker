@@ -1,9 +1,10 @@
+import json
 import os
 import base64
 import socket
 import time
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import Callable, Optional, List
 
 from dotenv import load_dotenv
 from google.auth.exceptions import RefreshError
@@ -18,21 +19,34 @@ load_dotenv()
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 
-# Creates and returns an authenticated Gmail API service instance.
-# This function handles token loading, token refresh, first-time OAuth login,
-# and writes the updated token back to disk for future runs.
-def get_gmail_service():
+def get_gmail_service(
+    token_json: Optional[str] = None,
+    on_token_saved: Optional[Callable[[str], None]] = None,
+):
+    """Return an authenticated Gmail API service.
+
+    token_json: serialized OAuth credentials loaded from the database.
+    on_token_saved: called with the new token JSON string whenever the token is
+        refreshed or newly created, so the caller can persist it back to the DB.
+    Falls back to token.json on disk when token_json is not supplied (CLI use).
+    """
     creds: Optional[Credentials] = None
-    if os.path.exists("token.json"):
+
+    if token_json:
+        try:
+            creds = Credentials.from_authorized_user_info(json.loads(token_json), SCOPES)
+        except Exception:
+            creds = None
+
+    if not creds and os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
+                _persist_token(creds.to_json(), on_token_saved)
             except RefreshError:
-                # The cached refresh token was revoked or expired. Force a clean
-                # OAuth flow so the user can grant access again.
                 if os.path.exists("token.json"):
                     os.remove("token.json")
                 creds = None
@@ -40,11 +54,16 @@ def get_gmail_service():
         if not creds or not creds.valid:
             flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
             creds = flow.run_local_server(port=0)
-
-        with open("token.json", "w", encoding="utf-8") as f:
-            f.write(creds.to_json())
+            _persist_token(creds.to_json(), on_token_saved)
 
     return build("gmail", "v1", credentials=creds)
+
+
+def _persist_token(token_json_str: str, on_token_saved: Optional[Callable[[str], None]]) -> None:
+    if on_token_saved:
+        on_token_saved(token_json_str)
+    with open("token.json", "w", encoding="utf-8") as f:
+        f.write(token_json_str)
 
 
 # Fetches message IDs from Gmail with pagination support and optional hard limit.

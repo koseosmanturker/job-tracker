@@ -11,7 +11,7 @@ from linkedin_parser import (
     looks_like_applied_date_line,
 )
 
-CSV_HEADERS = [
+JOB_FIELDS = [
     "company",
     "job_title",
     "location",
@@ -27,10 +27,10 @@ CSV_HEADERS = [
 ]
 
 
-def _normalize_csv_row(row: dict | None) -> dict:
-    normalized = {header: "" for header in CSV_HEADERS}
-    for header in CSV_HEADERS:
-        normalized[header] = str((row or {}).get(header, "") or "").strip()
+def _normalize_row(row: dict | None) -> dict:
+    normalized = {field: "" for field in JOB_FIELDS}
+    for field in JOB_FIELDS:
+        normalized[field] = str((row or {}).get(field, "") or "").strip()
     return normalized
 
 
@@ -50,18 +50,18 @@ def is_unloaded_job_row(row: dict) -> bool:
     return _is_missing_review_value(row.get("company", "")) or _is_missing_review_value(row.get("job_title", ""))
 
 
-def read_job_rows(csv_path: str) -> list[dict]:
-    return [_normalize_csv_row(row) for row in list_job_rows(csv_path=csv_path)]
+def read_job_rows() -> list[dict]:
+    return [_normalize_row(row) for row in list_job_rows()]
 
 
-def write_job_rows(csv_path: str, rows: list[dict]):
-    normalized_rows = [_normalize_csv_row(row) for row in rows]
-    replace_job_rows(normalized_rows, csv_path=csv_path)
+def write_job_rows(rows: list[dict]):
+    normalized_rows = [_normalize_row(row) for row in rows]
+    replace_job_rows(normalized_rows)
 
 
-def list_incomplete_job_rows(csv_path: str) -> list[dict]:
+def list_incomplete_job_rows() -> list[dict]:
     items: list[dict] = []
-    for idx, row in enumerate(read_job_rows(csv_path)):
+    for idx, row in enumerate(read_job_rows()):
         if not is_incomplete_job_row(row):
             continue
         item = dict(row)
@@ -71,8 +71,8 @@ def list_incomplete_job_rows(csv_path: str) -> list[dict]:
     return items
 
 
-def get_job_row_by_index(csv_path: str, row_index: int) -> dict | None:
-    rows = read_job_rows(csv_path)
+def get_job_row_by_index(row_index: int) -> dict | None:
+    rows = read_job_rows()
     if row_index < 0 or row_index >= len(rows):
         return None
     item = dict(rows[row_index])
@@ -81,25 +81,22 @@ def get_job_row_by_index(csv_path: str, row_index: int) -> dict | None:
     return item
 
 
-def update_job_row_by_index(csv_path: str, row_index: int, updates: dict) -> dict | None:
-    rows = read_job_rows(csv_path)
+def update_job_row_by_index(row_index: int, updates: dict) -> dict | None:
+    rows = read_job_rows()
     if row_index < 0 or row_index >= len(rows):
         return None
 
-    row = _normalize_csv_row(rows[row_index])
+    row = _normalize_row(rows[row_index])
     row["company"] = (updates.get("company") or "").strip()
     row["job_title"] = (updates.get("job_title") or "").strip()
     row["location"] = (updates.get("location") or "").strip()
     row["job_url"] = normalize_job_url((updates.get("job_url") or "").strip()) or ""
-    write_job_rows(csv_path, rows[:row_index] + [row] + rows[row_index + 1 :])
+    write_job_rows(rows[:row_index] + [row] + rows[row_index + 1 :])
     row["csv_row_index"] = row_index
     row["review_id"] = f"csv-{row_index}"
     return row
 
 
-# Picks the better display form for company name while keeping matching logic normalized.
-# Preference is given to the variant that contains uppercase styling if old value
-# is plain-lowercase, so UI gradually improves as new mails are parsed.
 def pick_better_company(old_company: str, new_company: str) -> str:
     if not old_company:
         return new_company
@@ -114,9 +111,6 @@ def pick_better_company(old_company: str, new_company: str) -> str:
     return old_company
 
 
-# Builds stable deduplication key per row.
-# Preferred key uses LinkedIn job ID; fallback key uses normalized company,
-# title, and location tuple when ID is unavailable.
 def row_key(row: dict) -> str:
     job_id = extract_job_id(row.get("job_url", ""))
     if job_id:
@@ -130,8 +124,6 @@ def row_key(row: dict) -> str:
     )
 
 
-# Chooses earliest non-empty timestamp between existing and incoming values.
-# This preserves the first-known event time when duplicate mails arrive later.
 def choose_earliest_time(old_val: str, new_val: str) -> str:
     if not old_val:
         return new_val
@@ -140,12 +132,9 @@ def choose_earliest_time(old_val: str, new_val: str) -> str:
     return min(old_val, new_val)
 
 
-# Reads CSV file and returns in-memory dict keyed by row_key.
-# The loader normalizes booleans/URLs and enforces "viewed implies applied"
-# to keep state internally consistent.
-def read_jobs_csv(csv_path: str) -> Dict[str, dict]:
+def read_jobs() -> Dict[str, dict]:
     jobs: Dict[str, dict] = {}
-    for row in read_job_rows(csv_path):
+    for row in read_job_rows():
         company = row.get("company", "")
         job_title = row.get("job_title", "")
         if is_unloaded_job_row(row):
@@ -173,8 +162,6 @@ def read_jobs_csv(csv_path: str) -> Dict[str, dict]:
     return jobs
 
 
-# Chooses more reliable title when old/new candidates conflict.
-# Preference is given to non-noise, non-location, and non-date-like titles.
 def pick_better_title(old_title: str, new_title: str, company: str) -> str:
     if not old_title:
         return new_title
@@ -189,10 +176,7 @@ def pick_better_title(old_title: str, new_title: str, company: str) -> str:
     return old_title
 
 
-# Inserts or merges incoming job event into in-memory store.
-# This function performs deduplication, title/location/job_url enrichment,
-# and state merges for applied/viewed/downloaded flags and timestamps.
-def upsert_job_csv(jobs: Dict[str, dict], incoming: dict):
+def upsert_job(jobs: Dict[str, dict], incoming: dict):
     key = row_key(incoming)
     existing = jobs.get(key)
 
@@ -252,8 +236,6 @@ def upsert_job_csv(jobs: Dict[str, dict], incoming: dict):
     jobs[key] = existing
 
 
-# Marks an existing job row as rejected by matching normalized company and title.
-# First tries exact normalized equality, then falls back to contains match.
 def mark_rejected_by_company_title(jobs: Dict[str, dict], company: str, job_title: str) -> bool:
     company_n = normalize_text(company)
     title_n = normalize_text(job_title)
@@ -274,55 +256,13 @@ def mark_rejected_by_company_title(jobs: Dict[str, dict], company: str, job_titl
     return False
 
 
-# Writes normalized job rows back to CSV in deterministic order.
-# Sorting by company/title makes diffs and manual review easier.
-def write_jobs_csv(csv_path: str, jobs: Dict[str, dict]):
+def write_jobs(jobs: Dict[str, dict]):
     valid_rows = sorted(jobs.values(), key=lambda x: (x["company"].lower(), x["job_title"].lower()))
     preserved_rows = [
-        {header: row.get(header, "") for header in CSV_HEADERS}
-        for row in read_job_rows(csv_path)
+        {field: row.get(field, "") for field in JOB_FIELDS}
+        for row in read_job_rows()
         if is_unloaded_job_row(row)
     ]
-    write_job_rows(csv_path, valid_rows + preserved_rows)
+    write_job_rows(valid_rows + preserved_rows)
 
 
-# Prints viewed job summary to terminal for quick post-sync inspection.
-def show_viewed_jobs(jobs: Dict[str, dict]):
-    viewed_rows = [row for row in jobs.values() if row["viewed"]]
-    print(f"\n--- Goruntulenen Toplam Is Sayisi: {len(viewed_rows)} ---")
-    for row in viewed_rows:
-        print(f"Sirket: {row['company']} | Pozisyon: {row['job_title']}")
-
-
-# Toggles downloaded state for the given row key.
-# Returns (success, new_downloaded_value).
-def toggle_downloaded_by_row_id(jobs: Dict[str, dict], row_id: str) -> tuple[bool, bool]:
-    row = jobs.get(row_id)
-    if not row:
-        return False, False
-    new_value = not bool(row.get("downloaded", False))
-    row["downloaded"] = new_value
-    jobs[row_id] = row
-    return True, new_value
-
-
-# Toggles favorite state for the given row key.
-# Returns (success, new_favorite_value).
-def toggle_favorite_by_row_id(jobs: Dict[str, dict], row_id: str) -> tuple[bool, bool]:
-    row = jobs.get(row_id)
-    if not row:
-        return False, False
-    new_value = not bool(row.get("favorite", False))
-    row["favorite"] = new_value
-    jobs[row_id] = row
-    return True, new_value
-
-
-def toggle_follow_up_done_by_row_id(jobs: Dict[str, dict], row_id: str) -> tuple[bool, bool]:
-    row = jobs.get(row_id)
-    if not row:
-        return False, False
-    new_value = not bool(row.get("follow_up_done", False))
-    row["follow_up_done"] = new_value
-    jobs[row_id] = row
-    return True, new_value

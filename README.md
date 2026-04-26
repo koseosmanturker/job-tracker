@@ -5,7 +5,7 @@ Tracksy is a lightweight Flask-based dashboard that pulls LinkedIn job applicati
 It is built for a simple workflow:
 
 - collect LinkedIn application activity automatically
-- store everything in a local CSV file
+- store everything in SQLite locally or PostgreSQL/Supabase in production
 - review the pipeline in a clean web UI
 - mark favorites and follow-ups
 - manually repair parser misses when needed
@@ -95,7 +95,7 @@ job-tracker/
 Suggested installation:
 
 ```bash
-pip install flask google-api-python-client google-auth-httplib2 google-auth-oauthlib
+pip install -r requirements.txt
 ```
 
 ## Setup
@@ -110,8 +110,16 @@ cd job-tracker
 ### 2. Install dependencies
 
 ```bash
-pip install flask google-api-python-client google-auth-httplib2 google-auth-oauthlib
+pip install -r requirements.txt
 ```
+
+Create `.env` from `.env.example` when you want to use Supabase:
+
+```bash
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+```
+
+If `DATABASE_URL` is not set, the app keeps using the local `job_tracker.db` SQLite database.
 
 ### 3. Add Gmail credentials
 
@@ -134,6 +142,14 @@ This command:
 - updates `jobs.csv`
 - writes review items when parsing is incomplete
 - stores the latest sync metadata in `.sync_state.json`
+
+### Migrate SQLite data to Supabase
+
+```bash
+python migrate_to_supabase.py
+```
+
+The migration script reads the current `job_tracker.db` schema, creates the PostgreSQL tables and indexes, and copies existing data into Supabase using `DATABASE_URL` or `SUPABASE_DB_URL`.
 
 ### Start the dashboard
 

@@ -4,6 +4,10 @@ token.json
 credentials.json
 .env
 .sync_state.json
+.needs_review.json
+.manual_corrections.json
+jobs.csv
+user_registrations.json
 generated/
 .cv_optimizer_cache/
 *.db
